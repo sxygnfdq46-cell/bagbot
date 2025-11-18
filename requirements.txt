@@ -1,0 +1,12 @@
+numpy
+pandas
+scikit-learn
+lightgbm
+ccxt
+python-binance
+aiohttp
+requests
+joblib
+matplotlib
+pyyaml
+ta
