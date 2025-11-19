@@ -8,9 +8,6 @@ services:
     startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
     autoDeploy: true
     healthCheckPath: /api/health
-    envVars:
-      - key: PYTHONPATH
-        value: /opt/render/project/src
 
   - type: worker
     name: bagbot-worker
@@ -20,6 +17,3 @@ services:
     buildCommand: pip install -r backend/requirements.txt
     startCommand: python -m api.run_worker
     autoDeploy: true
-    envVars:
-      - key: PYTHONPATH
-        value: /opt/render/project/src
