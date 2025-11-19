@@ -1,21 +1,34 @@
 #!/usr/bin/env python3
 """
-Simple entry point for the worker service on Render.
-This allows Render to easily find and run the worker.
+Simple standalone worker for Render deployment.
 """
 
-if __name__ == "__main__":
-    from api.run_worker import create_stop_event, run_loop
-    import sys
-    
-    print("Starting bagbot worker...")
-    stop_event = create_stop_event()
+import threading
+import time
+import logging
+import sys
+import os
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+def run_worker():
+    """Standalone worker loop that logs ticks every 5 seconds."""
+    logger.info("Worker loop started")
+    tick_count = 0
     
     try:
-        run_loop(stop_event)
+        while True:
+            tick_count += 1
+            logger.info(f"Worker tick #{tick_count}")
+            time.sleep(5.0)
     except KeyboardInterrupt:
-        print("\nShutting down worker...")
-        stop_event.set()
+        logger.info("Worker stopped by keyboard interrupt")
     except Exception as e:
-        print(f"Worker error: {e}")
+        logger.error(f"Worker error: {e}")
         sys.exit(1)
+
+if __name__ == "__main__":
+    print("Starting bagbot worker...")
+    run_worker()
