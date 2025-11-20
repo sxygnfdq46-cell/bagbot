@@ -60,15 +60,15 @@ const Sidebar: React.FC<SidebarProps> = ({ activeRoute, onNavigate }) => {
         duration: 0.3,
         ease: 'easeInOut',
       }}
-      className="relative bg-surface/95 backdrop-blur-xl border-r border-border/60 min-h-screen shadow-2xl"
+      className="relative bg-gradient-to-b from-amber-950/40 via-yellow-950/30 to-amber-900/40 backdrop-blur-xl border-r border-amber-500/20 min-h-screen shadow-2xl"
       style={{
-        boxShadow: '4px 0 24px rgba(0, 0, 0, 0.5), inset -1px 0 0 rgba(253, 185, 26, 0.05)',
+        boxShadow: '4px 0 24px rgba(251, 191, 36, 0.15), inset -1px 0 0 rgba(253, 185, 26, 0.1)',
       }}
     >
       {/* Collapse Toggle Button */}
       <motion.button
         onClick={toggleSidebar}
-        className="absolute -right-3 top-8 z-50 w-6 h-6 bg-surface border border-border rounded-full flex items-center justify-center hover:bg-card transition-all shadow-md hover:shadow-lg"
+        className="absolute -right-3 top-8 z-50 w-6 h-6 bg-gradient-to-br from-amber-500/20 to-yellow-600/20 border border-amber-400/30 rounded-full flex items-center justify-center hover:bg-amber-500/30 transition-all shadow-md hover:shadow-amber-500/30"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
       >
@@ -76,7 +76,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeRoute, onNavigate }) => {
           animate={{ rotate: isCollapsed ? 0 : 180 }}
           transition={{ duration: 0.3 }}
         >
-          <ChevronLeft className="w-3 h-3 text-muted" />
+          <ChevronLeft className="w-3 h-3 text-amber-300" />
         </motion.div>
       </motion.button>
 
@@ -92,7 +92,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeRoute, onNavigate }) => {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
               >
-                <p className="text-xs text-muted font-medium uppercase tracking-wider">
+                <p className="text-xs text-amber-300/80 font-medium uppercase tracking-wider">
                   Professional Trading Platform
                 </p>
                 <div className="flex items-center gap-2 mt-2">
@@ -131,8 +131,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeRoute, onNavigate }) => {
                   relative w-full flex items-center px-4 py-3 rounded-lg
                   text-left transition-all duration-300 overflow-hidden group
                   ${isActive
-                    ? 'bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-transparent shadow-lg'
-                    : 'hover:bg-card/80 hover:shadow-md'
+                    ? 'bg-gradient-to-r from-amber-400/25 via-yellow-500/20 to-amber-500/15 shadow-lg shadow-amber-500/20 border border-amber-400/30'
+                    : 'hover:bg-amber-500/10 hover:shadow-md hover:border hover:border-amber-500/20'
                   }
                 `}
                 whileHover={{ x: 4 }}
@@ -157,15 +157,15 @@ const Sidebar: React.FC<SidebarProps> = ({ activeRoute, onNavigate }) => {
                   className={`
                     relative flex-shrink-0 
                     ${isActive 
-                      ? 'text-amber-500' 
-                      : 'text-muted group-hover:text-main'
+                      ? 'text-amber-400' 
+                      : 'text-amber-300/60 group-hover:text-amber-300'
                     }
                   `}
                   whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
                   transition={{ duration: 0.3 }}
                   style={{
                     filter: isActive 
-                      ? 'drop-shadow(0 0 8px rgba(240, 185, 11, 0.4))'
+                      ? 'drop-shadow(0 0 8px rgba(251, 191, 36, 0.6))'
                       : 'none',
                   }}
                 >
@@ -192,8 +192,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeRoute, onNavigate }) => {
                       <span
                         className={`
                           font-medium text-sm
-                          ${isActive ? 'text-amber-500' : 'text-main'}
-                          group-hover:text-amber-400 transition-colors
+                          ${isActive ? 'text-amber-200' : 'text-amber-100/80'}
+                          group-hover:text-amber-200 transition-colors
                         `}
                       >
                         {item.name}
@@ -274,13 +274,13 @@ const Sidebar: React.FC<SidebarProps> = ({ activeRoute, onNavigate }) => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.2, delay: 0.1 }}
-              className="mt-8 pt-4 border-t border-border"
+              className="mt-8 pt-4 border-t border-amber-500/20"
             >
               <div className="px-4 py-2">
-                <p className="text-xs text-muted font-medium">
+                <p className="text-xs text-amber-300/70 font-medium">
                   Version 1.0.0
                 </p>
-                <p className="text-xs text-muted/70 mt-1">
+                <p className="text-xs text-amber-300/50 mt-1">
                   © 2025 BagBot
                 </p>
               </div>

@@ -207,11 +207,14 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="glass-card px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl border border-border hover:border-accent/30 transition-all">
-                    <p className="text-[10px] sm:text-xs text-muted uppercase tracking-wider mb-1">System Status</p>
-                    <div className="flex items-center gap-2">
+                  <div className="relative px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl border border-amber-400/30 bg-gradient-to-br from-amber-400/15 via-yellow-400/10 to-amber-500/20 backdrop-blur-md hover:border-amber-400/50 hover:shadow-lg hover:shadow-amber-500/20 transition-all duration-300 overflow-hidden group">
+                    {/* Animated shimmer overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-300/10 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+                    
+                    <p className="relative text-[10px] sm:text-xs text-amber-300/90 uppercase tracking-wider mb-1 font-semibold">System Status</p>
+                    <div className="relative flex items-center gap-2">
                       <div className={`status-indicator ${apiStatus === 'healthy' ? 'success' : 'danger'}`}></div>
-                      <span className="text-xs sm:text-sm font-bold text-main">
+                      <span className="text-xs sm:text-sm font-bold bg-gradient-to-r from-amber-200 to-yellow-100 bg-clip-text text-transparent">
                         {apiStatus === 'healthy' ? 'Operational' : 'Offline'}
                       </span>
                     </div>
