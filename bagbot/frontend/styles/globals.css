@@ -216,22 +216,31 @@ a:hover {
 }
 
 .bg-gradient-accent {
-  background: linear-gradient(135deg, #F0B90B 0%, #C99400 100%);
+  background: linear-gradient(135deg, #F0B90B 0%, #FCD535 50%, #F0B90B 100%);
+  background-size: 200% 100%;
+  animation: gradientShift 3s ease infinite;
 }
 
 .bg-gradient-success {
-  background: linear-gradient(135deg, #0ECB81 0%, #0B9F6A 100%);
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
 }
 
 .bg-gradient-danger {
-  background: linear-gradient(135deg, #F6465D 0%, #D43948 100%);
+  background: linear-gradient(135deg, #F6465D 0%, #DC2626 100%);
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 .text-gradient {
-  background: linear-gradient(135deg, #F0B90B 0%, #FCD535 100%);
+  background: linear-gradient(135deg, #F0B90B 0%, #FCD535 50%, #10B981 100%);
+  background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  animation: gradientShift 4s ease infinite;
 }
 
 .text-gradient-success {
@@ -263,8 +272,8 @@ a:hover {
 }
 
 @keyframes shimmer {
-  0% { background-position: -1000px 0; }
-  100% { background-position: 1000px 0; }
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 @keyframes slideInUp {
@@ -321,6 +330,14 @@ a:hover {
 
 .animate-border-glow {
   animation: borderGlow 3s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 /* ==========================================================================
