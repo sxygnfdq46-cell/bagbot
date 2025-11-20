@@ -57,8 +57,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeRoute, onNavigate }) => {
   };
 
   // Add admin panel to navigation if user is admin
-  const navItems = user?.role === 'admin' 
-    ? [...navigationItems, { name: 'Admin Panel', href: '/admin', icon: Shield }]
+  const navItems: NavigationItem[] = user?.role === 'admin' 
+    ? [...navigationItems, { name: 'Admin Panel', href: '/admin', icon: Shield } as NavigationItem]
     : navigationItems;
 
   return (
