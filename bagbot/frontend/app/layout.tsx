@@ -9,6 +9,7 @@ import React from 'react';
 import ThemeToggle from '../components/ThemeToggle';
 import Sidebar from '../components/Layout/Sidebar';
 import TickerTape from '../components/Dashboard/TickerTape';
+import { AuthProvider } from '../context/AuthContext';
 import '../styles/globals.css';
 
 interface LayoutProps {
@@ -36,6 +37,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <meta name="description" content="Professional trading bot dashboard" />
       </head>
       <body>
+        <AuthProvider>
         <div className="min-h-screen bg-primary text-main">
       {/* Header */}
       <header className="bg-card shadow-custom-md border-b border-main">
@@ -132,6 +134,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </div>
     </div>
+        </AuthProvider>
       </body>
     </html>
   );

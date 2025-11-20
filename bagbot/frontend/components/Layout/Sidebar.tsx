@@ -9,8 +9,11 @@ import {
   FileText, 
   Settings,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  LogOut,
+  User
 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 interface NavigationItem {
   name: string;
@@ -45,6 +48,8 @@ const navigationItems: NavigationItem[] = [
  */
 const Sidebar: React.FC<SidebarProps> = ({ activeRoute, onNavigate }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const { user, logout } = useAuth();
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
@@ -276,6 +281,49 @@ const Sidebar: React.FC<SidebarProps> = ({ activeRoute, onNavigate }) => {
               transition={{ duration: 0.2, delay: 0.1 }}
               className="mt-8 pt-4 border-t border-[#C75B7A]/20"
             >
+              {/* User Profile Section */}
+              {user && (
+                <div className="px-3 mb-4">
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowUserMenu(!showUserMenu)}
+                      className="w-full flex items-center gap-3 p-3 rounded-xl bg-[#1A0E15]/50 border border-[#C75B7A]/30 hover:border-[#F9D949]/50 transition-all group"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#C75B7A] to-[#F9D949] flex items-center justify-center">
+                        <User className="w-5 h-5 text-[#FFF8E7]" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="text-sm font-semibold text-[#FFF8E7]">{user.name}</p>
+                        <p className="text-xs text-[#D4B5C4] truncate">{user.email}</p>
+                      </div>
+                    </button>
+
+                    {/* User Menu Dropdown */}
+                    <AnimatePresence>
+                      {showUserMenu && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="absolute bottom-full left-0 right-0 mb-2 p-2 rounded-xl bg-[#2A1721]/95 border border-[#C75B7A]/30 backdrop-blur-xl shadow-2xl"
+                        >
+                          <button
+                            onClick={() => {
+                              logout();
+                              setShowUserMenu(false);
+                            }}
+                            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[#EF4444] hover:bg-[#EF4444]/10 transition-all"
+                          >
+                            <LogOut className="w-4 h-4" />
+                            <span className="text-sm font-medium">Sign Out</span>
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              )}
+
               <div className="px-4 py-2">
                 <p className="text-xs text-[#E5B299] font-medium">
                   Version 1.0.0
