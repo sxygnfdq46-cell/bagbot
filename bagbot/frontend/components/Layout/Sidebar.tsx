@@ -60,7 +60,10 @@ const Sidebar: React.FC<SidebarProps> = ({ activeRoute, onNavigate }) => {
         duration: 0.3,
         ease: 'easeInOut',
       }}
-      className="relative bg-surface border-r border-border min-h-screen"
+      className="relative bg-surface/95 backdrop-blur-xl border-r border-border/60 min-h-screen shadow-2xl"
+      style={{
+        boxShadow: '4px 0 24px rgba(0, 0, 0, 0.5), inset -1px 0 0 rgba(253, 185, 26, 0.05)',
+      }}
     >
       {/* Collapse Toggle Button */}
       <motion.button
@@ -128,8 +131,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeRoute, onNavigate }) => {
                   relative w-full flex items-center px-4 py-3 rounded-lg
                   text-left transition-all duration-300 overflow-hidden group
                   ${isActive
-                    ? 'bg-gradient-to-r from-amber-500/10 to-transparent'
-                    : 'hover:bg-card'
+                    ? 'bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-transparent shadow-lg'
+                    : 'hover:bg-card/80 hover:shadow-md'
                   }
                 `}
                 whileHover={{ x: 4 }}
@@ -144,7 +147,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeRoute, onNavigate }) => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3 }}
                     style={{
-                      boxShadow: '0 0 20px rgba(240, 185, 11, 0.6), 0 0 40px rgba(240, 185, 11, 0.3)',
+                      boxShadow: '0 0 24px rgba(253, 185, 26, 0.7), 0 0 48px rgba(253, 185, 26, 0.4), 0 0 8px rgba(255, 207, 64, 0.9)',
                     }}
                   />
                 )}

@@ -174,17 +174,9 @@ const Dashboard: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm sm:text-base md:text-lg text-muted font-medium">
-                        Institutional-grade automated trading
-                      </p>
-                      {/* Professional Trader Avatar */}
-                      <div className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-emerald-500/30 hover:border-emerald-500/60 transition-all animate-float" style={{ animationDelay: '0.2s' }}>
-                        <div className="w-full h-full bg-gradient-to-br from-emerald-500/10 to-sky-500/10 flex items-center justify-center text-2xl">
-                          👨‍💼
-                        </div>
-                      </div>
-                    </div>
+                    <p className="text-sm sm:text-base md:text-lg text-muted font-medium">
+                      Institutional-grade automated trading
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">

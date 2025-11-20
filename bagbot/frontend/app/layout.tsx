@@ -42,25 +42,22 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="flex items-center justify-between h-16">
             {/* Logo and Title */}
             <div className="flex items-center space-x-4">
-              <img
-                src="/mnt/data/1AC9BC4A-DF8A-4C03-86EC-5C998C87C4AF.jpeg"
-                alt="BagBot Trading Platform Logo"
-                className="h-10 w-10 rounded-lg shadow-sm object-cover"
-              />
               <div className="flex flex-col">
                 <h1 className="text-xl font-bold text-primary">
                   BagBot Dashboard
                 </h1>
-                <div className="flex items-center space-x-2">
-                  <p className="text-xs text-muted">
+                <div className="flex items-center space-x-3">
+                  {/* Professional Trader Photo */}
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-amber-500/40 hover:border-amber-500/70 transition-all shadow-lg hover:shadow-amber-500/30 animate-float" style={{ animationDelay: '0.1s' }}>
+                    <img
+                      src="/professional-trader.svg"
+                      alt="Professional Trader"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <p className="text-xs text-muted font-medium">
                     Professional Trading Platform
                   </p>
-                  {/* Professional Trader Avatar */}
-                  <div className="relative w-6 h-6 rounded-full overflow-hidden border-2 border-emerald-500/30 hover:border-emerald-500/60 transition-all animate-float" style={{ animationDelay: '0.2s' }}>
-                    <div className="w-full h-full bg-gradient-to-br from-emerald-500/10 to-sky-500/10 flex items-center justify-center text-sm">
-                      👨‍💼
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>

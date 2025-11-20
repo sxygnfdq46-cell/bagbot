@@ -16,7 +16,7 @@
    ========================================================================== */
 
 :root {
-  /* Sophisticated Dark Base */
+  /* World-Class Dark Base - Enhanced Depth */
   --color-primary: #0B1120;
   --color-primary-50: #F0F2F5;
   --color-primary-100: #E1E4E9;
@@ -29,41 +29,41 @@
   --color-primary-800: #0B1120;
   --color-primary-900: #070B15;
 
-  /* Premium Gold Accent */
-  --color-accent: #F0B90B;
-  --color-accent-light: #FCD535;
-  --color-accent-dark: #C99400;
-  --color-accent-glow: rgba(240, 185, 11, 0.2);
+  /* Premium Gold Accent - Enhanced Visibility */
+  --color-accent: #FDB91A;
+  --color-accent-light: #FFCF40;
+  --color-accent-dark: #E0A506;
+  --color-accent-glow: rgba(253, 185, 26, 0.25);
 
-  /* Professional Status Colors */
-  --color-success: #0ECB81;
-  --color-success-glow: rgba(14, 203, 129, 0.15);
-  --color-danger: #F6465D;
-  --color-danger-glow: rgba(246, 70, 93, 0.15);
-  --color-warning: #FFA726;
-  --color-info: #3861FB;
+  /* Professional Status Colors - World-Class */
+  --color-success: #12E693;
+  --color-success-glow: rgba(18, 230, 147, 0.2);
+  --color-danger: #FF5370;
+  --color-danger-glow: rgba(255, 83, 112, 0.2);
+  --color-warning: #FFB84D;
+  --color-info: #4A9EFF;
 
-  /* Sophisticated Neutrals - Dark Mode */
-  --color-background: #0B0E11;
-  --color-surface: #181A20;
-  --color-card: #1E2329;
-  --color-card-hover: #2B3139;
-  --color-border: #2B3139;
-  --color-main: #F5F5F5;
-  --color-muted: #B0B8C4;
-  --color-hover: #252930;
+  /* World-Class Neutrals - Superior Contrast */
+  --color-background: #060811;
+  --color-surface: #0D1118;
+  --color-card: #161921;
+  --color-card-hover: #1E2330;
+  --color-border: #252A38;
+  --color-main: #FAFBFC;
+  --color-muted: #8F96A3;
+  --color-hover: #1A1F2B;
 
-  /* Premium Glassmorphism */
-  --glass-background: rgba(24, 26, 32, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  /* World-Class Glassmorphism */
+  --glass-background: rgba(22, 25, 33, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
 
-  /* Sophisticated Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
-  --shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.6);
-  --shadow-glow: 0 0 20px rgba(240, 185, 11, 0.3);
+  /* Premium Shadows - Enhanced Depth */
+  --shadow-sm: 0 2px 4px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 24px 56px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 0 28px rgba(253, 185, 26, 0.4);
 
   /* Premium Typography */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -106,7 +106,7 @@ html {
 html,
 body {
   font-family: var(--font-family);
-  background: linear-gradient(135deg, var(--color-background) 0%, #0A0D11 100%);
+  background: linear-gradient(135deg, var(--color-background) 0%, #08090E 50%, #0A0C12 100%);
   color: var(--color-main);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -122,9 +122,9 @@ body::before {
   width: 100%;
   height: 100%;
   background: 
-    radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.05) 0%, transparent 40%),
-    radial-gradient(circle at 80% 80%, rgba(240, 185, 11, 0.05) 0%, transparent 40%),
-    radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.03) 0%, transparent 50%);
+    radial-gradient(circle at 15% 15%, rgba(18, 230, 147, 0.08) 0%, transparent 35%),
+    radial-gradient(circle at 85% 85%, rgba(253, 185, 26, 0.08) 0%, transparent 35%),
+    radial-gradient(circle at 50% 50%, rgba(74, 158, 255, 0.05) 0%, transparent 45%);
   pointer-events: none;
   z-index: 0;
 }
@@ -259,7 +259,7 @@ a:hover {
 }
 
 .text-gradient {
-  background: linear-gradient(135deg, #F0B90B 0%, #FCD535 50%, #10B981 100%);
+  background: linear-gradient(135deg, #FDB91A 0%, #FFCF40 40%, #12E693 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
