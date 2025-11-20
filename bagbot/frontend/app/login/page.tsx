@@ -27,10 +27,17 @@ const LoginPage: React.FC = () => {
     setLocalError(null);
     setIsSubmitting(true);
 
-    console.log('📝 Form submitted with:', email);
+    console.log('📝 FREE PASS: Logging in with:', email);
+
+    // FREE PASS MODE: No validation needed
+    if (!email) {
+      setLocalError('Please enter an email address');
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
-      await login({ email, password });
+      await login({ email, password: password || 'freepass' });
       console.log('✅ Login successful!');
       // Redirect handled by AuthContext
     } catch (err: any) {
@@ -135,10 +142,10 @@ const LoginPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Password Field */}
+            {/* Password Field - Optional in FREE PASS mode */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-[#FFF8E7] mb-2">
-                Password
+                Password <span className="text-green-400 text-xs">(optional - ignored in FREE PASS mode)</span>
               </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#D4B5C4]" />
@@ -147,9 +154,8 @@ const LoginPage: React.FC = () => {
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="w-full pl-12 pr-12 py-3 rounded-xl bg-[#1A0E15]/50 border border-[#C75B7A]/30 text-[#FFF8E7] placeholder-[#D4B5C4]/50 focus:outline-none focus:border-[#F9D949]/50 focus:ring-2 focus:ring-[#F9D949]/20 transition-all"
-                  placeholder="••••••••"
+                  className="w-full pl-12 pr-12 py-3 rounded-xl bg-[#1A0E15]/50 border border-[#C75B7A]/30 text-[#FFF8E7] placeholder-[#D4B5C4]/50 focus:outline-none focus:border-[#F9D949]/50 focus:ring-2 focus:ring-[#F9D949]/20 transition-all opacity-50"
+                  placeholder="Not required (FREE PASS mode)"
                 />
                 <button
                   type="button"
@@ -161,14 +167,11 @@ const LoginPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Forgot Password Link */}
-            <div className="flex justify-end">
-              <Link
-                href="/forgot-password"
-                className="text-sm text-[#F9D949] hover:text-[#FDE68A] transition-colors"
-              >
+            {/* Forgot Password Link - Hidden in FREE PASS mode */}
+            <div className="flex justify-end opacity-30">
+              <span className="text-sm text-[#D4B5C4] line-through">
                 Forgot password?
-              </Link>
+              </span>
             </div>
 
             {/* Submit Button */}
