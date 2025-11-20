@@ -8,6 +8,7 @@ import GlassCard from '../components/UI/Card';
 import StatsCard from '../components/Dashboard/StatsCard';
 import Sparkline from '../components/Dashboard/Sparkline';
 import ToastNotification, { Toast } from '../components/UI/ToastNotification';
+import PremiumButton from '../components/UI/PremiumButton';
 
 /**
  * Premium BagBot Trading Dashboard
@@ -183,14 +184,14 @@ const Dashboard: React.FC = () => {
             <div className="flex flex-col gap-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-3 sm:gap-4">
-                  <WalletLogo size={48} animated={true} className="animate-float sm:w-14 sm:h-14" />
+                  <WalletLogo size={48} animated={true} className="animate-float-slow sm:w-14 sm:h-14" />
                   <div>
                     <div className="flex flex-wrap items-center gap-2 mb-1">
                       <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight">
-                        <span className="text-gradient">BagBot</span>
+                        <span className="text-gradient animate-gradient">BagBot</span>
                         <span className="text-main"> Trading</span>
                       </h1>
-                      <div className="glass-card px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-emerald-500/30 animate-border-glow">
+                      <div className="glass-card px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-emerald-500/30 animate-glow-pulse">
                         <div className="flex items-center gap-1.5 sm:gap-2">
                           <div className="relative">
                             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse"></div>
@@ -287,9 +288,9 @@ const Dashboard: React.FC = () => {
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <div className="p-3 sm:p-4 bg-surface/50 rounded-xl border border-border hover:border-amber-500/30 transition-all group touch-manipulation">
+                <div className="p-3 sm:p-4 bg-surface/50 rounded-xl border border-border hover:border-amber-500/30 transition-all group card-expandable touch-manipulation">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white font-bold text-xs sm:text-sm">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white font-bold text-xs sm:text-sm animate-float-slow">
                       ₿
                     </div>
                     <div>
@@ -297,7 +298,7 @@ const Dashboard: React.FC = () => {
                       <p className="text-[10px] sm:text-xs text-muted/70">BTC/USDT</p>
                     </div>
                   </div>
-                  <p className="balance-text text-xl sm:text-2xl lg:text-3xl text-main mb-1">${marketData.btcPrice.toLocaleString()}</p>
+                  <p className="balance-text text-xl sm:text-2xl lg:text-3xl text-main mb-1 font-bold">${marketData.btcPrice.toLocaleString()}</p>
                   <div className="flex items-center justify-between mb-2">
                     <Sparkline 
                       data={[41200, 41800, 42100, 41900, 42500, 43100, 43684]} 
@@ -313,9 +314,9 @@ const Dashboard: React.FC = () => {
                     <span className="percentage-text text-xs sm:text-sm text-emerald-400">+2.34%</span>
                   </div>
                 </div>
-                <div className="p-3 sm:p-4 bg-surface/50 rounded-xl border border-border hover:border-sky-500/30 transition-all group touch-manipulation">
+                <div className="p-3 sm:p-4 bg-surface/50 rounded-xl border border-border hover:border-sky-500/30 transition-all group card-expandable touch-manipulation">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center text-white font-bold text-xs sm:text-sm">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center text-white font-bold text-xs sm:text-sm animate-float-slow">
                       Ξ
                     </div>
                     <div>
@@ -323,7 +324,7 @@ const Dashboard: React.FC = () => {
                       <p className="text-[10px] sm:text-xs text-muted/70">ETH/USDT</p>
                     </div>
                   </div>
-                  <p className="balance-text text-xl sm:text-2xl lg:text-3xl text-main mb-1">${marketData.ethPrice.toLocaleString()}</p>
+                  <p className="balance-text text-xl sm:text-2xl lg:text-3xl text-main mb-1 font-bold">${marketData.ethPrice.toLocaleString()}</p>
                   <div className="flex items-center justify-between mb-2">
                     <Sparkline 
                       data={[2450, 2400, 2380, 2420, 2350, 2290, 2318]} 
@@ -383,20 +384,20 @@ const Dashboard: React.FC = () => {
             <button
               onClick={startWorker}
               disabled={isLoading || workerStatus === 'healthy'}
-              className="glass-panel p-5 sm:p-6 rounded-xl border border-border hover:border-emerald-500/50 transition-all group text-left disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation"
+              className="glass-panel p-5 sm:p-6 rounded-xl border border-border hover:border-emerald-500/50 transition-all group text-left disabled:opacity-50 disabled:cursor-not-allowed card-expandable touch-manipulation"
             >
               <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 flex items-center justify-center border border-emerald-500/30 group-hover:scale-110 transition-transform">
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 flex items-center justify-center border border-emerald-500/30 group-hover:scale-110 group-hover:animate-glow-pulse transition-transform">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400 icon-morph" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-muted group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-muted group-hover:text-emerald-400 transition-all group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </div>
-              <h3 className="text-base sm:text-lg font-bold text-main mb-1">Start Trading</h3>
+              <h3 className="text-base sm:text-lg font-bold text-main mb-1 text-glow-hover">Start Trading</h3>
               <p className="text-xs sm:text-sm text-muted">Launch automated trading worker</p>
             </button>
 
@@ -404,20 +405,20 @@ const Dashboard: React.FC = () => {
             <button
               onClick={stopWorker}
               disabled={isLoading || workerStatus !== 'healthy'}
-              className="glass-panel p-5 sm:p-6 rounded-xl border border-border hover:border-rose-500/50 transition-all group text-left disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation"
+              className="glass-panel p-5 sm:p-6 rounded-xl border border-border hover:border-rose-500/50 transition-all group text-left disabled:opacity-50 disabled:cursor-not-allowed card-expandable touch-manipulation"
             >
               <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-rose-500/20 to-rose-600/10 flex items-center justify-center border border-rose-500/30 group-hover:scale-110 transition-transform">
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-rose-500/20 to-rose-600/10 flex items-center justify-center border border-rose-500/30 group-hover:scale-110 group-hover:animate-glow-pulse transition-transform">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-rose-400 icon-morph" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
                   </svg>
                 </div>
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-muted group-hover:text-rose-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-muted group-hover:text-rose-400 transition-all group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </div>
-              <h3 className="text-base sm:text-lg font-bold text-main mb-1">Stop Trading</h3>
+              <h3 className="text-base sm:text-lg font-bold text-main mb-1 text-glow-hover">Stop Trading</h3>
               <p className="text-xs sm:text-sm text-muted">Halt all trading operations</p>
             </button>
 
@@ -425,37 +426,37 @@ const Dashboard: React.FC = () => {
             <button
               onClick={refreshStatus}
               disabled={isLoading}
-              className="glass-panel p-5 sm:p-6 rounded-xl border border-border hover:border-sky-500/50 transition-all group text-left disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation"
+              className="glass-panel p-5 sm:p-6 rounded-xl border border-border hover:border-sky-500/50 transition-all group text-left disabled:opacity-50 disabled:cursor-not-allowed card-expandable touch-manipulation"
             >
               <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-sky-500/20 to-sky-600/10 flex items-center justify-center border border-sky-500/30 group-hover:scale-110 transition-transform">
-                  <svg className={`w-5 h-5 sm:w-6 sm:h-6 text-sky-400 ${isLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-sky-500/20 to-sky-600/10 flex items-center justify-center border border-sky-500/30 group-hover:scale-110 group-hover:animate-glow-pulse transition-transform">
+                  <svg className={`w-5 h-5 sm:w-6 sm:h-6 text-sky-400 ${isLoading ? 'animate-spin' : 'icon-morph'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                 </div>
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-muted group-hover:text-sky-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-muted group-hover:text-sky-400 transition-all group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </div>
-              <h3 className="text-base sm:text-lg font-bold text-main mb-1">Refresh Data</h3>
+              <h3 className="text-base sm:text-lg font-bold text-main mb-1 text-glow-hover">Refresh Data</h3>
               <p className="text-xs sm:text-sm text-muted">Update all system metrics</p>
             </button>
 
             {/* View Analytics */}
             <button
-              className="glass-panel p-5 sm:p-6 rounded-xl border border-border hover:border-violet-500/50 transition-all group text-left transform hover:scale-[1.02] active:scale-[0.98] touch-manipulation"
+              className="glass-panel p-5 sm:p-6 rounded-xl border border-border hover:border-violet-500/50 transition-all group text-left card-expandable touch-manipulation"
             >
               <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-violet-500/20 to-violet-600/10 flex items-center justify-center border border-violet-500/30 group-hover:scale-110 transition-transform">
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-violet-500/20 to-violet-600/10 flex items-center justify-center border border-violet-500/30 group-hover:scale-110 group-hover:animate-glow-pulse transition-transform">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-violet-400 icon-morph" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </div>
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-muted group-hover:text-violet-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-muted group-hover:text-violet-400 transition-all group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </div>
-              <h3 className="text-base sm:text-lg font-bold text-main mb-1">Analytics</h3>
+              <h3 className="text-base sm:text-lg font-bold text-main mb-1 text-glow-hover">Analytics</h3>
               <p className="text-xs sm:text-sm text-muted">View detailed performance</p>
             </button>
           </div>
