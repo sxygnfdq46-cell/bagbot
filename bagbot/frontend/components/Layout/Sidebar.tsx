@@ -30,7 +30,7 @@ interface SidebarProps {
 }
 
 const navigationItems: NavigationItem[] = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Charts', href: '/charts', icon: TrendingUp },
   { name: 'Signals', href: '/signals', icon: Zap },
   { name: 'Logs', href: '/logs', icon: FileText, badge: 3, isNew: true },

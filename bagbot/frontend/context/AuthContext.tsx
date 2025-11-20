@@ -137,7 +137,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(userData);
         console.log('✅ New user created and logged in:', userData.email);
         
-        router.push('/');
+        router.push('/dashboard');
         return;
       }
 
@@ -169,7 +169,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.log('💾 User data stored, redirecting to dashboard...');
       
       // Navigate to dashboard
-      router.push('/');
+      router.push('/dashboard');
     } catch (err: any) {
       console.error('🚨 Login error:', err);
       setError({

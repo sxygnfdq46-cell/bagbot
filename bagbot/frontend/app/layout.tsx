@@ -28,7 +28,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   // Hide sidebar and header on auth pages
   const isAuthPage = pathname === '/login' || pathname === '/register' || 
                       pathname === '/forgot-password' || pathname === '/reset-password' ||
-                      pathname === '/landing';
+                      pathname === '/';
 
   /**
    * Handle navigation item click
@@ -132,8 +132,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#2A1721]/98 to-[#2A1721]/95 border-t border-[#C75B7A]/30 shadow-lg z-50 backdrop-blur-xl">
         <div className="flex items-center justify-around px-2 py-1 safe-bottom">
           <button
-            onClick={() => handleNavClick('/')}
-            className={`flex flex-col items-center space-y-0.5 py-2 px-2 rounded-lg transition-all min-w-[60px] ${pathname === '/' ? 'text-amber-500 bg-amber-500/10' : 'text-[#D4B5C4]'}`}
+            onClick={() => handleNavClick('/dashboard')}
+            className={`flex flex-col items-center space-y-0.5 py-2 px-2 rounded-lg transition-all min-w-[60px] ${pathname === '/dashboard' ? 'text-amber-500 bg-amber-500/10' : 'text-[#D4B5C4]'}`}
           >
             <span className="text-xl">📊</span>
             <span className="text-[10px] font-medium">Home</span>
