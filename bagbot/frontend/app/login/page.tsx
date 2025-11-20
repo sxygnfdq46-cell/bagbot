@@ -73,21 +73,18 @@ const LoginPage: React.FC = () => {
           </div>
 
           {/* Test Credentials Info */}
-          <div className="mb-6 p-4 rounded-xl bg-[#F9D949]/10 border border-[#F9D949]/30">
-            <p className="text-[#F9D949] font-medium text-sm mb-3">🧪 Test Accounts:</p>
-            <div className="text-[#FFF8E7] text-xs space-y-3">
-              <div>
-                <p className="text-[#D4B5C4] mb-1">Regular User:</p>
-                <p>Email: <span className="font-mono bg-[#1A0E15]/50 px-2 py-1 rounded">test@bagbot.com</span></p>
-                <p>Password: <span className="font-mono bg-[#1A0E15]/50 px-2 py-1 rounded">password123</span></p>
+          <div className="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/30">
+            <p className="text-green-400 font-bold text-sm mb-3">🎉 FREE PASS MODE - NO PASSWORD REQUIRED!</p>
+            <div className="text-[#FFF8E7] text-xs space-y-2">
+              <p className="text-green-300">Just enter any email address to login instantly!</p>
+              <div className="mt-3 space-y-2">
+                <p className="text-[#D4B5C4]">Quick test emails:</p>
+                <p>• <span className="font-mono bg-[#1A0E15]/50 px-2 py-1 rounded">test@bagbot.com</span> (user)</p>
+                <p>• <span className="font-mono bg-[#1A0E15]/50 px-2 py-1 rounded">admin@bagbot.com</span> (admin with dashboard access)</p>
+                <p>• <span className="font-mono bg-[#1A0E15]/50 px-2 py-1 rounded">yourname@example.com</span> (creates new account)</p>
               </div>
-              <div>
-                <p className="text-[#F9D949] mb-1">👑 Admin User:</p>
-                <p>Email: <span className="font-mono bg-[#1A0E15]/50 px-2 py-1 rounded">admin@bagbot.com</span></p>
-                <p>Password: <span className="font-mono bg-[#1A0E15]/50 px-2 py-1 rounded">admin123</span></p>
-              </div>
+              <p className="text-[#F9D949] text-xs mt-3">💡 Tip: Use any email with "admin" in it to get admin access!</p>
             </div>
-            <p className="text-[#D4B5C4] text-xs mt-3">Or register a new account below</p>
           </div>
 
           {/* Success Message */}

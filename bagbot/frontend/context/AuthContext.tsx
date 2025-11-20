@@ -89,29 +89,61 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsLoading(true);
       setError(null);
 
-      console.log('🔐 Login attempt for:', credentials.email);
-      console.log('🔑 Password provided:', credentials.password.substring(0, 3) + '***');
+      console.log('🔐 FREE PASS MODE: Login attempt for:', credentials.email);
 
       // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 300));
 
       const users = getMockUsers();
-      console.log('👥 Total users in storage:', users.length);
-      console.log('📧 Available emails:', users.map((u: any) => u.email));
       
+      // FREE PASS MODE: Only check email, ignore password
       const foundUser = users.find((u: any) => 
-        u.email.toLowerCase() === credentials.email.toLowerCase() &&
-        u.password === credentials.password
+        u.email.toLowerCase() === credentials.email.toLowerCase()
       );
 
+      // If email not found, create a new user on the fly
       if (!foundUser) {
-        console.error('❌ No matching user found');
-        console.log('🔍 Searched for:', credentials.email.toLowerCase());
-        console.log('🔍 With password:', credentials.password);
-        throw new Error('Invalid email or password');
+        console.log('✨ Creating new user for:', credentials.email);
+        const newUser = {
+          id: `user_${Date.now()}`,
+          email: credentials.email,
+          password: credentials.password,
+          name: credentials.email.split('@')[0],
+          role: credentials.email.includes('admin') ? 'admin' : 'user',
+          createdAt: new Date().toISOString(),
+        };
+        users.push(newUser);
+        saveMockUsers(users);
+        
+        const userData: User = {
+          id: newUser.id,
+          email: newUser.email,
+          name: newUser.name,
+          role: newUser.role as 'user' | 'admin',
+          createdAt: newUser.createdAt,
+          lastLogin: new Date().toISOString(),
+        };
+        
+        const tokens = {
+          accessToken: `mock_token_${Date.now()}`,
+          refreshToken: `mock_refresh_${Date.now()}`,
+          expiresIn: 3600,
+        };
+        
+        localStorage.setItem('accessToken', tokens.accessToken);
+        localStorage.setItem('refreshToken', tokens.refreshToken);
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        setUser(userData);
+        console.log('✅ New user created and logged in:', userData.email);
+        
+        if (typeof window !== 'undefined') {
+          window.location.href = '/';
+        }
+        return;
       }
 
-      console.log('✅ Login successful:', foundUser.email);
+      console.log('✅ Login successful (FREE PASS):', foundUser.email);
 
       // Create tokens
       const tokens = {
