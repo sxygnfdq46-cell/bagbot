@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Root Layout Component for BagBot Trading Platform
  * Main application layout with navigation, header, and theme support

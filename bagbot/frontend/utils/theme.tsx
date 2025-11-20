@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Theme utility functions and React hooks for Bagbot Trading Platform
  * Provides SSR-safe theme switching with localStorage persistence
