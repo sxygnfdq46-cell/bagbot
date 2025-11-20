@@ -14,6 +14,12 @@ const Dashboard: React.FC = () => {
     { timestamp: new Date(), message: 'Dashboard loaded...', type: 'info' }
   ]);
   const [isLoading, setIsLoading] = useState(false);
+  const [tradingStats, setTradingStats] = useState({
+    totalTrades: 0,
+    profitLoss: 0,
+    winRate: 0,
+    activePositions: 0
+  });
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -117,25 +123,61 @@ const Dashboard: React.FC = () => {
         
         {/* Premium Header */}
         <header className="mb-8 sm:mb-12 animate-slide-in-up">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-            <div>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-2">
-                <span className="text-gradient">BagBot</span>
-                <span className="text-main"> Trading</span>
-              </h1>
-              <p className="text-base sm:text-lg text-muted font-medium">
-                Monitor and control your automated trading operations
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="glass-card px-4 py-2 rounded-lg">
-                <p className="text-xs text-muted uppercase tracking-wider mb-1">System Status</p>
-                <div className="flex items-center gap-2">
-                  <div className={`status-indicator ${apiStatus === 'healthy' ? 'success' : 'danger'}`}></div>
-                  <span className="text-sm font-semibold text-main">
-                    {apiStatus === 'healthy' ? 'Online' : 'Offline'}
-                  </span>
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-4 mb-3">
+                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold">
+                    <span className="text-gradient">BagBot</span>
+                    <span className="text-main"> Trading</span>
+                  </h1>
+                  <div className="glass-card px-3 py-1.5 rounded-full border border-emerald-500/30">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                      <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Live</span>
+                    </div>
+                  </div>
                 </div>
+                <p className="text-base sm:text-lg text-muted font-medium">
+                  Institutional-grade automated trading platform
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="glass-card px-4 py-2.5 rounded-xl border border-border hover:border-accent/30 transition-all">
+                  <p className="text-xs text-muted uppercase tracking-wider mb-1">System Status</p>
+                  <div className="flex items-center gap-2">
+                    <div className={`status-indicator ${apiStatus === 'healthy' ? 'success' : 'danger'}`}></div>
+                    <span className="text-sm font-bold text-main">
+                      {apiStatus === 'healthy' ? 'Operational' : 'Offline'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Trading Metrics Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              <div className="glass-panel p-4 rounded-xl border border-border hover:border-emerald-500/30 transition-all group">
+                <p className="text-xs text-muted uppercase tracking-wider mb-2">Total Trades</p>
+                <p className="text-2xl font-bold text-main group-hover:text-emerald-400 transition-colors">{tradingStats.totalTrades}</p>
+              </div>
+              <div className="glass-panel p-4 rounded-xl border border-border hover:border-amber-500/30 transition-all group">
+                <p className="text-xs text-muted uppercase tracking-wider mb-2">Profit/Loss</p>
+                <p className={`text-2xl font-bold transition-colors ${
+                  tradingStats.profitLoss >= 0 
+                    ? 'text-emerald-400 group-hover:text-emerald-300' 
+                    : 'text-rose-400 group-hover:text-rose-300'
+                }`}>
+                  {tradingStats.profitLoss >= 0 ? '+' : ''}{tradingStats.profitLoss.toFixed(2)}%
+                </p>
+              </div>
+              <div className="glass-panel p-4 rounded-xl border border-border hover:border-sky-500/30 transition-all group">
+                <p className="text-xs text-muted uppercase tracking-wider mb-2">Win Rate</p>
+                <p className="text-2xl font-bold text-main group-hover:text-sky-400 transition-colors">{tradingStats.winRate}%</p>
+              </div>
+              <div className="glass-panel p-4 rounded-xl border border-border hover:border-violet-500/30 transition-all group">
+                <p className="text-xs text-muted uppercase tracking-wider mb-2">Active Positions</p>
+                <p className="text-2xl font-bold text-main group-hover:text-violet-400 transition-colors">{tradingStats.activePositions}</p>
               </div>
             </div>
           </div>
