@@ -21,9 +21,29 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 // Mock users storage (for demo - in production this would be in a real database)
 const MOCK_USERS_KEY = 'bagbot_mock_users';
 
+// Initialize with a default test user if none exist
+const initializeMockUsers = () => {
+  if (typeof window === 'undefined') return;
+  
+  const stored = localStorage.getItem(MOCK_USERS_KEY);
+  if (!stored) {
+    // Create a default test user: test@bagbot.com / password123
+    const defaultUsers = [
+      {
+        id: 'user_default_001',
+        email: 'test@bagbot.com',
+        password: 'password123',
+        name: 'Test User',
+      }
+    ];
+    localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(defaultUsers));
+  }
+};
+
 // Helper to get mock users from localStorage
 const getMockUsers = (): Array<{ email: string; password: string; name: string; id: string }> => {
   if (typeof window === 'undefined') return [];
+  initializeMockUsers(); // Ensure default user exists
   const stored = localStorage.getItem(MOCK_USERS_KEY);
   return stored ? JSON.parse(stored) : [];
 };

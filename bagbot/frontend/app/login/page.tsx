@@ -68,6 +68,16 @@ const LoginPage: React.FC = () => {
             <p className="text-[#D4B5C4]">Sign in to continue to your dashboard</p>
           </div>
 
+          {/* Test Credentials Info */}
+          <div className="mb-6 p-4 rounded-xl bg-[#F9D949]/10 border border-[#F9D949]/30">
+            <p className="text-[#F9D949] font-medium text-sm mb-2">🧪 Test Account:</p>
+            <div className="text-[#FFF8E7] text-xs space-y-1">
+              <p>Email: <span className="font-mono bg-[#1A0E15]/50 px-2 py-1 rounded">test@bagbot.com</span></p>
+              <p>Password: <span className="font-mono bg-[#1A0E15]/50 px-2 py-1 rounded">password123</span></p>
+            </div>
+            <p className="text-[#D4B5C4] text-xs mt-2">Or register a new account below</p>
+          </div>
+
           {/* Success Message */}
           {resetSuccess && (
             <motion.div
