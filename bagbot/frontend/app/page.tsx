@@ -200,9 +200,9 @@ const Dashboard: React.FC = () => {
                     <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                   </svg>
                 </div>
-                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-main group-hover:text-emerald-400 transition-colors">{tradingStats.totalTrades}</p>
+                <p className="metric-text text-xl sm:text-2xl lg:text-3xl text-main group-hover:text-emerald-400 transition-colors">{tradingStats.totalTrades}</p>
                 <div className="mt-1.5 sm:mt-2 flex items-center gap-1">
-                  <span className="text-[10px] sm:text-xs text-emerald-400 font-medium">↑ 12.5%</span>
+                  <span className="percentage-text text-[10px] sm:text-xs text-emerald-400">↑ 12.5%</span>
                   <span className="text-[10px] sm:text-xs text-muted hidden sm:inline">vs last week</span>
                 </div>
               </div>
@@ -213,7 +213,7 @@ const Dashboard: React.FC = () => {
                     <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                   </svg>
                 </div>
-                <p className={`text-xl sm:text-2xl lg:text-3xl font-bold transition-colors ${
+                <p className={`metric-text text-xl sm:text-2xl lg:text-3xl transition-colors ${
                   tradingStats.profitLoss >= 0 
                     ? 'text-emerald-400 group-hover:text-emerald-300' 
                     : 'text-rose-400 group-hover:text-rose-300'
@@ -232,7 +232,7 @@ const Dashboard: React.FC = () => {
                     <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                 </div>
-                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-main group-hover:text-sky-400 transition-colors">{tradingStats.winRate}%</p>
+                <p className="metric-text text-xl sm:text-2xl lg:text-3xl text-main group-hover:text-sky-400 transition-colors">{tradingStats.winRate}%</p>
                 <div className="mt-1.5 sm:mt-2">
                   <div className="w-full bg-slate-700/30 rounded-full h-1 sm:h-1.5">
                     <div className="bg-gradient-to-r from-sky-500 to-sky-400 h-1 sm:h-1.5 rounded-full transition-all duration-500" style={{ width: `${tradingStats.winRate}%` }}></div>
@@ -246,7 +246,7 @@ const Dashboard: React.FC = () => {
                     <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
                   </svg>
                 </div>
-                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-main group-hover:text-violet-400 transition-colors">{tradingStats.activePositions}</p>
+                <p className="metric-text text-xl sm:text-2xl lg:text-3xl text-main group-hover:text-violet-400 transition-colors">{tradingStats.activePositions}</p>
                 <div className="mt-1.5 sm:mt-2 flex items-center gap-1">
                   <span className="text-[10px] sm:text-xs text-violet-400 font-medium">{tradingStats.activePositions > 0 ? 'Active' : 'Idle'}</span>
                   <span className="text-[10px] sm:text-xs text-muted hidden sm:inline">• Monitoring</span>
@@ -293,12 +293,12 @@ const Dashboard: React.FC = () => {
                       <p className="text-[10px] sm:text-xs text-muted/70">BTC/USDT</p>
                     </div>
                   </div>
-                  <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-main mb-1">${marketData.btcPrice.toLocaleString()}</p>
+                  <p className="balance-text text-xl sm:text-2xl lg:text-3xl text-main mb-1">${marketData.btcPrice.toLocaleString()}</p>
                   <div className="flex items-center gap-1">
                     <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
                     </svg>
-                    <span className="text-xs sm:text-sm text-emerald-400 font-medium">+2.34%</span>
+                    <span className="percentage-text text-xs sm:text-sm text-emerald-400">+2.34%</span>
                   </div>
                 </div>
                 <div className="p-3 sm:p-4 bg-surface/50 rounded-xl border border-border hover:border-sky-500/30 transition-all group touch-manipulation">
@@ -311,12 +311,12 @@ const Dashboard: React.FC = () => {
                       <p className="text-[10px] sm:text-xs text-muted/70">ETH/USDT</p>
                     </div>
                   </div>
-                  <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-main mb-1">${marketData.ethPrice.toLocaleString()}</p>
+                  <p className="balance-text text-xl sm:text-2xl lg:text-3xl text-main mb-1">${marketData.ethPrice.toLocaleString()}</p>
                   <div className="flex items-center gap-1">
                     <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
                     </svg>
-                    <span className="text-xs sm:text-sm text-emerald-400 font-medium">+1.87%</span>
+                    <span className="percentage-text text-xs sm:text-sm text-emerald-400">+1.87%</span>
                   </div>
                 </div>
               </div>
@@ -345,7 +345,7 @@ const Dashboard: React.FC = () => {
               <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-[11px] sm:text-xs text-muted">Fear & Greed Index</span>
-                  <span className="text-xs sm:text-sm font-bold text-amber-400">65</span>
+                  <span className="metric-text text-xs sm:text-sm text-amber-400">65</span>
                 </div>
                 <div className="w-full bg-slate-700/30 rounded-full h-1.5 sm:h-2">
                   <div className="bg-gradient-to-r from-rose-500 via-amber-500 to-emerald-500 h-1.5 sm:h-2 rounded-full" style={{ width: '65%' }}></div>
@@ -574,27 +574,27 @@ const Dashboard: React.FC = () => {
                 <div className="flex items-center justify-between p-3 sm:p-4 bg-surface/50 rounded-xl border border-border hover:border-emerald-500/30 transition-all touch-manipulation">
                   <div>
                     <p className="text-xs sm:text-sm text-muted mb-1">Total Volume</p>
-                    <p className="text-xl sm:text-2xl font-bold text-main">$2,847.50</p>
+                    <p className="balance-text text-xl sm:text-2xl text-main">$2,847.50</p>
                   </div>
                   <div className="text-right">
-                    <span className="text-xs sm:text-sm text-emerald-400 font-medium">+18.2%</span>
+                    <span className="percentage-text text-xs sm:text-sm text-emerald-400">+18.2%</span>
                     <p className="text-[10px] sm:text-xs text-muted mt-1">vs yesterday</p>
                   </div>
                 </div>
                 <div className="flex items-center justify-between p-3 sm:p-4 bg-surface/50 rounded-xl border border-border hover:border-sky-500/30 transition-all touch-manipulation">
                   <div>
                     <p className="text-xs sm:text-sm text-muted mb-1">Trades Executed</p>
-                    <p className="text-xl sm:text-2xl font-bold text-main">24</p>
+                    <p className="metric-text text-xl sm:text-2xl text-main">24</p>
                   </div>
                   <div className="text-right">
-                    <span className="text-xs sm:text-sm text-sky-400 font-medium">+6 trades</span>
+                    <span className="metric-text text-xs sm:text-sm text-sky-400">+6 trades</span>
                     <p className="text-[10px] sm:text-xs text-muted mt-1">since start</p>
                   </div>
                 </div>
                 <div className="flex items-center justify-between p-3 sm:p-4 bg-surface/50 rounded-xl border border-border hover:border-amber-500/30 transition-all touch-manipulation">
                   <div>
                     <p className="text-xs sm:text-sm text-muted mb-1">Avg. Trade Size</p>
-                    <p className="text-xl sm:text-2xl font-bold text-main">$118.65</p>
+                    <p className="balance-text text-xl sm:text-2xl text-main">$118.65</p>
                   </div>
                   <div className="text-right">
                     <span className="text-xs sm:text-sm text-amber-400 font-medium">Optimal</span>
@@ -625,11 +625,11 @@ const Dashboard: React.FC = () => {
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div className="p-3 sm:p-4 bg-surface/50 rounded-xl border border-border text-center touch-manipulation">
                     <p className="text-[10px] sm:text-xs text-muted mb-1 sm:mb-2">Max Drawdown</p>
-                    <p className="text-lg sm:text-xl font-bold text-rose-400">-3.2%</p>
+                    <p className="percentage-text text-lg sm:text-xl text-rose-400">-3.2%</p>
                   </div>
                   <div className="p-3 sm:p-4 bg-surface/50 rounded-xl border border-border text-center touch-manipulation">
                     <p className="text-[10px] sm:text-xs text-muted mb-1 sm:mb-2">Sharpe Ratio</p>
-                    <p className="text-lg sm:text-xl font-bold text-emerald-400">2.14</p>
+                    <p className="metric-text text-lg sm:text-xl text-emerald-400">2.14</p>
                   </div>
                 </div>
                 <div className="p-3 sm:p-4 bg-surface/50 rounded-xl border border-border">
@@ -665,20 +665,20 @@ const Dashboard: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-muted">Entry</span>
-                  <span className="text-sm font-bold text-main">$43,450</span>
+                  <span className="balance-text text-sm text-main">$43,450</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-muted">Target</span>
-                  <span className="text-sm font-bold text-emerald-400">$45,200</span>
+                  <span className="balance-text text-sm text-emerald-400">$45,200</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-muted">Stop Loss</span>
-                  <span className="text-sm font-bold text-rose-400">$42,800</span>
+                  <span className="balance-text text-sm text-rose-400">$42,800</span>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-border">
                   <span className="text-xs text-muted">Confidence</span>
                   <div className="flex items-center gap-1">
-                    <span className="text-sm font-bold text-amber-400">78%</span>
+                    <span className="percentage-text text-sm text-amber-400">78%</span>
                     <div className="flex gap-0.5">
                       {[1,2,3,4].map((i) => (
                         <div key={i} className="w-1 h-3 bg-amber-400 rounded-full"></div>
@@ -707,20 +707,20 @@ const Dashboard: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-muted">Current</span>
-                  <span className="text-sm font-bold text-main">$2,285</span>
+                  <span className="balance-text text-sm text-main">$2,285</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-muted">Support</span>
-                  <span className="text-sm font-bold text-sky-400">$2,240</span>
+                  <span className="balance-text text-sm text-sky-400">$2,240</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-muted">Resistance</span>
-                  <span className="text-sm font-bold text-amber-400">$2,350</span>
+                  <span className="balance-text text-sm text-amber-400">$2,350</span>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-border">
                   <span className="text-xs text-muted">Momentum</span>
                   <div className="flex items-center gap-1">
-                    <span className="text-sm font-bold text-sky-400">65%</span>
+                    <span className="percentage-text text-sm text-sky-400">65%</span>
                     <div className="flex gap-0.5">
                       {[1,2,3].map((i) => (
                         <div key={i} className="w-1 h-3 bg-sky-400 rounded-full"></div>
