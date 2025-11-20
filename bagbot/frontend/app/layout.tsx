@@ -7,6 +7,7 @@
 
 import React from 'react';
 import ThemeToggle from '../components/ThemeToggle';
+import '../styles/globals.css';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -38,7 +39,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-primary text-main">
+    <html lang="en">
+      <head>
+        <title>BagBot Trading Platform</title>
+        <meta name="description" content="Professional trading bot dashboard" />
+      </head>
+      <body>
+        <div className="min-h-screen bg-primary text-main">
       {/* Header */}
       <header className="bg-card shadow-custom-md border-b border-main">
         <div className="container mx-auto px-4">
@@ -157,6 +164,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </div>
     </div>
+      </body>
+    </html>
   );
 };
 
