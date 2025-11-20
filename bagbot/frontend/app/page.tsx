@@ -8,8 +8,8 @@ import StatusTile from '../components/StatusTile';
  * World-class design exceeding Binance standards
  */
 const Dashboard: React.FC = () => {
-  const [apiStatus, setApiStatus] = useState<'healthy' | 'degraded' | 'down'>('down');
-  const [workerStatus, setWorkerStatus] = useState<'healthy' | 'degraded' | 'down'>('down');
+  const [apiStatus, setApiStatus] = useState<'healthy' | 'warning' | 'error' | 'loading' | 'inactive'>('inactive');
+  const [workerStatus, setWorkerStatus] = useState<'healthy' | 'warning' | 'error' | 'loading' | 'inactive'>('inactive');
   const [logs, setLogs] = useState<Array<{ timestamp: Date; message: string; type: string }>>([
     { timestamp: new Date(), message: 'Dashboard loaded...', type: 'info' }
   ]);
@@ -34,7 +34,7 @@ const Dashboard: React.FC = () => {
         throw new Error('API not healthy');
       }
     } catch (error) {
-      setApiStatus('down');
+      setApiStatus('error');
       addLog('API health check failed', 'error');
       return false;
     }
@@ -49,11 +49,11 @@ const Dashboard: React.FC = () => {
         setWorkerStatus('healthy');
         addLog('Worker is running');
       } else {
-        setWorkerStatus('down');
+        setWorkerStatus('inactive');
         addLog('Worker is not running');
       }
     } catch (error) {
-      setWorkerStatus('down');
+      setWorkerStatus('error');
       addLog('Worker status check failed', 'error');
     }
   };
