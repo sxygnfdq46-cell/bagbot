@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import StatusTile from '../components/StatusTile';
 import WalletLogo from '../components/WalletLogo';
+import GlassCard from '../components/UI/Card';
 
 /**
  * Premium BagBot Trading Dashboard
@@ -259,7 +260,7 @@ const Dashboard: React.FC = () => {
         <section className="mb-6 sm:mb-8 lg:mb-12 animate-slide-in-up" style={{ animationDelay: '0.05s' }}>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
             {/* Live Price Ticker */}
-            <div className="lg:col-span-2 glass-card p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl border border-border hover:border-emerald-500/20 transition-all">
+            <GlassCard className="lg:col-span-2 p-4 sm:p-5 lg:p-6 hover:border-emerald-500/20 transition-all">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                 <h3 className="text-base sm:text-lg font-bold text-main flex items-center gap-2">
                   <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-pulse"></div>
@@ -319,10 +320,10 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </GlassCard>
 
             {/* Market Sentiment */}
-            <div className="glass-card p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl border border-border hover:border-violet-500/20 transition-all">
+            <GlassCard className="p-4 sm:p-5 lg:p-6 hover:border-violet-500/20 transition-all">
               <h3 className="text-base sm:text-lg font-bold text-main mb-3 sm:mb-4">Market Sentiment</h3>
               <div className="flex flex-col items-center justify-center py-3 sm:py-4">
                 <div className={`text-4xl sm:text-5xl mb-2 sm:mb-3 ${
@@ -350,7 +351,7 @@ const Dashboard: React.FC = () => {
                   <div className="bg-gradient-to-r from-rose-500 via-amber-500 to-emerald-500 h-1.5 sm:h-2 rounded-full" style={{ width: '65%' }}></div>
                 </div>
               </div>
-            </div>
+            </GlassCard>
           </div>
         </section>
 
@@ -487,7 +488,7 @@ const Dashboard: React.FC = () => {
         {/* Worker Controls - Premium Section */}
         <section className="mb-6 sm:mb-8 lg:mb-12 animate-slide-in-up" style={{ animationDelay: '0.2s' }}>
           <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-main mb-4 sm:mb-6">Worker Controls</h2>
-          <div className="glass-card p-4 sm:p-6 lg:p-8 rounded-xl sm:rounded-2xl">
+          <GlassCard className="p-4 sm:p-6 lg:p-8">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               {/* Start Worker Button */}
               <button
@@ -554,7 +555,7 @@ const Dashboard: React.FC = () => {
                 </span>
               </button>
             </div>
-          </div>
+          </GlassCard>
         </section>
 
         {/* Performance Analytics - Premium Section */}
@@ -562,7 +563,7 @@ const Dashboard: React.FC = () => {
           <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-main mb-4 sm:mb-6">Performance Analytics</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
             {/* Today's Performance */}
-            <div className="glass-card p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl border border-border">
+            <GlassCard className="p-4 sm:p-5 lg:p-6">
               <h3 className="text-base sm:text-lg font-bold text-main mb-3 sm:mb-4 flex items-center gap-2">
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -601,10 +602,10 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </GlassCard>
 
             {/* Risk Management */}
-            <div className="glass-card p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl border border-border">
+            <GlassCard className="p-4 sm:p-5 lg:p-6">
               <h3 className="text-base sm:text-lg font-bold text-main mb-3 sm:mb-4 flex items-center gap-2">
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -639,7 +640,7 @@ const Dashboard: React.FC = () => {
                   <p className="text-[10px] sm:text-xs text-muted">Auto-triggered at -5% loss threshold</p>
                 </div>
               </div>
-            </div>
+            </GlassCard>
           </div>
         </section>
 
@@ -648,7 +649,7 @@ const Dashboard: React.FC = () => {
           <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-main mb-4 sm:mb-6">Live Trading Signals</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {/* BTC Signal */}
-            <div className="glass-card p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl border border-emerald-500/30 hover:border-emerald-500/50 transition-all">
+            <GlassCard className="p-4 sm:p-5 lg:p-6 border-emerald-500/30 hover:border-emerald-500/50 transition-all">
               <div className="flex items-center justify-between mb-3 sm:mb-4">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white font-bold text-sm sm:text-base">
@@ -687,10 +688,10 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </GlassCard>
 
             {/* ETH Signal */}
-            <div className="glass-card p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl border border-sky-500/30 hover:border-sky-500/50 transition-all">
+            <GlassCard className="p-4 sm:p-5 lg:p-6 border-sky-500/30 hover:border-sky-500/50 transition-all">
               <div className="flex items-center justify-between mb-3 sm:mb-4">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm sm:text-base">
@@ -731,10 +732,10 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </GlassCard>
 
             {/* Market Overview */}
-            <div className="glass-card p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl border border-violet-500/30 hover:border-violet-500/50 transition-all">
+            <GlassCard className="p-4 sm:p-5 lg:p-6 border-violet-500/30 hover:border-violet-500/50 transition-all">
               <div className="flex items-center justify-between mb-3 sm:mb-4">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
@@ -767,14 +768,14 @@ const Dashboard: React.FC = () => {
                   <span className="text-sm font-bold text-emerald-400">Bullish</span>
                 </div>
               </div>
-            </div>
+            </GlassCard>
           </div>
         </section>
 
         {/* Activity Log - Premium Section */}
         <section className="animate-slide-in-up" style={{ animationDelay: '0.3s' }}>
           <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-main mb-4 sm:mb-6">Activity Log</h2>
-          <div className="glass-card p-4 sm:p-6 lg:p-8 rounded-xl sm:rounded-2xl">
+          <GlassCard className="p-4 sm:p-6 lg:p-8">
             <div className="h-64 sm:h-80 overflow-y-auto space-y-2 custom-scrollbar">
               {logs.slice().reverse().map((log, index) => (
                 <div
@@ -798,7 +799,7 @@ const Dashboard: React.FC = () => {
                 </div>
               ))}
             </div>
-          </div>
+          </GlassCard>
         </section>
 
       </div>
