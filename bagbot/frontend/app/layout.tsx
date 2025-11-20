@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import ThemeToggle from '../components/ThemeToggle';
 import Sidebar from '../components/Layout/Sidebar';
 import TickerTape from '../components/Dashboard/TickerTape';
@@ -21,14 +22,37 @@ interface LayoutProps {
  * @param children - Page content to render
  */
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const [activeRoute, setActiveRoute] = React.useState('/');
+  const pathname = usePathname();
+  const router = useRouter();
+
+  // Hide sidebar and header on auth pages
+  const isAuthPage = pathname === '/login' || pathname === '/register' || 
+                      pathname === '/forgot-password' || pathname === '/reset-password' ||
+                      pathname === '/landing';
 
   /**
    * Handle navigation item click
    */
   const handleNavClick = (href: string) => {
-    setActiveRoute(href);
+    router.push(href);
   };
+
+  // If it's an auth page, render children without layout
+  if (isAuthPage) {
+    return (
+      <html lang="en">
+        <head>
+          <title>BagBot Trading Platform</title>
+          <meta name="description" content="Professional trading bot dashboard" />
+        </head>
+        <body>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </body>
+      </html>
+    );
+  }
 
   return (
     <html lang="en">
@@ -86,7 +110,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Main Layout */}
       <div className="flex">
         {/* Enhanced Collapsible Sidebar */}
-        <Sidebar activeRoute={activeRoute} onNavigate={handleNavClick} />
+        <Sidebar activeRoute={pathname} onNavigate={handleNavClick} />
 
         {/* Main Content Area */}
         <main className="flex-1 bg-primary">
