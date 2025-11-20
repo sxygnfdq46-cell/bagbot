@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import StatusTile from '../components/StatusTile';
 import WalletLogo from '../components/WalletLogo';
 import GlassCard from '../components/UI/Card';
+import StatsCard from '../components/Dashboard/StatsCard';
 
 /**
  * Premium BagBot Trading Dashboard
@@ -193,65 +194,41 @@ const Dashboard: React.FC = () => {
             
             {/* Trading Metrics Bar - Premium Dashboard */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
-              <div className="glass-panel p-3 sm:p-4 lg:p-5 rounded-xl border border-border hover:border-emerald-500/30 transition-all group cursor-pointer transform hover:scale-[1.02] active:scale-[0.98]">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] sm:text-xs text-muted uppercase tracking-wider">Total Trades</p>
-                  <svg className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-500/50 group-hover:text-emerald-400 transition-colors" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-                  </svg>
-                </div>
-                <p className="metric-text text-xl sm:text-2xl lg:text-3xl text-main group-hover:text-emerald-400 transition-colors">{tradingStats.totalTrades}</p>
-                <div className="mt-1.5 sm:mt-2 flex items-center gap-1">
-                  <span className="percentage-text text-[10px] sm:text-xs text-emerald-400">↑ 12.5%</span>
-                  <span className="text-[10px] sm:text-xs text-muted hidden sm:inline">vs last week</span>
-                </div>
-              </div>
-              <div className="glass-panel p-3 sm:p-4 lg:p-5 rounded-xl border border-border hover:border-amber-500/30 transition-all group cursor-pointer transform hover:scale-[1.02] active:scale-[0.98]">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] sm:text-xs text-muted uppercase tracking-wider">Profit/Loss</p>
-                  <svg className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500/50 group-hover:text-amber-400 transition-colors" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <p className={`metric-text text-xl sm:text-2xl lg:text-3xl transition-colors ${
-                  tradingStats.profitLoss >= 0 
-                    ? 'text-emerald-400 group-hover:text-emerald-300' 
-                    : 'text-rose-400 group-hover:text-rose-300'
-                }`}>
-                  {tradingStats.profitLoss >= 0 ? '+' : ''}{tradingStats.profitLoss.toFixed(2)}%
-                </p>
-                <div className="mt-1.5 sm:mt-2 flex items-center gap-1">
-                  <div className={`w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full ${tradingStats.profitLoss >= 0 ? 'bg-emerald-400' : 'bg-rose-400'} animate-pulse`}></div>
-                  <span className="text-[10px] sm:text-xs text-muted">Real-time</span>
-                </div>
-              </div>
-              <div className="glass-panel p-3 sm:p-4 lg:p-5 rounded-xl border border-border hover:border-sky-500/30 transition-all group cursor-pointer transform hover:scale-[1.02] active:scale-[0.98]">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] sm:text-xs text-muted uppercase tracking-wider">Win Rate</p>
-                  <svg className="w-3 h-3 sm:w-4 sm:h-4 text-sky-500/50 group-hover:text-sky-400 transition-colors" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <p className="metric-text text-xl sm:text-2xl lg:text-3xl text-main group-hover:text-sky-400 transition-colors">{tradingStats.winRate}%</p>
-                <div className="mt-1.5 sm:mt-2">
-                  <div className="w-full bg-slate-700/30 rounded-full h-1 sm:h-1.5">
-                    <div className="bg-gradient-to-r from-sky-500 to-sky-400 h-1 sm:h-1.5 rounded-full transition-all duration-500" style={{ width: `${tradingStats.winRate}%` }}></div>
-                  </div>
-                </div>
-              </div>
-              <div className="glass-panel p-3 sm:p-4 lg:p-5 rounded-xl border border-border hover:border-violet-500/30 transition-all group cursor-pointer transform hover:scale-[1.02] active:scale-[0.98]">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] sm:text-xs text-muted uppercase tracking-wider">Active Positions</p>
-                  <svg className="w-3 h-3 sm:w-4 sm:h-4 text-violet-500/50 group-hover:text-violet-400 transition-colors" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
-                  </svg>
-                </div>
-                <p className="metric-text text-xl sm:text-2xl lg:text-3xl text-main group-hover:text-violet-400 transition-colors">{tradingStats.activePositions}</p>
-                <div className="mt-1.5 sm:mt-2 flex items-center gap-1">
-                  <span className="text-[10px] sm:text-xs text-violet-400 font-medium">{tradingStats.activePositions > 0 ? 'Active' : 'Idle'}</span>
-                  <span className="text-[10px] sm:text-xs text-muted hidden sm:inline">• Monitoring</span>
-                </div>
-              </div>
+              <StatsCard
+                title="Total Trades"
+                value={tradingStats.totalTrades}
+                change={12.5}
+                changeLabel="vs last week"
+                icon="trades"
+                colorScheme="emerald"
+              />
+              <StatsCard
+                title="Profit/Loss"
+                value={tradingStats.profitLoss}
+                change={tradingStats.profitLoss >= 0 ? 5.2 : -2.3}
+                changeLabel="24h change"
+                icon="profit"
+                colorScheme={tradingStats.profitLoss >= 0 ? 'emerald' : 'rose'}
+                isPercentage={true}
+                showLiveTag={true}
+              />
+              <StatsCard
+                title="Win Rate"
+                value={tradingStats.winRate}
+                change={3.8}
+                changeLabel="this month"
+                icon="winrate"
+                colorScheme="sky"
+                isPercentage={true}
+                showProgressBar={true}
+              />
+              <StatsCard
+                title="Active Positions"
+                value={tradingStats.activePositions}
+                icon="positions"
+                colorScheme="violet"
+                showLiveTag={tradingStats.activePositions > 0}
+              />
             </div>
           </div>
         </header>
