@@ -85,10 +85,10 @@ const LandingPage: React.FC = () => {
               </span>
             </div>
             <Link
-              href="/login"
+              href="/dashboard"
               className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#F9D949] to-[#FDE68A] text-[#0F0810] font-bold hover:scale-105 transform transition-all shadow-lg shadow-[#F9D949]/50 hover:shadow-xl"
             >
-              Launch App
+              Launch Dashboard
             </Link>
           </div>
         </div>
@@ -129,17 +129,17 @@ const LandingPage: React.FC = () => {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link
-                href="/register"
+                href="/dashboard"
                 className="group px-8 py-4 rounded-xl bg-gradient-to-r from-[#C75B7A] to-[#F9D949] text-[#FFF8E7] font-bold text-lg hover:scale-105 transform transition-all shadow-2xl shadow-[#C75B7A]/50 hover:shadow-[#F9D949]/50 flex items-center gap-2"
               >
-                Get Started Now
+                Launch Dashboard
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
-                href="/login"
+                href="/dashboard"
                 className="px-8 py-4 rounded-xl border-2 border-[#C75B7A]/50 text-[#FFF8E7] font-bold text-lg hover:bg-[#C75B7A]/10 hover:border-[#F9D949]/50 transform transition-all backdrop-blur-sm"
               >
-                Sign In
+                View Features
               </Link>
             </div>
 
@@ -287,7 +287,7 @@ const LandingPage: React.FC = () => {
             Start your journey to financial freedom with BagBot today
           </p>
           <Link
-            href="/register"
+            href="/dashboard"
             className="inline-flex items-center gap-3 px-10 py-5 rounded-xl bg-gradient-to-r from-[#F9D949] to-[#FDE68A] text-[#0F0810] font-bold text-xl hover:scale-105 transform transition-all shadow-2xl shadow-[#F9D949]/50 hover:shadow-[#F9D949]/70"
           >
             Launch Dashboard
