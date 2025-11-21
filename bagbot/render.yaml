@@ -23,11 +23,13 @@ services:
     env: node
     plan: free
     rootDir: bagbot/frontend
-    buildCommand: npm install && npm run build
-    startCommand: npm start
+    buildCommand: npm install && npm run build && cp -r .next/standalone/bagbot/frontend/. .next/standalone/ && cp -r public .next/standalone/public && cp -r .next/static .next/standalone/.next/static
+    startCommand: cd .next/standalone && node server.js
     autoDeploy: true
     envVars:
       - key: NODE_ENV
         value: production
       - key: NEXT_PUBLIC_API_URL
-        value: https://bagbot-web.onrender.com
+        value: https://bagbot2-backend.onrender.com
+      - key: PORT
+        value: "10000"

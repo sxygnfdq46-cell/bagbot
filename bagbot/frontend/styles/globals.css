@@ -16,71 +16,54 @@
    ========================================================================== */
 
 :root {
-  /* Stunning Light-Maroon Base Theme */
+  /* World-Class Dark Base - Enhanced Depth */
   --color-primary: #0B1120;
-  --color-primary-50: #FFF5F5;
-  --color-primary-100: #FEE2E2;
-  --color-primary-200: #FECACA;
-  --color-primary-300: #FCA5A5;
-  --color-primary-400: #F87171;
-  --color-primary-500: #EF4444;
-  --color-primary-600: #DC2626;
-  --color-primary-700: #B91C1C;
-  --color-primary-800: #991B1B;
-  --color-primary-900: #7F1D1D;
+  --color-primary-50: #F0F2F5;
+  --color-primary-100: #E1E4E9;
+  --color-primary-200: #C3C9D3;
+  --color-primary-300: #A5AEBD;
+  --color-primary-400: #8793A7;
+  --color-primary-500: #697891;
+  --color-primary-600: #525E74;
+  --color-primary-700: #1E2738;
+  --color-primary-800: #0B1120;
+  --color-primary-900: #070B15;
 
-  /* Gorgeous Light-Maroon Accent */
-  --color-maroon-light: #C75B7A;
-  --color-maroon: #9F3A5E;
-  --color-maroon-dark: #6B2845;
-  --color-maroon-glow: rgba(199, 91, 122, 0.4);
+  /* Premium Gold Accent - Enhanced Visibility */
+  --color-accent: #FDB91A;
+  --color-accent-light: #FFCF40;
+  --color-accent-dark: #E0A506;
+  --color-accent-glow: rgba(253, 185, 26, 0.25);
 
-  /* Premium Gold/Yellow Accent */
-  --color-accent: #F9D949;
-  --color-accent-light: #FDE68A;
-  --color-accent-dark: #F59E0B;
-  --color-accent-glow: rgba(249, 217, 73, 0.3);
+  /* Professional Status Colors - World-Class */
+  --color-success: #12E693;
+  --color-success-glow: rgba(18, 230, 147, 0.2);
+  --color-danger: #FF5370;
+  --color-danger-glow: rgba(255, 83, 112, 0.2);
+  --color-warning: #FFB84D;
+  --color-info: #4A9EFF;
 
-  /* Elegant Cream */
-  --color-cream: #FFF8E7;
-  --color-cream-dark: #F5E6D3;
-  --color-cream-glow: rgba(255, 248, 231, 0.2);
+  /* World-Class Neutrals - Superior Contrast */
+  --color-background: #060811;
+  --color-surface: #0D1118;
+  --color-card: #161921;
+  --color-card-hover: #1E2330;
+  --color-border: #252A38;
+  --color-main: #FAFBFC;
+  --color-muted: #8F96A3;
+  --color-hover: #1A1F2B;
 
-  /* Rose Gold */
-  --color-rose-gold: #E5B299;
-  --color-rose-gold-light: #F5D5C0;
-  --color-rose-gold-dark: #C99A7A;
+  /* World-Class Glassmorphism */
+  --glass-background: rgba(22, 25, 33, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
 
-  /* Professional Status Colors */
-  --color-success: #4ADE80;
-  --color-success-glow: rgba(74, 222, 128, 0.3);
-  --color-danger: #FB7185;
-  --color-danger-glow: rgba(251, 113, 133, 0.3);
-  --color-warning: #FBBF24;
-  --color-info: #60A5FA;
-
-  /* Stunning Neutrals with Maroon Tint */
-  --color-background: #0F0810;
-  --color-surface: #1A0E15;
-  --color-card: #2A1721;
-  --color-card-hover: #3A1F2E;
-  --color-border: #4A2838;
-  --color-main: #FFF8F0;
-  --color-muted: #D4B5C4;
-  --color-hover: #2D1A25;
-
-  /* Gorgeous Glassmorphism */
-  --glass-background: rgba(42, 23, 33, 0.85);
-  --glass-border: rgba(199, 91, 122, 0.15);
-  --glass-shadow: 0 12px 40px 0 rgba(159, 58, 94, 0.3);
-
-  /* Premium Shadows with Maroon Tint */
-  --shadow-sm: 0 2px 4px 0 rgba(159, 58, 94, 0.2);
-  --shadow-md: 0 6px 20px rgba(159, 58, 94, 0.3);
-  --shadow-lg: 0 16px 40px rgba(159, 58, 94, 0.4);
-  --shadow-xl: 0 24px 56px rgba(159, 58, 94, 0.5);
-  --shadow-glow: 0 0 28px rgba(249, 217, 73, 0.5);
-  --shadow-maroon-glow: 0 0 30px rgba(199, 91, 122, 0.5);
+  /* Premium Shadows - Enhanced Depth */
+  --shadow-sm: 0 2px 4px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 24px 56px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 0 28px rgba(253, 185, 26, 0.4);
 
   /* Premium Typography */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -123,7 +106,7 @@ html {
 html,
 body {
   font-family: var(--font-family);
-  background: linear-gradient(135deg, #0F0810 0%, #1A0E15 30%, #150A12 60%, #0F0810 100%);
+  background: linear-gradient(135deg, var(--color-background) 0%, #08090E 50%, #0A0C12 100%);
   color: var(--color-main);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -139,9 +122,9 @@ body::before {
   width: 100%;
   height: 100%;
   background: 
-    radial-gradient(circle at 20% 20%, rgba(199, 91, 122, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(249, 217, 73, 0.12) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(229, 178, 153, 0.08) 0%, transparent 60%);
+    radial-gradient(circle at 15% 15%, rgba(18, 230, 147, 0.08) 0%, transparent 35%),
+    radial-gradient(circle at 85% 85%, rgba(253, 185, 26, 0.08) 0%, transparent 35%),
+    radial-gradient(circle at 50% 50%, rgba(74, 158, 255, 0.05) 0%, transparent 45%);
   pointer-events: none;
   z-index: 0;
 }
@@ -154,12 +137,12 @@ body::after {
   width: 100%;
   height: 100%;
   background-image: 
-    repeating-linear-gradient(0deg, rgba(199, 91, 122, 0.02) 0px, transparent 1px, transparent 2px, rgba(199, 91, 122, 0.02) 3px),
-    repeating-linear-gradient(90deg, rgba(199, 91, 122, 0.02) 0px, transparent 1px, transparent 2px, rgba(199, 91, 122, 0.02) 3px);
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.01) 0px, transparent 1px, transparent 2px, rgba(255,255,255,0.01) 3px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.01) 0px, transparent 1px, transparent 2px, rgba(255,255,255,0.01) 3px);
   background-size: 40px 40px;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.4;
+  opacity: 0.3;
 }
 
 a {
@@ -207,145 +190,18 @@ a:hover {
 }
 
 .glass-card {
-  background: rgba(42, 23, 33, 0.7);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(199, 91, 122, 0.15);
+  background: rgba(30, 35, 41, 0.6);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
-  background: rgba(58, 31, 46, 0.85);
-  border-color: rgba(249, 217, 73, 0.3);
+  background: rgba(30, 35, 41, 0.8);
+  border-color: rgba(240, 185, 11, 0.3);
   transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(159, 58, 94, 0.4), 0 0 30px rgba(249, 217, 73, 0.15);
-}
-
-/* World-Class Micro-interactions */
-@keyframes ripple {
-  0% {
-    transform: scale(0);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(4);
-    opacity: 0;
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -1000px 0;
-  }
-  100% {
-    background-position: 1000px 0;
-  }
-}
-
-@keyframes float-slow {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes glow-pulse {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(253, 185, 26, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(253, 185, 26, 0.6), 0 0 60px rgba(253, 185, 26, 0.3);
-  }
-}
-
-@keyframes gradient-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-.animate-float-slow {
-  animation: float-slow 6s ease-in-out infinite;
-}
-
-.animate-glow-pulse {
-  animation: glow-pulse 3s ease-in-out infinite;
-}
-
-.animate-gradient {
-  background-size: 200% 200%;
-  animation: gradient-shift 4s ease infinite;
-}
-
-/* Premium Card Expansion on Hover */
-.card-expandable {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.card-expandable::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.1),
-    transparent
-  );
-  transition: left 0.5s;
-}
-
-.card-expandable:hover::before {
-  left: 100%;
-}
-
-.card-expandable:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(253, 185, 26, 0.2);
-}
-
-/* Premium Loading Skeleton */
-.skeleton {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.05) 25%,
-    rgba(255, 255, 255, 0.1) 50%,
-    rgba(255, 255, 255, 0.05) 75%
-  );
-  background-size: 1000px 100%;
-  animation: shimmer 2s infinite;
-  border-radius: 0.5rem;
-}
-
-.skeleton-text {
-  height: 1rem;
-  margin-bottom: 0.5rem;
-}
-
-.skeleton-text:last-child {
-  width: 60%;
-  margin-bottom: 0;
-}
-
-.skeleton-circle {
-  border-radius: 50%;
-}
-
-.skeleton-rect {
-  border-radius: 0.5rem;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(240, 185, 11, 0.1);
 }
 
 .glass-panel {
@@ -380,29 +236,17 @@ a:hover {
 
 /* Premium Gradients */
 .bg-gradient-primary {
-  background: linear-gradient(135deg, #2A1721 0%, #0F0810 100%);
+  background: linear-gradient(135deg, #1E2738 0%, #0B1120 100%);
 }
 
 .bg-gradient-accent {
-  background: linear-gradient(135deg, #F9D949 0%, #FDE68A 50%, #F9D949 100%);
+  background: linear-gradient(135deg, #F0B90B 0%, #FCD535 50%, #F0B90B 100%);
   background-size: 200% 100%;
   animation: gradientShift 3s ease infinite;
 }
 
-.bg-gradient-maroon {
-  background: linear-gradient(135deg, #C75B7A 0%, #9F3A5E 100%);
-}
-
-.bg-gradient-cream {
-  background: linear-gradient(135deg, #FFF8E7 0%, #F5E6D3 100%);
-}
-
-.bg-gradient-rose-gold {
-  background: linear-gradient(135deg, #F5D5C0 0%, #E5B299 50%, #C99A7A 100%);
-}
-
 .bg-gradient-success {
-  background: linear-gradient(135deg, #4ADE80 0%, #22C55E 100%);
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
 }
 
 .bg-gradient-danger {
@@ -1132,162 +976,3 @@ html {
   animation: ripple-effect 0.6s ease-out;
   pointer-events: none;
 }
-
-/* ==========================================================================
-   World-Class Scroll Reveal Animations
-   ========================================================================== */
-
-@keyframes reveal-up {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes reveal-down {
-  from {
-    opacity: 0;
-    transform: translateY(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes reveal-left {
-  from {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes reveal-right {
-  from {
-    opacity: 0;
-    transform: translateX(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.animate-reveal-up {
-  animation: reveal-up 0.6s ease-out forwards;
-}
-
-.animate-reveal-down {
-  animation: reveal-down 0.6s ease-out forwards;
-}
-
-.animate-reveal-left {
-  animation: reveal-left 0.6s ease-out forwards;
-}
-
-.animate-reveal-right {
-  animation: reveal-right 0.6s ease-out forwards;
-}
-
-.animate-scale-in {
-  animation: scale-in 0.6s ease-out forwards;
-}
-
-/* Stagger animation delays */
-.stagger-1 { animation-delay: 0.1s; }
-.stagger-2 { animation-delay: 0.2s; }
-.stagger-3 { animation-delay: 0.3s; }
-.stagger-4 { animation-delay: 0.4s; }
-.stagger-5 { animation-delay: 0.5s; }
-
-/* ==========================================================================
-   Premium Interactive Elements
-   ========================================================================== */
-
-.interactive-bounce:active {
-  animation: bounce 0.4s ease-in-out;
-}
-
-@keyframes bounce {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(0.95); }
-}
-
-/* Hover lift effect */
-.hover-lift {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.hover-lift:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(253, 185, 26, 0.3);
-}
-
-/* Magnetic hover effect */
-.magnetic {
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.magnetic:hover {
-  transform: scale(1.05);
-}
-
-/* ==========================================================================
-   Premium Number Animations
-   ========================================================================== */
-
-.number-tick-up {
-  animation: tick-up 0.6s ease-out;
-}
-
-@keyframes tick-up {
-  0% {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  50% {
-    transform: translateY(-5px);
-  }
-  100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.number-tick-down {
-  animation: tick-down 0.6s ease-out;
-}
-
-@keyframes tick-down {
-  0% {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  50% {
-    transform: translateY(5px);
-  }
-  100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-

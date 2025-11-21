@@ -1,302 +1,243 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { TrendingUp, DollarSign, Target, Activity, Server, Zap, Home, BarChart3, Radio, FileText, Settings, RefreshCw, Download, Filter } from 'lucide-react';
-import Navigation from '../components/Navigation';
+import StatusTile from '../components/StatusTile';
 
-export default function DashboardPage() {
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
-  const [autoRefresh, setAutoRefresh] = useState(true);
-  const [showFilters, setShowFilters] = useState(false);
+/**
+ * Main Dashboard Page - integrates existing functionality with new components
+ */
+const Dashboard: React.FC = () => {
+  const [apiStatus, setApiStatus] = useState<'healthy' | 'degraded' | 'down'>('down');
+  const [workerStatus, setWorkerStatus] = useState<'healthy' | 'degraded' | 'down'>('down');
+  const [logs, setLogs] = useState<Array<{ timestamp: Date; message: string; type: string }>>([
+    { timestamp: new Date(), message: 'Dashboard loaded...', type: 'info' }
+  ]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Auto-refresh every 30 seconds
-  useEffect(() => {
-    if (autoRefresh) {
-      const interval = setInterval(() => {
-        setLastUpdate(new Date());
-      }, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [autoRefresh]);
+  // API Base URL
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-  const handleManualRefresh = () => {
-    setLastUpdate(new Date());
+  /**
+   * Add log message
+   */
+  const addLog = (message: string, type: string = 'info') => {
+    setLogs(prev => [...prev, { timestamp: new Date(), message, type }]);
   };
-  const stats = [
-    { 
-      label: 'Total Trades', 
-      value: '12,547', 
-      change: '+234 today',
-      icon: Target,
-      color: 'from-[#7C2F39] to-[#C75B7A]',
-      bgColor: 'from-[#7C2F39]/10 to-black'
-    },
-    { 
-      label: 'Profit Today', 
-      value: '+$4,287', 
-      change: '+12.4%',
-      icon: DollarSign,
-      color: 'from-[#4ADE80] to-[#22C55E]',
-      bgColor: 'from-[#4ADE80]/10 to-black'
-    },
-    { 
-      label: 'Win Rate', 
-      value: '73.2%', 
-      change: '+2.1% this week',
-      icon: TrendingUp,
-      color: 'from-[#F9D949] to-[#FDE68A]',
-      bgColor: 'from-[#F9D949]/10 to-black'
-    },
-    { 
-      label: 'Active Positions', 
-      value: '18', 
-      change: '6 pending',
-      icon: Activity,
-      color: 'from-[#60A5FA] to-[#3B82F6]',
-      bgColor: 'from-[#60A5FA]/10 to-black'
+
+  /**
+   * Check API Health
+   */
+  const checkAPIHealth = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/health`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setApiStatus('healthy');
+        addLog('API health check successful');
+        return true;
+      } else {
+        throw new Error('API not healthy');
+      }
+    } catch (error) {
+      setApiStatus('down');
+      addLog('API health check failed', 'error');
+      return false;
     }
-  ];
+  };
+
+  /**
+   * Check Worker Status
+   */
+  const checkWorkerStatus = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/worker/status`);
+      const data = await response.json();
+      
+      if (response.ok && data.status === 'running') {
+        setWorkerStatus('healthy');
+        addLog('Worker is running');
+      } else {
+        setWorkerStatus('down');
+        addLog('Worker is not running');
+      }
+    } catch (error) {
+      setWorkerStatus('down');
+      addLog('Worker status check failed', 'error');
+    }
+  };
+
+  /**
+   * Start Worker
+   */
+  const startWorker = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/worker/start`, {
+        method: 'POST',
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        addLog('Worker start command sent');
+        setTimeout(checkWorkerStatus, 2000); // Check status after 2 seconds
+      } else {
+        addLog('Failed to start worker', 'error');
+      }
+    } catch (error) {
+      addLog('Error starting worker', 'error');
+    }
+    setIsLoading(false);
+  };
+
+  /**
+   * Stop Worker
+   */
+  const stopWorker = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/worker/stop`, {
+        method: 'POST',
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        addLog('Worker stop command sent');
+        setTimeout(checkWorkerStatus, 2000); // Check status after 2 seconds
+      } else {
+        addLog('Failed to stop worker', 'error');
+      }
+    } catch (error) {
+      addLog('Error stopping worker', 'error');
+    }
+    setIsLoading(false);
+  };
+
+  /**
+   * Refresh all status
+   */
+  const refreshStatus = async () => {
+    setIsLoading(true);
+    await Promise.all([checkAPIHealth(), checkWorkerStatus()]);
+    setIsLoading(false);
+  };
+
+  // Initial load and periodic updates
+  useEffect(() => {
+    refreshStatus();
+    const interval = setInterval(refreshStatus, 30000); // Check every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <>
-      <Navigation active="/dashboard" />
-      <div className="min-h-screen bg-black p-8">
-        <div className="max-w-7xl mx-auto">
-        {/* Navigation */}
-        <nav className="mb-8 flex items-center gap-2 text-sm">
-          <Link href="/" className="text-[#FFFBE7]/60 hover:text-[#F9D949] transition-colors flex items-center gap-1">
-            <Home className="w-4 h-4" />
-            Home
-          </Link>
-          <span className="text-[#FFFBE7]/30">/</span>
-          <span className="text-[#F9D949] font-semibold">Dashboard</span>
-        </nav>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-8 py-12">
+        {/* Header */}
+        <header className="mb-12">
+          <h1 className="text-5xl font-display gradient-text mb-3 tracking-tight">
+            BagBot Trading Platform
+          </h1>
+          <p className="text-lg text-muted font-medium">Real-time trading operations & analytics</p>
+        </header>
 
-        {/* Quick Navigation */}
-        <div className="mb-8 flex flex-wrap gap-3">
-          <Link href="/dashboard" className="px-4 py-2 rounded-lg bg-[#7C2F39] border border-[#F9D949] text-[#FFFBE7] font-semibold text-sm transition-all">
-            Dashboard
-          </Link>
-          <Link href="/charts" className="px-4 py-2 rounded-lg bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7]/60 hover:border-[#F9D949]/50 hover:text-[#F9D949] font-semibold text-sm transition-all flex items-center gap-2">
-            <BarChart3 className="w-4 h-4" />
-            Charts
-          </Link>
-          <Link href="/signals" className="px-4 py-2 rounded-lg bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7]/60 hover:border-[#F9D949]/50 hover:text-[#F9D949] font-semibold text-sm transition-all flex items-center gap-2">
-            <Radio className="w-4 h-4" />
-            Signals
-          </Link>
-          <Link href="/logs" className="px-4 py-2 rounded-lg bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7]/60 hover:border-[#F9D949]/50 hover:text-[#F9D949] font-semibold text-sm transition-all flex items-center gap-2">
-            <FileText className="w-4 h-4" />
-            Logs
-          </Link>
-          <Link href="/settings" className="px-4 py-2 rounded-lg bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7]/60 hover:border-[#F9D949]/50 hover:text-[#F9D949] font-semibold text-sm transition-all flex items-center gap-2">
-            <Settings className="w-4 h-4" />
-            Settings
-          </Link>
-        </div>
+        {/* Status Section */}
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold text-main mb-8 tracking-tight">System Status</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <StatusTile
+              title="API Health"
+              status={apiStatus}
+              description="Backend API connectivity and health"
+              lastUpdated={new Date()}
+              onClick={checkAPIHealth}
+            />
+            <StatusTile
+              title="Worker Status"
+              status={workerStatus}
+              description="Trading worker process status"
+              lastUpdated={new Date()}
+              onClick={checkWorkerStatus}
+            />
+          </div>
+        </section>
 
-        {/* Header with Controls */}
-        <div className="mb-12">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-            <div>
-              <h1 className="text-5xl font-black mb-3">
-                <span className="bg-gradient-to-r from-[#FFFBE7] to-[#F9D949] bg-clip-text text-transparent">
-                  Trading Dashboard
-                </span>
-              </h1>
-              <p className="text-[#FFFBE7]/60 text-lg">Real-time trading operations & analytics</p>
-            </div>
-            <div className="flex items-center gap-3">
+        {/* Controls Section */}
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold text-main mb-8 tracking-tight">Worker Controls</h2>
+          <div className="glass rounded-2xl shadow-custom-lg p-8">
+            <div className="flex flex-wrap gap-5">
               <button
-                onClick={handleManualRefresh}
-                className="px-4 py-2 rounded-lg bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7] hover:border-[#F9D949]/50 transition-all flex items-center gap-2"
+                onClick={startWorker}
+                disabled={isLoading}
+                className={`
+                  px-8 py-4 rounded-xl font-semibold text-base tracking-wide
+                  transition-smooth btn-hover shadow-custom-md
+                  ${isLoading 
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                    : 'bg-success text-white hover:bg-green-600 hover:shadow-custom-lg hover:scale-105 active:scale-95'
+                  }
+                `}
               >
-                <RefreshCw className="w-4 h-4" />
-                Refresh
+                {isLoading ? '⏳ Processing...' : '▶ Start Worker'}
               </button>
+              
               <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="px-4 py-2 rounded-lg bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7] hover:border-[#F9D949]/50 transition-all flex items-center gap-2"
+                onClick={stopWorker}
+                disabled={isLoading}
+                className={`
+                  px-8 py-4 rounded-xl font-semibold text-base tracking-wide
+                  transition-smooth btn-hover shadow-custom-md
+                  ${isLoading 
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                    : 'bg-danger text-white hover:bg-red-600 hover:shadow-custom-lg hover:scale-105 active:scale-95'
+                  }
+                `}
               >
-                <Filter className="w-4 h-4" />
-                Filters
+                {isLoading ? '⏳ Processing...' : '⏹ Stop Worker'}
               </button>
-              <button className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#7C2F39] to-[#991B1B] text-[#FFFBE7] hover:from-[#991B1B] hover:to-[#7C2F39] transition-all flex items-center gap-2">
-                <Download className="w-4 h-4" />
-                Export
-              </button>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 text-sm">
-            <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${autoRefresh ? 'bg-[#4ADE80] animate-pulse' : 'bg-[#7C2F39]'}`} />
-              <span className="text-[#FFFBE7]/60">Last updated: {lastUpdate.toLocaleTimeString()}</span>
-            </div>
-            <button
-              onClick={() => setAutoRefresh(!autoRefresh)}
-              className="text-[#F9D949] hover:text-[#FDE68A] transition-colors"
-            >
-              {autoRefresh ? 'Disable' : 'Enable'} auto-refresh
-            </button>
-          </div>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {stats.map((stat, index) => {
-            const Icon = stat.icon;
-            return (
-              <div
-                key={index}
-                className={`relative p-6 rounded-2xl bg-gradient-to-br ${stat.bgColor} border border-[#7C2F39]/30 hover:border-[#F9D949]/50 transition-all group`}
+              
+              <button
+                onClick={refreshStatus}
+                disabled={isLoading}
+                className={`
+                  px-8 py-4 rounded-xl font-semibold text-base tracking-wide
+                  transition-smooth btn-hover shadow-custom-md
+                  ${isLoading 
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                    : 'bg-primary text-white hover:bg-primary-700 hover:shadow-custom-lg hover:scale-105 active:scale-95'
+                  }
+                `}
               >
-                <div className={`absolute top-0 left-0 w-full h-1 rounded-t-2xl bg-gradient-to-r ${stat.color}`} />
-                
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                    <Icon className="w-6 h-6 text-black" />
-                  </div>
-                </div>
-
-                <div className="mb-2">
-                  <div className="text-sm text-[#FFFBE7]/60 font-semibold tracking-wide uppercase mb-1">
-                    {stat.label}
-                  </div>
-                  <div className="text-4xl font-black">
-                    <span className={`bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
-                      {stat.value}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="text-sm text-[#FFFBE7]/50">
-                  {stat.change}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* System Health */}
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold text-[#FFFBE7] mb-6">System Health</h2>
-          
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* API Status */}
-            <div className="p-8 rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#4ADE80] to-[#22C55E] flex items-center justify-center">
-                    <Server className="w-7 h-7 text-black" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-[#FFFBE7]">API Status</h3>
-                    <p className="text-[#FFFBE7]/60 text-sm">Backend Service</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#4ADE80] animate-pulse" />
-                  <span className="text-[#4ADE80] font-bold">Online</span>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-[#FFFBE7]/60">Response Time</span>
-                  <span className="text-[#FFFBE7] font-semibold">42ms</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-[#FFFBE7]/60">Uptime</span>
-                  <span className="text-[#FFFBE7] font-semibold">99.97%</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-[#FFFBE7]/60">Last Check</span>
-                  <span className="text-[#FFFBE7] font-semibold">2 sec ago</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Worker Status */}
-            <div className="p-8 rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#F9D949] to-[#FDE68A] flex items-center justify-center">
-                    <Zap className="w-7 h-7 text-black" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-[#FFFBE7]">Worker Status</h3>
-                    <p className="text-[#FFFBE7]/60 text-sm">Trading Engine</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#F9D949] animate-pulse" />
-                  <span className="text-[#F9D949] font-bold">Active</span>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-[#FFFBE7]/60">Tasks Processed</span>
-                  <span className="text-[#FFFBE7] font-semibold">1,247</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-[#FFFBE7]/60">Queue Size</span>
-                  <span className="text-[#FFFBE7] font-semibold">3 pending</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-[#FFFBE7]/60">Last Activity</span>
-                  <span className="text-[#FFFBE7] font-semibold">1 min ago</span>
-                </div>
-              </div>
+                {isLoading ? '⏳ Processing...' : '🔄 Refresh Status'}
+              </button>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Recent Activity */}
-        <div>
-          <h2 className="text-3xl font-bold text-[#FFFBE7] mb-6">Recent Trades</h2>
-          
-          <div className="p-8 rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30">
-            <div className="space-y-4">
-              {[
-                { pair: 'BTC/USDT', type: 'BUY', price: '$43,250', profit: '+$245', time: '2 min ago', status: 'success' },
-                { pair: 'ETH/USDT', type: 'SELL', price: '$2,340', profit: '+$189', time: '15 min ago', status: 'success' },
-                { pair: 'SOL/USDT', type: 'BUY', price: '$98.50', profit: '+$67', time: '1 hour ago', status: 'success' },
-                { pair: 'ADA/USDT', type: 'SELL', price: '$0.52', profit: '-$23', time: '2 hours ago', status: 'loss' },
-              ].map((trade, index) => (
+        {/* Activity Log Section */}
+        <section>
+          <h2 className="text-3xl font-bold text-main mb-8 tracking-tight">Activity Log</h2>
+          <div className="glass rounded-2xl shadow-custom-lg p-8">
+            <div className="h-80 overflow-y-auto space-y-3 custom-scrollbar">
+              {logs.map((log, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-4 rounded-xl bg-black/50 border border-[#7C2F39]/20 hover:border-[#F9D949]/30 transition-all"
+                  className={`text-sm font-mono leading-relaxed p-3 rounded-lg transition-smooth hover:bg-gray-50 ${
+                    log.type === 'error' ? 'text-danger bg-red-50' : 'text-muted'
+                  }`}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className={`px-3 py-1 rounded-lg text-xs font-bold ${
-                      trade.type === 'BUY' 
-                        ? 'bg-[#4ADE80]/20 text-[#4ADE80]' 
-                        : 'bg-[#F87171]/20 text-[#F87171]'
-                    }`}>
-                      {trade.type}
-                    </div>
-                    <div>
-                      <div className="text-[#FFFBE7] font-semibold">{trade.pair}</div>
-                      <div className="text-sm text-[#FFFBE7]/50">{trade.time}</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-[#FFFBE7] font-semibold">{trade.price}</div>
-                    <div className={`text-sm font-semibold ${
-                      trade.status === 'success' ? 'text-[#4ADE80]' : 'text-[#F87171]'
-                    }`}>
-                      {trade.profit}
-                    </div>
-                  </div>
+                  <span className="text-xs font-semibold text-gray-400 mr-3">
+                    {log.timestamp.toLocaleTimeString()}
+                  </span>
+                  {log.message}
                 </div>
               ))}
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
-    </>
   );
-}
+};
+
+export default Dashboard;
