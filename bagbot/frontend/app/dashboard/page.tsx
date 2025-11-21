@@ -66,7 +66,7 @@ const Dashboard: React.FC = () => {
         throw new Error('API not healthy');
       }
     } catch (error) {
-      setApiStatus('down');
+      setApiStatus('error');
       addLog('API health check failed', 'error');
       return false;
     }
@@ -84,11 +84,11 @@ const Dashboard: React.FC = () => {
         setWorkerStatus('healthy');
         addLog('Worker is running');
       } else {
-        setWorkerStatus('down');
+        setWorkerStatus('inactive');
         addLog('Worker is not running');
       }
     } catch (error) {
-      setWorkerStatus('down');
+      setWorkerStatus('error');
       addLog('Worker status check failed', 'error');
     }
   };
