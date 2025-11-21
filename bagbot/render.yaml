@@ -30,5 +30,7 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PORT
+        sync: false
       - key: NEXT_PUBLIC_API_URL
         value: https://bagbot2-backend.onrender.com
