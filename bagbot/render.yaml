@@ -18,20 +18,11 @@ services:
     startCommand: python -u worker.py
     autoDeploy: true
 
-  - type: web
+  - type: static
     name: bagbot-frontend
-    env: node
+    env: static
     plan: free
     rootDir: bagbot/frontend
     buildCommand: npm install && npm run build
-    startCommand: node .next/standalone/bagbot/frontend/server.js
+    staticPublishPath: ./out
     autoDeploy: true
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: HOSTNAME
-        value: "0.0.0.0"
-      - key: PORT
-        sync: false
-      - key: NEXT_PUBLIC_API_URL
-        value: https://bagbot2-backend.onrender.com
