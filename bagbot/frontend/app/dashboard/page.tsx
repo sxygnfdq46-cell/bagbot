@@ -12,10 +12,9 @@ const Dashboard: React.FC = () => {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   
-  // Protect the dashboard - redirect to login if not authenticated
+  // Protect dashboard
   useEffect(() => {
     if (!authLoading && !user) {
-      console.log('🔒 Not authenticated, redirecting to login...');
       router.push('/login');
     }
   }, [user, authLoading, router]);
@@ -32,10 +31,7 @@ const Dashboard: React.FC = () => {
     );
   }
   
-  // Don't render dashboard if not authenticated
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
   
   const [apiStatus, setApiStatus] = useState<'healthy' | 'warning' | 'error' | 'loading' | 'inactive'>('inactive');
   const [workerStatus, setWorkerStatus] = useState<'healthy' | 'warning' | 'error' | 'loading' | 'inactive'>('inactive');
@@ -70,7 +66,7 @@ const Dashboard: React.FC = () => {
         throw new Error('API not healthy');
       }
     } catch (error) {
-      setApiStatus('error');
+      setApiStatus('down');
       addLog('API health check failed', 'error');
       return false;
     }
@@ -88,11 +84,11 @@ const Dashboard: React.FC = () => {
         setWorkerStatus('healthy');
         addLog('Worker is running');
       } else {
-        setWorkerStatus('inactive');
+        setWorkerStatus('down');
         addLog('Worker is not running');
       }
     } catch (error) {
-      setWorkerStatus('error');
+      setWorkerStatus('down');
       addLog('Worker status check failed', 'error');
     }
   };
@@ -160,19 +156,19 @@ const Dashboard: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-[#0F0810] via-[#1A0E15] to-[#150A12]">
       <div className="max-w-7xl mx-auto px-8 py-12">
         {/* Header */}
         <header className="mb-12">
-          <h1 className="text-5xl font-display gradient-text mb-3 tracking-tight">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-[#FFF8E7] to-[#F9D949] bg-clip-text text-transparent mb-3 tracking-tight">
             BagBot Trading Platform
           </h1>
-          <p className="text-lg text-muted font-medium">Real-time trading operations & analytics</p>
+          <p className="text-lg text-[#D4B5C4] font-medium">Real-time trading operations & analytics</p>
         </header>
 
         {/* Status Section */}
         <section className="mb-12">
-          <h2 className="text-3xl font-bold text-main mb-8 tracking-tight">System Status</h2>
+          <h2 className="text-3xl font-bold text-[#FFF8E7] mb-8 tracking-tight">System Status</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <StatusTile
               title="API Health"
@@ -193,8 +189,8 @@ const Dashboard: React.FC = () => {
 
         {/* Controls Section */}
         <section className="mb-12">
-          <h2 className="text-3xl font-bold text-main mb-8 tracking-tight">Worker Controls</h2>
-          <div className="glass rounded-2xl shadow-custom-lg p-8">
+          <h2 className="text-3xl font-bold text-[#FFF8E7] mb-8 tracking-tight">Worker Controls</h2>
+          <div className="bg-gradient-to-br from-[#2A1721]/80 to-[#1A0E15]/80 backdrop-blur-sm border border-[#C75B7A]/30 rounded-2xl shadow-custom-lg p-8">
             <div className="flex flex-wrap gap-5">
               <button
                 onClick={startWorker}
@@ -204,7 +200,7 @@ const Dashboard: React.FC = () => {
                   transition-smooth btn-hover shadow-custom-md
                   ${isLoading 
                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-                    : 'bg-success text-white hover:bg-green-600 hover:shadow-custom-lg hover:scale-105 active:scale-95'
+                    : 'bg-[#C75B7A] text-white hover:bg-[#9F3A5E] hover:shadow-custom-lg hover:scale-105 active:scale-95'
                   }
                 `}
               >
@@ -219,7 +215,7 @@ const Dashboard: React.FC = () => {
                   transition-smooth btn-hover shadow-custom-md
                   ${isLoading 
                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-                    : 'bg-danger text-white hover:bg-red-600 hover:shadow-custom-lg hover:scale-105 active:scale-95'
+                    : 'bg-[#DC2626] text-white hover:bg-[#B91C1C] hover:shadow-custom-lg hover:scale-105 active:scale-95'
                   }
                 `}
               >
@@ -234,7 +230,7 @@ const Dashboard: React.FC = () => {
                   transition-smooth btn-hover shadow-custom-md
                   ${isLoading 
                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-                    : 'bg-primary text-white hover:bg-primary-700 hover:shadow-custom-lg hover:scale-105 active:scale-95'
+                    : 'bg-[#F9D949] text-[#0F0810] hover:bg-[#F59E0B] hover:shadow-custom-lg hover:scale-105 active:scale-95'
                   }
                 `}
               >
@@ -246,17 +242,17 @@ const Dashboard: React.FC = () => {
 
         {/* Activity Log Section */}
         <section>
-          <h2 className="text-3xl font-bold text-main mb-8 tracking-tight">Activity Log</h2>
-          <div className="glass rounded-2xl shadow-custom-lg p-8">
+          <h2 className="text-3xl font-bold text-[#FFF8E7] mb-8 tracking-tight">Activity Log</h2>
+          <div className="bg-gradient-to-br from-[#2A1721]/80 to-[#1A0E15]/80 backdrop-blur-sm border border-[#C75B7A]/30 rounded-2xl shadow-custom-lg p-8">
             <div className="h-80 overflow-y-auto space-y-3 custom-scrollbar">
               {logs.map((log, index) => (
                 <div
                   key={index}
-                  className={`text-sm font-mono leading-relaxed p-3 rounded-lg transition-smooth hover:bg-gray-50 ${
-                    log.type === 'error' ? 'text-danger bg-red-50' : 'text-muted'
+                  className={`text-sm font-mono leading-relaxed p-3 rounded-lg transition-smooth hover:bg-[#2A1721]/50 ${
+                    log.type === 'error' ? 'text-[#DC2626] bg-red-900/20' : 'text-[#D4B5C4]'
                   }`}
                 >
-                  <span className="text-xs font-semibold text-gray-400 mr-3">
+                  <span className="text-xs font-semibold text-[#C75B7A] mr-3">
                     {log.timestamp.toLocaleTimeString()}
                   </span>
                   {log.message}
