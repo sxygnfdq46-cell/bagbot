@@ -24,12 +24,10 @@ services:
     plan: free
     rootDir: bagbot/frontend
     buildCommand: npm install && npm run build
-    startCommand: npm start -- -p $PORT
+    startCommand: npm start
     autoDeploy: true
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 10000
       - key: NEXT_PUBLIC_API_URL
         value: https://bagbot2-backend.onrender.com
