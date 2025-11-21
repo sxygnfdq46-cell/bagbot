@@ -2,39 +2,10 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 /**
- * Middleware to protect routes requiring authentication
- * Redirects unauthenticated users to login page
+ * Middleware - temporarily disabled auth to allow all routes
  */
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  
-  // Get token from cookies or headers
-  const token = request.cookies.get('accessToken')?.value;
-  
-  // Public routes that don't require authentication
-  const publicRoutes = [
-    '/landing',
-    '/login',
-    '/register',
-    '/forgot-password',
-    '/reset-password',
-  ];
-  
-  // Check if current path is public
-  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
-  
-  // If accessing a protected route without token, redirect to login
-  if (!isPublicRoute && !token) {
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-  
-  // If accessing auth pages while logged in, redirect to dashboard
-  if (isPublicRoute && token && !pathname.startsWith('/landing')) {
-    return NextResponse.redirect(new URL('/', request.url));
-  }
-  
+  // Allow all requests through without authentication
   return NextResponse.next();
 }
 
