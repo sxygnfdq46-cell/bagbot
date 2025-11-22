@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { TrendingUp, TrendingDown, ArrowUp, ArrowDown, Activity, Target, Zap, Home, LayoutDashboard, BarChart3, Radio, FileText, Settings, SlidersHorizontal, Filter as FilterIcon } from 'lucide-react';
+import { TrendingUp, TrendingDown, ArrowUp, ArrowDown, Activity, Target, Zap, Home, LayoutDashboard, BarChart3, Radio, FileText, Settings, SlidersHorizontal, Filter as FilterIcon, Copy, Bell, CheckCircle } from 'lucide-react';
 import Navigation from '../components/Navigation';
 import LiveTickerTape from '@/components/Dashboard/LiveTickerTape';
 
@@ -10,6 +10,10 @@ export default function SignalsPage() {
   const [filterType, setFilterType] = useState<'all' | 'buy' | 'sell'>('all');
   const [minConfidence, setMinConfidence] = useState(70);
   const [showOnlyActive, setShowOnlyActive] = useState(false);
+  const [copiedSignal, setCopiedSignal] = useState<string | null>(null);
+  const [signalNotifications, setSignalNotifications] = useState(true);
+  const [copiedSignals, setCopiedSignals] = useState<string[]>([]);
+  const [favoriteSignals, setFavoriteSignals] = useState<string[]>([]);
   const signals = [
     {
       pair: 'BTC/USDT',
@@ -115,6 +119,11 @@ export default function SignalsPage() {
     return 'Low';
   };
 
+  const handleCopySignal = (pair: string) => {
+    setCopiedSignal(pair);
+    setTimeout(() => setCopiedSignal(null), 2000);
+  };
+
   return (
     <>
       <LiveTickerTape />
@@ -162,6 +171,27 @@ export default function SignalsPage() {
             </span>
           </h1>
           <p className="text-[#FFFBE7]/60 text-base md:text-lg mb-4 md:mb-6">Real-time algorithmic trading recommendations</p>
+          
+          {/* Signal Notifications Toggle */}
+          <div className="mb-4 flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-[#7C2F39]/10 to-black border border-[#7C2F39]/30">
+            <div className="flex items-center gap-3">
+              <Bell className="w-5 h-5 text-[#F9D949]" />
+              <div>
+                <h4 className="text-sm font-bold text-[#FFFBE7]">Signal Notifications</h4>
+                <p className="text-xs text-[#FFFBE7]/60">Get alerts for new high-confidence signals</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => setSignalNotifications(!signalNotifications)}
+              className={`relative w-14 h-7 rounded-full transition-all ${
+                signalNotifications ? 'bg-[#4ADE80]' : 'bg-[#7C2F39]/30'
+              }`}
+            >
+              <div className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-all ${
+                signalNotifications ? 'right-1' : 'left-1'
+              }`} />
+            </button>
+          </div>
           
           {/* Filter Controls */}
           <div className="p-4 md:p-6 rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30 glass-5d depth-5d-2 relative overflow-hidden">
@@ -350,13 +380,27 @@ export default function SignalsPage() {
                 </div>
 
                 {/* Meta Info */}
-                <div className="lg:col-span-2 text-right">
-                  <div className="space-y-2">
-                    <div className="px-3 py-1.5 rounded-lg bg-[#7C2F39]/20 border border-[#7C2F39]/30 inline-block">
-                      <span className="text-xs font-bold text-[#F9D949]">{signal.timeframe}</span>
-                    </div>
-                    <div className="text-xs text-[#FFFBE7]/40">{signal.timestamp}</div>
+                <div className="lg:col-span-2 text-right space-y-2">
+                  <div className="px-3 py-1.5 rounded-lg bg-[#7C2F39]/20 border border-[#7C2F39]/30 inline-block">
+                    <span className="text-xs font-bold text-[#F9D949]">{signal.timeframe}</span>
                   </div>
+                  <div className="text-xs text-[#FFFBE7]/40">{signal.timestamp}</div>
+                  <button
+                    onClick={() => handleCopySignal(signal.pair)}
+                    className="w-full px-4 py-2 rounded-lg bg-gradient-to-r from-[#7C2F39] to-[#991B1B] text-[#FFFBE7] font-semibold text-sm hover:from-[#991B1B] hover:to-[#7C2F39] transition-all flex items-center justify-center gap-2"
+                  >
+                    {copiedSignal === signal.pair ? (
+                      <>
+                        <CheckCircle className="w-4 h-4" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4" />
+                        Copy Trade
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
             </div>

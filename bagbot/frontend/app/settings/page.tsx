@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Sun, Moon, Key, Shield, Zap, Bell, DollarSign, TrendingUp, Save, CheckCircle, Home, LayoutDashboard, BarChart3, Radio, FileText, Settings, CreditCard, Smartphone, Wallet } from 'lucide-react';
+import { Sun, Moon, Key, Shield, Zap, Bell, DollarSign, TrendingUp, Save, CheckCircle, Home, LayoutDashboard, BarChart3, Radio, FileText, Settings, CreditCard, Smartphone, Wallet, Lock, Users, Download, Gift, Info, Copy } from 'lucide-react';
 import Navigation from '../components/Navigation';
 import LiveTickerTape from '@/components/Dashboard/LiveTickerTape';
 
@@ -15,6 +15,10 @@ export default function SettingsPage() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('');
   const [paymentPhone, setPaymentPhone] = useState('');
   const [paymentEmail, setPaymentEmail] = useState('');
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [showReferralModal, setShowReferralModal] = useState(false);
+  const [referralCode, setReferralCode] = useState('BAGBOT-' + Math.random().toString(36).substr(2, 9).toUpperCase());
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
 
   // Apply theme changes to the document
   useEffect(() => {
@@ -113,15 +117,15 @@ export default function SettingsPage() {
             </button>
             <button
               onClick={() => setTheme('light')}
-              className={`flex-1 p-4 rounded-xl transition-all ${
+              className={`flex-1 p-3 md:p-4 rounded-xl transition-all ${
                 theme === 'light'
                   ? 'bg-[#7C2F39] border-2 border-[#F9D949]'
                   : 'bg-black/50 border-2 border-[#7C2F39]/30 hover:border-[#F9D949]/50'
               }`}
             >
-              <div className="flex items-center justify-center gap-3">
-                <Sun className="w-5 h-5 text-[#FFFBE7]" />
-                <span className="text-[#FFFBE7] font-semibold">Light</span>
+              <div className="flex items-center justify-center gap-2 md:gap-3">
+                <Sun className="w-4 h-4 md:w-5 md:h-5 text-[#FFFBE7]" />
+                <span className="text-[#FFFBE7] font-semibold text-sm md:text-base">Light</span>
               </div>
             </button>
           </div>
@@ -370,6 +374,78 @@ export default function SettingsPage() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Security & 2FA */}
+        <div className="mb-6 p-6 md:p-8 rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30 glass-5d depth-5d-2">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-3 rounded-xl bg-[#EF4444]/20">
+              <Shield className="w-6 h-6 text-[#EF4444]" />
+            </div>
+            <div>
+              <h2 className="text-xl md:text-2xl font-bold text-[#FFFBE7]">Security Settings</h2>
+              <p className="text-[#FFFBE7]/60 text-xs md:text-sm">Manage account protection & authentication</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {/* 2FA Toggle */}
+            <div className="flex items-center justify-between p-4 rounded-xl bg-black/30 border border-[#7C2F39]/20">
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <div className="text-[#FFFBE7] font-semibold text-sm md:text-base">Two-Factor Authentication</div>
+                  {twoFactorEnabled && (
+                    <span className="px-2 py-0.5 rounded-full bg-[#4ADE80]/20 text-[#4ADE80] text-xs font-semibold">Active</span>
+                  )}
+                </div>
+                <div className="text-xs md:text-sm text-[#FFFBE7]/50 mt-1">Add extra layer of security with 2FA codes</div>
+              </div>
+              <button 
+                onClick={() => setTwoFactorEnabled(!twoFactorEnabled)}
+                className={`relative w-12 md:w-14 h-6 md:h-7 rounded-full transition-all ${
+                  twoFactorEnabled ? 'bg-[#4ADE80]' : 'bg-[#7C2F39]/50'
+                }`}
+              >
+                <div className={`absolute top-1 w-4 md:w-5 h-4 md:h-5 rounded-full bg-white transition-all ${
+                  twoFactorEnabled ? 'right-1' : 'left-1'
+                }`}></div>
+              </button>
+            </div>
+
+            {/* Biometric Toggle */}
+            <div className="flex items-center justify-between p-4 rounded-xl bg-black/30 border border-[#7C2F39]/20">
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <div className="text-[#FFFBE7] font-semibold text-sm md:text-base">Biometric Login</div>
+                  {biometricEnabled && (
+                    <span className="px-2 py-0.5 rounded-full bg-[#4ADE80]/20 text-[#4ADE80] text-xs font-semibold">Active</span>
+                  )}
+                </div>
+                <div className="text-xs md:text-sm text-[#FFFBE7]/50 mt-1">Use fingerprint or face recognition</div>
+              </div>
+              <button 
+                onClick={() => setBiometricEnabled(!biometricEnabled)}
+                className={`relative w-12 md:w-14 h-6 md:h-7 rounded-full transition-all ${
+                  biometricEnabled ? 'bg-[#4ADE80]' : 'bg-[#7C2F39]/50'
+                }`}
+              >
+                <div className={`absolute top-1 w-4 md:w-5 h-4 md:h-5 rounded-full bg-white transition-all ${
+                  biometricEnabled ? 'right-1' : 'left-1'
+                }`}></div>
+              </button>
+            </div>
+
+            {/* Session Info */}
+            <div className="p-4 rounded-xl bg-[#60A5FA]/10 border border-[#60A5FA]/30">
+              <div className="flex items-start gap-3">
+                <Info className="w-5 h-5 text-[#60A5FA] flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-[#FFFBE7] mb-1">Active Session</p>
+                  <p className="text-xs text-[#FFFBE7]/70">Logged in from macOS • Last activity: Just now</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Notifications */}

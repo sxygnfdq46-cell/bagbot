@@ -9,6 +9,7 @@ import LiveTickerTape from '@/components/Dashboard/LiveTickerTape';
 export default function LogsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
+  const [isLoading, setIsLoading] = useState(false);
   const logs = [
     {
       time: '14:32:18',
@@ -254,25 +255,25 @@ export default function LogsPage() {
             return (
               <div
                 key={index}
-                className="p-4 md:p-6 rounded-xl md:rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30 hover:border-[#F9D949]/50 transition-all"
+                className="p-3 md:p-6 rounded-xl md:rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30 hover:border-[#F9D949]/50 transition-all"
               >
-                <div className="flex items-center justify-between mb-2 md:mb-3">
-                  <span className="text-[#FFFBE7]/60 text-xs md:text-sm font-semibold">{stat.label}</span>
-                  <Icon className={`w-5 h-5 ${styles.text}`} />
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[#FFFBE7]/60 text-xs font-semibold">{stat.label}</span>
+                  <Icon className={`w-4 h-4 md:w-5 md:h-5 ${styles.text}`} />
                 </div>
-                <div className={`text-3xl font-black ${styles.text}`}>{stat.value}</div>
+                <div className={`text-2xl md:text-3xl font-black ${styles.text}`}>{stat.value}</div>
               </div>
             );
           })}
         </div>
 
         {/* Filters */}
-        <div className="mb-6 flex flex-wrap gap-3">
+        <div className="mb-6 flex flex-wrap gap-2 md:gap-3">
           {['All', 'Trade', 'Signal', 'System', 'API', 'Risk', 'Worker', 'Network'].map((filter) => (
             <button
               key={filter}
               onClick={() => setActiveFilter(filter)}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+              className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-semibold transition-all ${
                 activeFilter === filter
                   ? 'bg-[#7C2F39] text-[#FFFBE7] border border-[#F9D949]'
                   : 'bg-black/50 text-[#FFFBE7]/60 hover:bg-[#7C2F39]/50 border border-[#7C2F39]/30'
@@ -284,7 +285,7 @@ export default function LogsPage() {
         </div>
 
         {/* Activity Feed */}
-        <div className="space-y-3">
+        <div className="space-y-3 md:space-y-4">
           {logs
             .filter(log => {
               if (activeFilter !== 'All' && log.category !== activeFilter) return false;
@@ -301,9 +302,42 @@ export default function LogsPage() {
             return (
               <div
                 key={index}
-                className={`p-6 rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border ${styles.border} hover:border-[#F9D949]/50 transition-all`}
+                className={`p-4 md:p-6 rounded-xl md:rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border ${styles.border} hover:border-[#F9D949]/50 transition-all`}
               >
-                <div className="flex gap-6">
+                {/* Mobile Layout - Stack vertically */}
+                <div className="flex flex-col md:hidden gap-3">
+                  {/* Top Row: Time + Status Badge + Icon */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="text-lg font-bold text-[#FFFBE7]">{log.time}</div>
+                      <div className="text-xs text-[#FFFBE7]/40">{log.date}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-1 rounded-lg text-xs font-bold uppercase ${styles.chip}`}>
+                        {log.type}
+                      </span>
+                      <div className={`p-2 rounded-lg ${styles.bg}`}>
+                        <Icon className={`w-5 h-5 ${styles.text}`} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Category Badge */}
+                  <div>
+                    <span className="px-2 py-1 rounded-lg text-xs font-bold bg-[#7C2F39]/20 text-[#F9D949] border border-[#7C2F39]/30">
+                      {log.category}
+                    </span>
+                  </div>
+
+                  {/* Message & Details */}
+                  <div>
+                    <h3 className="text-base font-bold text-[#FFFBE7] mb-1">{log.message}</h3>
+                    <p className="text-sm text-[#FFFBE7]/60 leading-relaxed">{log.details}</p>
+                  </div>
+                </div>
+
+                {/* Desktop Layout - Horizontal */}
+                <div className="hidden md:flex gap-6">
                   {/* Timestamp Column */}
                   <div className="flex-shrink-0 w-32">
                     <div className="text-2xl font-bold text-[#FFFBE7]">{log.time}</div>

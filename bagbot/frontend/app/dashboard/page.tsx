@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { TrendingUp, DollarSign, Target, Activity, Server, Zap, Home, BarChart3, Radio, FileText, Settings, RefreshCw, Download, Filter, Play, Pause, ChevronDown } from 'lucide-react';
+import { TrendingUp, DollarSign, Target, Activity, Server, Zap, Home, BarChart3, Radio, FileText, Settings, RefreshCw, Download, Filter, Play, Pause, ChevronDown, Plus, Minus, Wifi, WifiOff, ArrowUpCircle, ArrowDownCircle, Copy } from 'lucide-react';
 import Navigation from '../components/Navigation';
 import LiveTickerTape from '@/components/Dashboard/LiveTickerTape';
 
@@ -10,6 +10,10 @@ export default function DashboardPage() {
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected'>('connected');
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [showDepositModal, setShowDepositModal] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   
   // Bot controls
   const [botActive, setBotActive] = useState(false);
@@ -174,13 +178,40 @@ export default function DashboardPage() {
         {/* Header with Controls */}
         <div className="mb-8 md:mb-12">
           <div className="flex flex-col gap-4 mb-6">
-            <div>
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-black mb-2 md:mb-3">
-                <span className="bg-gradient-to-r from-[#FFFBE7] to-[#F9D949] bg-clip-text text-transparent">
-                  Trading Dashboard
-                </span>
-              </h1>
-              <p className="text-[#FFFBE7]/60 text-base md:text-lg">Real-time trading operations & analytics</p>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-black mb-2 md:mb-3">
+                  <span className="bg-gradient-to-r from-[#FFFBE7] to-[#F9D949] bg-clip-text text-transparent">
+                    Trading Dashboard
+                  </span>
+                </h1>
+                <p className="text-[#FFFBE7]/60 text-base md:text-lg">Real-time trading operations & analytics</p>
+              </div>
+              {/* Connection Status */}
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-black/50 border border-[#7C2F39]/30">
+                {connectionStatus === 'connected' ? (
+                  <>
+                    <Wifi className="w-4 h-4 text-[#4ADE80] animate-pulse" />
+                    <span className="text-xs text-[#4ADE80] hidden sm:inline">Live</span>
+                  </>
+                ) : (
+                  <>
+                    <WifiOff className="w-4 h-4 text-[#EF4444]" />
+                    <span className="text-xs text-[#EF4444] hidden sm:inline">Offline</span>
+                  </>
+                )}
+              </div>
+            </div>
+            {/* Quick Actions */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black font-semibold text-sm hover:scale-105 transition-all flex items-center gap-2 shadow-lg">
+                <Plus className="w-4 h-4" />
+                Deposit
+              </button>
+              <button className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#7C2F39] to-[#991B1B] text-[#FFFBE7] font-semibold text-sm hover:scale-105 transition-all flex items-center gap-2 shadow-lg">
+                <Minus className="w-4 h-4" />
+                Withdraw
+              </button>
             </div>
             <div className="flex flex-wrap items-center gap-2 md:gap-3">
               <button

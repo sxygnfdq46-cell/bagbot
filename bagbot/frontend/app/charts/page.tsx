@@ -9,6 +9,11 @@ import LiveTickerTape from '@/components/Dashboard/LiveTickerTape';
 export default function ChartsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'price' | 'change'>('name');
+  const [showIndicators, setShowIndicators] = useState(false);
+  const [activeIndicators, setActiveIndicators] = useState<string[]>(['RSI', 'MACD']);
+  const [showDrawingTools, setShowDrawingTools] = useState(false);
+  const [selectedIndicators, setSelectedIndicators] = useState<string[]>(['RSI', 'MACD']);
+  const [chartInterval, setChartInterval] = useState('1D');
   const tickers = [
     { pair: 'BTC/USDT', price: '$43,250.00', change: '+2.4%', trend: 'up' },
     { pair: 'ETH/USDT', price: '$2,340.50', change: '+1.8%', trend: 'up' },
@@ -63,6 +68,86 @@ export default function ChartsPage() {
             </span>
           </h1>
           <p className="text-[#FFFBE7]/60 text-base md:text-lg mb-4 md:mb-6">Real-time market analysis & charts</p>
+          
+          {/* Chart Tools */}
+          <div className="flex flex-wrap gap-3 mb-4">
+            <button
+              onClick={() => setShowIndicators(!showIndicators)}
+              className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 ${
+                showIndicators
+                  ? 'bg-[#7C2F39] border border-[#F9D949] text-[#FFFBE7]'
+                  : 'bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7]/60 hover:border-[#F9D949]/50'
+              }`}
+            >
+              <Activity className="w-4 h-4" />
+              Indicators
+            </button>
+            <button
+              onClick={() => setShowDrawingTools(!showDrawingTools)}
+              className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 ${
+                showDrawingTools
+                  ? 'bg-[#7C2F39] border border-[#F9D949] text-[#FFFBE7]'
+                  : 'bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7]/60 hover:border-[#F9D949]/50'
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+              Drawing Tools
+            </button>
+          </div>
+
+          {/* Indicators Panel */}
+          {showIndicators && (
+            <div className="mb-4 p-4 rounded-xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30 animate-fade-in">
+              <h4 className="text-sm font-bold text-[#FFFBE7] mb-3">Technical Indicators</h4>
+              <div className="flex flex-wrap gap-2">
+                {['RSI', 'MACD', 'Bollinger Bands', 'EMA', 'SMA', 'Stochastic', 'ADX', 'Volume'].map((indicator) => (
+                  <button
+                    key={indicator}
+                    onClick={() => {
+                      if (activeIndicators.includes(indicator)) {
+                        setActiveIndicators(activeIndicators.filter(i => i !== indicator));
+                      } else {
+                        setActiveIndicators([...activeIndicators, indicator]);
+                      }
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      activeIndicators.includes(indicator)
+                        ? 'bg-[#4ADE80] text-black'
+                        : 'bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7]/60 hover:border-[#F9D949]/50'
+                    }`}
+                  >
+                    {indicator}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Drawing Tools Panel */}
+          {showDrawingTools && (
+            <div className="mb-4 p-4 rounded-xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30 animate-fade-in">
+              <h4 className="text-sm font-bold text-[#FFFBE7] mb-3">Drawing Tools</h4>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { name: 'Trendline', icon: '📈' },
+                  { name: 'Horizontal', icon: '━' },
+                  { name: 'Rectangle', icon: '▭' },
+                  { name: 'Fibonacci', icon: '⌇' },
+                  { name: 'Text', icon: 'T' },
+                ].map((tool) => (
+                  <button
+                    key={tool.name}
+                    className="px-3 py-2 rounded-lg bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7]/60 hover:border-[#F9D949]/50 hover:bg-[#7C2F39]/20 text-xs font-semibold transition-all flex items-center gap-2"
+                  >
+                    <span>{tool.icon}</span>
+                    {tool.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           
           {/* Search and Filter Controls */}
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
