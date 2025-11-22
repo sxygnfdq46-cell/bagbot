@@ -23,7 +23,7 @@ services:
     env: node
     plan: free
     rootDir: bagbot/frontend
-    buildCommand: npm install && npm run build && mkdir -p .next/standalone/.next && cp -r public .next/standalone/public && cp -r .next/static .next/standalone/.next/static
+    buildCommand: npm install && npm run build && mkdir -p .next/standalone/.next && cp -r public .next/standalone/public && cp -r .next/static .next/standalone/.next/static && ls -la .next/standalone/.next/static/css/ && echo "CSS files copied successfully"
     startCommand: cd .next/standalone && HOSTNAME=0.0.0.0 PORT=$PORT node server.js
     autoDeploy: true
     envVars:
