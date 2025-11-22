@@ -1,7 +1,4 @@
-'use client';
-
 import React from 'react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowRight, TrendingUp, Shield, Brain, Target, CheckCircle, Activity } from 'lucide-react';
 import Navigation from './components/Navigation';
@@ -19,11 +16,7 @@ export default function LandingPage() {
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
+          <div className="animate-fade-in">
             {/* Badge */}
             <div className="mb-8">
               <span className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-[#7C2F39]/30 to-[#F9D949]/20 border border-[#7C2F39]/50 text-[#F9D949] font-semibold text-sm backdrop-blur-md">
@@ -56,13 +49,10 @@ export default function LandingPage() {
               Launch Dashboard
               <ArrowRight className="w-5 h-5" />
             </Link>
-          </motion.div>
+          </div>
 
           {/* Stats Grid */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.8 }}
+          <div
             className="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-24 max-w-6xl mx-auto"
           >
             {[
@@ -71,11 +61,8 @@ export default function LandingPage() {
               { label: 'Total Trades', value: '12.5K', color: 'from-[#7C2F39] to-[#C75B7A]' },
               { label: 'System Status', value: 'Active', color: 'from-[#60A5FA] to-[#3B82F6]' }
             ].map((stat, index) => (
-              <motion.div
+              <div
                 key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5 + index * 0.1 }}
                 className="relative group"
               >
                 <div className="p-8 rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30 backdrop-blur-sm hover:border-[#F9D949]/50 transition-all">
@@ -87,20 +74,16 @@ export default function LandingPage() {
                   </div>
                   <div className="text-sm text-[#FFFBE7]/60 font-semibold tracking-wide uppercase">{stat.label}</div>
                 </div>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
       {/* Features Section */}
       <section className="py-32 px-4 bg-gradient-to-b from-black to-[#7C2F39]/5">
         <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
+          <div
             className="text-center mb-20"
           >
             <h2 className="text-5xl md:text-6xl font-black mb-6">
@@ -111,7 +94,7 @@ export default function LandingPage() {
             <p className="text-xl text-[#FFFBE7]/60 max-w-2xl mx-auto">
               Advanced features designed for professional traders
             </p>
-          </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
@@ -136,12 +119,8 @@ export default function LandingPage() {
             ].map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <motion.div
+                <div
                   key={index}
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.2 }}
-                  viewport={{ once: true }}
                   className="group"
                 >
                   <div className="relative p-10 rounded-3xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30 hover:border-[#F9D949]/50 transition-all h-full">
@@ -151,7 +130,7 @@ export default function LandingPage() {
                     <h3 className="text-2xl font-bold text-[#FFFBE7] mb-4">{feature.title}</h3>
                     <p className="text-[#FFFBE7]/60 leading-relaxed">{feature.description}</p>
                   </div>
-                </motion.div>
+                </div>
               );
             })}
           </div>
@@ -161,10 +140,7 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section className="py-32 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#7C2F39]/20 to-black" />
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+        <div
           className="relative z-10 max-w-5xl mx-auto text-center"
         >
           <div className="p-16 rounded-3xl bg-gradient-to-br from-[#7C2F39]/30 via-black to-[#F9D949]/10 border border-[#7C2F39]/50 backdrop-blur-xl">
@@ -186,7 +162,7 @@ export default function LandingPage() {
               <ArrowRight className="w-6 h-6" />
             </Link>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* Footer */}
