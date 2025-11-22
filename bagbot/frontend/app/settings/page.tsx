@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Sun, Moon, Key, Shield, Zap, Bell, DollarSign, TrendingUp, Save, CheckCircle, Home, LayoutDashboard, BarChart3, Radio, FileText, Settings } from 'lucide-react';
 import Navigation from '../components/Navigation';
+import LiveTickerTape from '@/components/Dashboard/LiveTickerTape';
 
 export default function SettingsPage() {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
@@ -19,21 +20,22 @@ export default function SettingsPage() {
 
   return (
     <>
+      <LiveTickerTape />
       <Navigation active="/settings" />
-      <div className="min-h-screen bg-black p-8">
+      <div className="min-h-screen bg-black p-4 md:p-8">
       <div className="max-w-5xl mx-auto">
         {/* Navigation */}
-        <nav className="mb-8 flex items-center gap-2 text-sm">
+        <nav className="mb-6 md:mb-8 flex items-center gap-2 text-sm">
           <Link href="/" className="text-[#FFFBE7]/60 hover:text-[#F9D949] transition-colors flex items-center gap-1">
             <Home className="w-4 h-4" />
-            Home
+            <span className="hidden sm:inline">Home</span>
           </Link>
           <span className="text-[#FFFBE7]/30">/</span>
           <span className="text-[#F9D949] font-semibold">Settings</span>
         </nav>
 
         {/* Quick Navigation */}
-        <div className="mb-8 flex flex-wrap gap-3">
+        <div className="mb-6 md:mb-8 flex flex-wrap gap-2 md:gap-3">
           <Link href="/dashboard" className="px-4 py-2 rounded-lg bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7]/60 hover:border-[#F9D949]/50 hover:text-[#F9D949] font-semibold text-sm transition-all flex items-center gap-2">
             <LayoutDashboard className="w-4 h-4" />
             Dashboard
@@ -56,43 +58,43 @@ export default function SettingsPage() {
         </div>
 
         {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-5xl font-black mb-3">
+        <div className="mb-8 md:mb-12">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-black mb-2 md:mb-3">
             <span className="bg-gradient-to-r from-[#FFFBE7] to-[#F9D949] bg-clip-text text-transparent">
               Settings
             </span>
           </h1>
-          <p className="text-[#FFFBE7]/60 text-lg">Configure your trading system preferences</p>
+          <p className="text-[#FFFBE7]/60 text-base md:text-lg">Configure your trading system preferences</p>
         </div>
 
         {/* Theme Settings */}
-        <div className="mb-6 p-8 rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 rounded-xl bg-[#F9D949]/20">
+        <div className="mb-6 p-4 md:p-8 rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30">
+          <div className="flex items-center gap-3 mb-4 md:mb-6">
+            <div className="p-2 md:p-3 rounded-xl bg-[#F9D949]/20">
               {theme === 'dark' ? (
-                <Moon className="w-6 h-6 text-[#F9D949]" />
+                <Moon className="w-5 h-5 md:w-6 md:h-6 text-[#F9D949]" />
               ) : (
-                <Sun className="w-6 h-6 text-[#F9D949]" />
+                <Sun className="w-5 h-5 md:w-6 md:h-6 text-[#F9D949]" />
               )}
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-[#FFFBE7]">Theme</h2>
-              <p className="text-[#FFFBE7]/60 text-sm">Choose your preferred color scheme</p>
+              <h2 className="text-xl md:text-2xl font-bold text-[#FFFBE7]">Theme</h2>
+              <p className="text-[#FFFBE7]/60 text-xs md:text-sm">Choose your preferred color scheme</p>
             </div>
           </div>
 
-          <div className="flex gap-4">
+          <div className="flex gap-3 md:gap-4">
             <button
               onClick={() => setTheme('dark')}
-              className={`flex-1 p-4 rounded-xl transition-all ${
+              className={`flex-1 p-3 md:p-4 rounded-xl transition-all ${
                 theme === 'dark'
                   ? 'bg-[#7C2F39] border-2 border-[#F9D949]'
                   : 'bg-black/50 border-2 border-[#7C2F39]/30 hover:border-[#F9D949]/50'
               }`}
             >
-              <div className="flex items-center justify-center gap-3">
-                <Moon className="w-5 h-5 text-[#FFFBE7]" />
-                <span className="text-[#FFFBE7] font-semibold">Dark</span>
+              <div className="flex items-center justify-center gap-2 md:gap-3">
+                <Moon className="w-4 h-4 md:w-5 md:h-5 text-[#FFFBE7]" />
+                <span className="text-[#FFFBE7] font-semibold text-sm md:text-base">Dark</span>
               </div>
             </button>
             <button

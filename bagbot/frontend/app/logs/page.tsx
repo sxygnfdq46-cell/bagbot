@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { CheckCircle, AlertTriangle, XCircle, Info, TrendingUp, TrendingDown, Activity, Settings, Zap, RefreshCw, Home, LayoutDashboard, BarChart3, Radio, FileText, Search } from 'lucide-react';
 import Navigation from '../components/Navigation';
+import LiveTickerTape from '@/components/Dashboard/LiveTickerTape';
 
 export default function LogsPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -181,21 +182,22 @@ export default function LogsPage() {
 
   return (
     <>
+      <LiveTickerTape />
       <Navigation active="/logs" />
-      <div className="min-h-screen bg-black p-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="min-h-screen bg-black p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
         {/* Navigation */}
-        <nav className="mb-8 flex items-center gap-2 text-sm">
+        <nav className="mb-6 md:mb-8 flex items-center gap-2 text-sm">
           <Link href="/" className="text-[#FFFBE7]/60 hover:text-[#F9D949] transition-colors flex items-center gap-1">
             <Home className="w-4 h-4" />
-            Home
+            <span className="hidden sm:inline">Home</span>
           </Link>
           <span className="text-[#FFFBE7]/30">/</span>
           <span className="text-[#F9D949] font-semibold">Logs</span>
         </nav>
 
         {/* Quick Navigation */}
-        <div className="mb-8 flex flex-wrap gap-3">
+        <div className="mb-6 md:mb-8 flex flex-wrap gap-2 md:gap-3">
           <Link href="/dashboard" className="px-4 py-2 rounded-lg bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7]/60 hover:border-[#F9D949]/50 hover:text-[#F9D949] font-semibold text-sm transition-all flex items-center gap-2">
             <LayoutDashboard className="w-4 h-4" />
             Dashboard
@@ -218,29 +220,29 @@ export default function LogsPage() {
         </div>
 
         {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-5xl font-black mb-3">
+        <div className="mb-8 md:mb-12">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-black mb-2 md:mb-3">
             <span className="bg-gradient-to-r from-[#FFFBE7] to-[#F9D949] bg-clip-text text-transparent">
               Activity Logs
             </span>
           </h1>
-          <p className="text-[#FFFBE7]/60 text-lg mb-6">System events and trading activity</p>
+          <p className="text-[#FFFBE7]/60 text-base md:text-lg mb-4 md:mb-6">System events and trading activity</p>
           
           {/* Search Bar */}
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#FFFBE7]/40" />
+            <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-[#FFFBE7]/40" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search logs by message, category, or details..."
-              className="w-full pl-12 pr-4 py-3 rounded-xl bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7] placeholder-[#FFFBE7]/30 focus:border-[#F9D949] focus:outline-none transition-all"
+              placeholder="Search logs..."
+              className="w-full pl-10 md:pl-12 pr-3 md:pr-4 py-2.5 md:py-3 rounded-xl bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7] text-sm md:text-base placeholder-[#FFFBE7]/30 focus:border-[#F9D949] focus:outline-none transition-all"
             />
           </div>
         </div>
 
         {/* Stats Overview */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
           {[
             { label: 'Total Events', value: '1,247', type: 'info', icon: Activity },
             { label: 'Success', value: '892', type: 'success', icon: CheckCircle },
@@ -252,10 +254,10 @@ export default function LogsPage() {
             return (
               <div
                 key={index}
-                className="p-6 rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30 hover:border-[#F9D949]/50 transition-all"
+                className="p-4 md:p-6 rounded-xl md:rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30 hover:border-[#F9D949]/50 transition-all"
               >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[#FFFBE7]/60 text-sm font-semibold">{stat.label}</span>
+                <div className="flex items-center justify-between mb-2 md:mb-3">
+                  <span className="text-[#FFFBE7]/60 text-xs md:text-sm font-semibold">{stat.label}</span>
                   <Icon className={`w-5 h-5 ${styles.text}`} />
                 </div>
                 <div className={`text-3xl font-black ${styles.text}`}>{stat.value}</div>

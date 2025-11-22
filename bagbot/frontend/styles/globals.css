@@ -82,6 +82,37 @@
   --shadow-glow: 0 0 28px rgba(249, 217, 73, 0.5);
   --shadow-maroon-glow: 0 0 30px rgba(199, 91, 122, 0.5);
 
+  /* 5D Depth System - World-Class Layered Shadows */
+  --shadow-5d-1: 
+    0 1px 2px rgba(199, 91, 122, 0.15),
+    0 2px 4px rgba(199, 91, 122, 0.12),
+    0 4px 8px rgba(199, 91, 122, 0.1);
+  --shadow-5d-2: 
+    0 2px 4px rgba(199, 91, 122, 0.2),
+    0 4px 8px rgba(199, 91, 122, 0.15),
+    0 8px 16px rgba(199, 91, 122, 0.12),
+    0 16px 24px rgba(199, 91, 122, 0.08);
+  --shadow-5d-3: 
+    0 4px 8px rgba(199, 91, 122, 0.25),
+    0 8px 16px rgba(199, 91, 122, 0.2),
+    0 16px 32px rgba(199, 91, 122, 0.15),
+    0 32px 48px rgba(199, 91, 122, 0.1),
+    0 48px 64px rgba(199, 91, 122, 0.05);
+  --shadow-5d-4: 
+    0 8px 16px rgba(199, 91, 122, 0.3),
+    0 16px 32px rgba(199, 91, 122, 0.25),
+    0 32px 48px rgba(199, 91, 122, 0.2),
+    0 48px 64px rgba(199, 91, 122, 0.12),
+    0 64px 96px rgba(199, 91, 122, 0.08);
+  --shadow-5d-gold: 
+    0 4px 12px rgba(249, 217, 73, 0.3),
+    0 8px 24px rgba(249, 217, 73, 0.2),
+    0 16px 32px rgba(249, 217, 73, 0.15),
+    0 0 40px rgba(249, 217, 73, 0.25);
+  --shadow-5d-inner:
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 -1px 2px rgba(255, 255, 255, 0.05);
+
   /* Premium Typography */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-display: 'Satoshi', 'Inter', sans-serif;
@@ -1291,3 +1322,476 @@ html {
   }
 }
 
+/* ==========================================================================
+   Live Data Animations
+   ========================================================================== */
+
+/* Pulse glow for live indicators */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    filter: blur(8px);
+  }
+  50% {
+    opacity: 0.6;
+    filter: blur(12px);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Slow pulse for ambient effects */
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
+/* Data stream effect */
+@keyframes data-stream {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+}
+
+.animate-data-stream {
+  animation: data-stream 2s ease-in-out infinite;
+}
+
+/* Number counter animation */
+@keyframes counter-up {
+  0% {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-counter {
+  animation: counter-up 0.5s ease-out;
+}
+
+/* Live chart pulse */
+@keyframes chart-pulse {
+  0%, 100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scaleY(1.05);
+    opacity: 0.9;
+  }
+}
+
+.animate-chart-pulse {
+  animation: chart-pulse 1.5s ease-in-out infinite;
+}
+
+/* Shimmer loading effect */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* ==========================================================================
+   World-Class Brand Animations
+   ========================================================================== */
+
+/* Flowing gradient animation for BagBot text */
+@keyframes gradient-x {
+  0%, 100% {
+    background-size: 200% 200%;
+    background-position: 0% 50%;
+  }
+  50% {
+    background-size: 200% 200%;
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x 3s ease infinite;
+}
+
+/* Glow pulse animation */
+@keyframes glow-pulse {
+  0%, 100% {
+    text-shadow: 
+      0 0 10px rgba(249, 217, 73, 0.5),
+      0 0 20px rgba(249, 217, 73, 0.3),
+      0 0 30px rgba(249, 217, 73, 0.2);
+  }
+  50% {
+    text-shadow: 
+      0 0 20px rgba(249, 217, 73, 0.8),
+      0 0 30px rgba(249, 217, 73, 0.6),
+      0 0 40px rgba(249, 217, 73, 0.4);
+  }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* Floating animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Scale pulse */
+@keyframes scale-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-scale-pulse {
+  animation: scale-pulse 2s ease-in-out infinite;
+}
+
+/* Custom scrollbar for updates feed */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(124, 47, 57, 0.1);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(249, 217, 73, 0.3);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(249, 217, 73, 0.5);
+}
+
+/* Slide in animation for live updates */
+@keyframes slide-in-right {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in-right 0.5s ease-out;
+}
+
+/* ==========================================================================
+   5D Depth Effects - World-Class Premium Design
+   ========================================================================== */
+
+/* 5D Card Depth Levels */
+.depth-5d-1 {
+  transform: translateZ(10px);
+  box-shadow: var(--shadow-5d-1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.depth-5d-1:hover {
+  transform: translateZ(20px) translateY(-4px);
+}
+
+.depth-5d-2 {
+  transform: translateZ(20px);
+  box-shadow: var(--shadow-5d-2);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.depth-5d-2:hover {
+  transform: translateZ(30px) translateY(-6px);
+}
+
+.depth-5d-3 {
+  transform: translateZ(30px);
+  box-shadow: var(--shadow-5d-3);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.depth-5d-3:hover {
+  transform: translateZ(40px) translateY(-8px);
+}
+
+.depth-5d-4 {
+  transform: translateZ(40px);
+  box-shadow: var(--shadow-5d-4);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.depth-5d-4:hover {
+  transform: translateZ(50px) translateY(-10px);
+  box-shadow: var(--shadow-5d-gold);
+}
+
+/* Glassmorphism 5D */
+.glass-5d {
+  background: rgba(42, 23, 33, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(199, 91, 122, 0.2);
+  box-shadow: var(--shadow-5d-2);
+  position: relative;
+}
+
+.glass-5d::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(249, 217, 73, 0.3) 50%, 
+    transparent
+  );
+}
+
+.glass-5d::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    circle at 50% 0%, 
+    rgba(249, 217, 73, 0.05), 
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+/* Inner Glow Effect */
+.inner-glow-5d {
+  position: relative;
+  overflow: hidden;
+}
+
+.inner-glow-5d::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  background: radial-gradient(
+    circle,
+    rgba(249, 217, 73, 0.15) 0%,
+    transparent 70%
+  );
+  animation: glow-pulse 4s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+/* 3D Perspective Container */
+.perspective-5d {
+  perspective: 1500px;
+  perspective-origin: center;
+  transform-style: preserve-3d;
+}
+
+/* Layered Shadow Text */
+.text-5d {
+  text-shadow: 
+    0 1px 2px rgba(199, 91, 122, 0.3),
+    0 2px 4px rgba(199, 91, 122, 0.2),
+    0 4px 8px rgba(199, 91, 122, 0.15),
+    0 8px 16px rgba(199, 91, 122, 0.1),
+    0 0 20px rgba(249, 217, 73, 0.2);
+}
+
+/* Parallax Layers */
+.parallax-layer-1 {
+  transform: translateZ(10px) scale(0.95);
+}
+
+.parallax-layer-2 {
+  transform: translateZ(20px) scale(0.9);
+}
+
+.parallax-layer-3 {
+  transform: translateZ(30px) scale(0.85);
+}
+
+/* Embossed Effect */
+.emboss-5d {
+  box-shadow: var(--shadow-5d-inner),
+    0 1px 2px rgba(255, 255, 255, 0.05);
+}
+
+/* Floating Animation with Depth */
+@keyframes float-5d {
+  0%, 100% {
+    transform: translateY(0) translateZ(20px);
+  }
+  50% {
+    transform: translateY(-15px) translateZ(30px);
+  }
+}
+
+.float-5d {
+  animation: float-5d 4s ease-in-out infinite;
+}
+
+/* Depth Blur Background */
+.depth-blur {
+  position: relative;
+}
+
+.depth-blur::before {
+  content: '';
+  position: absolute;
+  inset: -20px;
+  background: inherit;
+  filter: blur(40px);
+  opacity: 0.6;
+  z-index: -1;
+}
+
+/* Metallic Shine Effect */
+@keyframes metallic-shine {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.metallic-5d {
+  background: linear-gradient(
+    135deg,
+    rgba(199, 91, 122, 0.8) 0%,
+    rgba(249, 217, 73, 0.9) 25%,
+    rgba(199, 91, 122, 0.8) 50%,
+    rgba(249, 217, 73, 0.9) 75%,
+    rgba(199, 91, 122, 0.8) 100%
+  );
+  background-size: 200% auto;
+  animation: metallic-shine 3s linear infinite;
+}
+
+/* Holographic Effect */
+@keyframes holographic {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.holographic-5d {
+  background: linear-gradient(
+    45deg,
+    #C75B7A 0%,
+    #F9D949 25%,
+    #4ADE80 50%,
+    #60A5FA 75%,
+    #C75B7A 100%
+  );
+  background-size: 300% 300%;
+  animation: holographic 6s ease infinite;
+  opacity: 0.15;
+  filter: blur(30px);
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}
+
+/* Draw line animation for chart */
+@keyframes draw-line {
+  from {
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-draw-line {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: draw-line 2s ease-out forwards;
+}

@@ -2,36 +2,44 @@ import React from 'react';
 import Link from 'next/link';
 import { ArrowRight, TrendingUp, Shield, Brain, Target, CheckCircle, Activity } from 'lucide-react';
 import Navigation from './components/Navigation';
+import LiveTickerTape from '@/components/Dashboard/LiveTickerTape';
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-black">
+      <LiveTickerTape />
       <Navigation active="/" />
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
+      <section className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden perspective-5d">
         {/* Background Effects */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 depth-blur">
           <div className="absolute top-20 left-20 w-96 h-96 bg-[#7C2F39]/20 rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-20 right-20 w-96 h-96 bg-[#F9D949]/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute inset-0 holographic-5d opacity-5" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto text-center">
           <div className="animate-fade-in">
             {/* Badge */}
-            <div className="mb-8">
-              <span className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-[#7C2F39]/30 to-[#F9D949]/20 border border-[#7C2F39]/50 text-[#F9D949] font-semibold text-sm backdrop-blur-md">
-                <Activity className="w-4 h-4" />
+            <div className="mb-8 animate-float">
+              <span className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-[#7C2F39]/30 to-[#F9D949]/20 border border-[#7C2F39]/50 text-[#F9D949] font-semibold text-sm backdrop-blur-md shadow-lg shadow-[#F9D949]/20">
+                <Activity className="w-4 h-4 animate-pulse" />
                 AI-Powered Trading System
               </span>
             </div>
 
             {/* Main Headline */}
             <h1 className="text-6xl md:text-8xl lg:text-9xl font-black mb-6 leading-tight tracking-tight">
-              <span className="bg-gradient-to-r from-[#FFFBE7] via-[#F9D949] to-[#FFFBE7] bg-clip-text text-transparent">
-                Trade Smarter,
+              <span className="relative inline-block">
+                <span className="absolute inset-0 bg-gradient-to-r from-[#FFFBE7] via-[#F9D949] to-[#FFFBE7] bg-clip-text text-transparent animate-gradient-x blur-sm"></span>
+                <span className="relative bg-gradient-to-r from-[#FFFBE7] via-[#F9D949] to-[#FFFBE7] bg-clip-text text-transparent animate-gradient-x drop-shadow-[0_0_30px_rgba(249,217,73,0.4)]">
+                  Trade Smarter,
+                </span>
               </span>
               <br />
-              <span className="text-[#7C2F39]">Not Harder</span>
+              <span className="relative inline-block text-[#7C2F39] animate-scale-pulse">
+                Not Harder
+              </span>
             </h1>
 
             {/* Subheadline */}
@@ -44,7 +52,7 @@ export default function LandingPage() {
             {/* CTA Button */}
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-3 px-10 py-5 rounded-2xl bg-gradient-to-r from-[#7C2F39] to-[#F9D949] text-black font-bold text-lg hover:scale-105 transform transition-all shadow-2xl shadow-[#7C2F39]/50 hover:shadow-[#F9D949]/60"
+              className="inline-flex items-center gap-3 px-10 py-5 rounded-2xl bg-gradient-to-r from-[#7C2F39] to-[#F9D949] text-black font-bold text-lg hover:scale-105 transform transition-all shadow-2xl shadow-[#7C2F39]/50 hover:shadow-[#F9D949]/60 depth-5d-3 emboss-5d metallic-5d"
             >
               Launch Dashboard
               <ArrowRight className="w-5 h-5" />
@@ -65,10 +73,10 @@ export default function LandingPage() {
                 key={index}
                 className="relative group"
               >
-                <div className="p-8 rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30 backdrop-blur-sm hover:border-[#F9D949]/50 transition-all">
-                  <div className={`absolute top-0 left-0 w-full h-1 rounded-t-2xl bg-gradient-to-r ${stat.color}`} />
+                <div className="p-8 rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30 backdrop-blur-sm hover:border-[#F9D949]/50 transition-all glass-5d depth-5d-2 perspective-5d">
+                  <div className={`absolute top-0 left-0 w-full h-1 rounded-t-2xl bg-gradient-to-r ${stat.color} metallic-5d`} />
                   <div className="text-4xl md:text-5xl font-black mb-2">
-                    <span className={`bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
+                    <span className={`bg-gradient-to-r ${stat.color} bg-clip-text text-transparent text-5d`}>
                       {stat.value}
                     </span>
                   </div>

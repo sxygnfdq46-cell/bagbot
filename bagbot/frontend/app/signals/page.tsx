@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { TrendingUp, TrendingDown, ArrowUp, ArrowDown, Activity, Target, Zap, Home, LayoutDashboard, BarChart3, Radio, FileText, Settings, SlidersHorizontal, Filter as FilterIcon } from 'lucide-react';
 import Navigation from '../components/Navigation';
+import LiveTickerTape from '@/components/Dashboard/LiveTickerTape';
 
 export default function SignalsPage() {
   const [filterType, setFilterType] = useState<'all' | 'buy' | 'sell'>('all');
@@ -116,21 +117,22 @@ export default function SignalsPage() {
 
   return (
     <>
+      <LiveTickerTape />
       <Navigation active="/signals" />
-      <div className="min-h-screen bg-black p-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="min-h-screen bg-black p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
         {/* Navigation */}
-        <nav className="mb-8 flex items-center gap-2 text-sm">
+        <nav className="mb-6 md:mb-8 flex items-center gap-2 text-sm">
           <Link href="/" className="text-[#FFFBE7]/60 hover:text-[#F9D949] transition-colors flex items-center gap-1">
             <Home className="w-4 h-4" />
-            Home
+            <span className="hidden sm:inline">Home</span>
           </Link>
           <span className="text-[#FFFBE7]/30">/</span>
           <span className="text-[#F9D949] font-semibold">Signals</span>
         </nav>
 
         {/* Quick Navigation */}
-        <div className="mb-8 flex flex-wrap gap-3">
+        <div className="mb-6 md:mb-8 flex flex-wrap gap-2 md:gap-3">
           <Link href="/dashboard" className="px-4 py-2 rounded-lg bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7]/60 hover:border-[#F9D949]/50 hover:text-[#F9D949] font-semibold text-sm transition-all flex items-center gap-2">
             <LayoutDashboard className="w-4 h-4" />
             Dashboard
@@ -153,17 +155,18 @@ export default function SignalsPage() {
         </div>
 
         {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-5xl font-black mb-3">
+        <div className="mb-8 md:mb-12">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-black mb-2 md:mb-3">
             <span className="bg-gradient-to-r from-[#FFFBE7] to-[#F9D949] bg-clip-text text-transparent">
               AI Trading Signals
             </span>
           </h1>
-          <p className="text-[#FFFBE7]/60 text-lg mb-6">Real-time algorithmic trading recommendations</p>
+          <p className="text-[#FFFBE7]/60 text-base md:text-lg mb-4 md:mb-6">Real-time algorithmic trading recommendations</p>
           
           {/* Filter Controls */}
-          <div className="p-6 rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30">
-            <div className="flex items-center gap-3 mb-4">
+          <div className="p-4 md:p-6 rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30 glass-5d depth-5d-2 relative overflow-hidden">
+            <div className="absolute inset-0 holographic-5d opacity-5 pointer-events-none" />
+            <div className="flex items-center gap-3 mb-4 relative z-10">
               <FilterIcon className="w-5 h-5 text-[#F9D949]" />
               <h3 className="text-lg font-bold text-[#FFFBE7]">Filter Signals</h3>
             </div>
@@ -214,7 +217,7 @@ export default function SignalsPage() {
         </div>
 
         {/* Stats Overview */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
           {[
             { label: 'Active Signals', value: '24', icon: Activity, color: 'text-[#F9D949]' },
             { label: 'Avg Confidence', value: '82%', icon: Target, color: 'text-[#4ADE80]' },
@@ -225,13 +228,13 @@ export default function SignalsPage() {
             return (
               <div
                 key={index}
-                className="p-6 rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30 hover:border-[#F9D949]/50 transition-all"
+                className="p-4 md:p-6 rounded-xl md:rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30 hover:border-[#F9D949]/50 transition-all glass-5d depth-5d-2 inner-glow-5d"
               >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[#FFFBE7]/60 text-sm font-semibold">{stat.label}</span>
-                  <Icon className={`w-5 h-5 ${stat.color}`} />
+                <div className="flex items-center justify-between mb-2 md:mb-3">
+                  <span className="text-[#FFFBE7]/60 text-xs md:text-sm font-semibold">{stat.label}</span>
+                  <Icon className={`w-4 h-4 md:w-5 md:h-5 ${stat.color}`} />
                 </div>
-                <div className={`text-3xl font-black ${stat.color}`}>{stat.value}</div>
+                <div className={`text-2xl md:text-3xl font-black ${stat.color}`}>{stat.value}</div>
               </div>
             );
           })}
@@ -248,30 +251,41 @@ export default function SignalsPage() {
             .map((signal, index) => (
             <div
               key={index}
-              className="p-6 rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30 hover:border-[#F9D949]/50 transition-all"
+              className="p-6 rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30 hover:border-[#F9D949]/50 transition-all group relative overflow-hidden"
             >
+              {/* Live pulse indicator */}
+              <div className="absolute top-2 right-2">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4ADE80] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-[#4ADE80]"></span>
+                </span>
+              </div>
+              
               <div className="grid lg:grid-cols-12 gap-6 items-center">
                 {/* Signal Type & Pair */}
                 <div className="lg:col-span-3">
                   <div className="flex items-center gap-3">
-                    <div className={`p-3 rounded-xl ${
+                    <div className={`relative p-3 rounded-xl ${
                       signal.type === 'BUY' 
                         ? 'bg-[#4ADE80]/20' 
                         : 'bg-[#F87171]/20'
                     }`}>
+                      <div className={`absolute inset-0 rounded-xl blur-md animate-pulse ${
+                        signal.type === 'BUY' ? 'bg-[#4ADE80]/30' : 'bg-[#F87171]/30'
+                      }`} />
                       {signal.trend === 'up' ? (
-                        <ArrowUp className={`w-6 h-6 ${
+                        <ArrowUp className={`relative w-6 h-6 animate-pulse ${
                           signal.type === 'BUY' ? 'text-[#4ADE80]' : 'text-[#F87171]'
                         }`} />
                       ) : (
-                        <ArrowDown className={`w-6 h-6 ${
+                        <ArrowDown className={`relative w-6 h-6 animate-pulse ${
                           signal.type === 'BUY' ? 'text-[#4ADE80]' : 'text-[#F87171]'
                         }`} />
                       )}
                     </div>
                     <div>
-                      <div className="text-xl font-bold text-[#FFFBE7]">{signal.pair}</div>
-                      <div className={`text-sm font-bold ${
+                      <div className="text-xl font-bold text-[#FFFBE7] animate-fade-in">{signal.pair}</div>
+                      <div className={`text-sm font-bold animate-pulse ${
                         signal.type === 'BUY' ? 'text-[#4ADE80]' : 'text-[#F87171]'
                       }`}>
                         {signal.type} SIGNAL
@@ -285,11 +299,11 @@ export default function SignalsPage() {
                   <div className="space-y-2">
                     <div>
                       <div className="text-xs text-[#FFFBE7]/50 mb-1">Entry Price</div>
-                      <div className="text-lg font-bold text-[#FFFBE7]">{signal.price}</div>
+                      <div className="text-lg font-bold text-[#FFFBE7] animate-counter">{signal.price}</div>
                     </div>
                     <div>
                       <div className="text-xs text-[#FFFBE7]/50 mb-1">Target Price</div>
-                      <div className="text-lg font-bold text-[#F9D949]">{signal.target}</div>
+                      <div className="text-lg font-bold text-[#F9D949] animate-counter">{signal.target}</div>
                     </div>
                   </div>
                 </div>

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { TrendingUp, TrendingDown, Activity, Home, BarChart3, Radio, FileText, Settings, LayoutDashboard, Search, SlidersHorizontal } from 'lucide-react';
 import Navigation from '../components/Navigation';
+import LiveTickerTape from '@/components/Dashboard/LiveTickerTape';
 
 export default function ChartsPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -17,21 +18,22 @@ export default function ChartsPage() {
 
   return (
     <>
+      <LiveTickerTape />
       <Navigation active="/charts" />
-      <div className="min-h-screen bg-black p-8">
+      <div className="min-h-screen bg-black p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Navigation */}
-        <nav className="mb-8 flex items-center gap-2 text-sm">
+        <nav className="mb-6 md:mb-8 flex items-center gap-2 text-sm">
           <Link href="/" className="text-[#FFFBE7]/60 hover:text-[#F9D949] transition-colors flex items-center gap-1">
             <Home className="w-4 h-4" />
-            Home
+            <span className="hidden sm:inline">Home</span>
           </Link>
           <span className="text-[#FFFBE7]/30">/</span>
           <span className="text-[#F9D949] font-semibold">Charts</span>
         </nav>
 
         {/* Quick Navigation */}
-        <div className="mb-8 flex flex-wrap gap-3">
+        <div className="mb-6 md:mb-8 flex flex-wrap gap-2 md:gap-3">
           <Link href="/dashboard" className="px-4 py-2 rounded-lg bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7]/60 hover:border-[#F9D949]/50 hover:text-[#F9D949] font-semibold text-sm transition-all flex items-center gap-2">
             <LayoutDashboard className="w-4 h-4" />
             Dashboard
@@ -54,32 +56,32 @@ export default function ChartsPage() {
         </div>
 
         {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-5xl font-black mb-3">
+        <div className="mb-8 md:mb-12">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-black mb-2 md:mb-3">
             <span className="bg-gradient-to-r from-[#FFFBE7] to-[#F9D949] bg-clip-text text-transparent">
               Market Overview
             </span>
           </h1>
-          <p className="text-[#FFFBE7]/60 text-lg mb-6">Real-time market analysis & charts</p>
+          <p className="text-[#FFFBE7]/60 text-base md:text-lg mb-4 md:mb-6">Real-time market analysis & charts</p>
           
           {/* Search and Filter Controls */}
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#FFFBE7]/40" />
+              <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-[#FFFBE7]/40" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search trading pairs..."
-                className="w-full pl-12 pr-4 py-3 rounded-xl bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7] placeholder-[#FFFBE7]/30 focus:border-[#F9D949] focus:outline-none transition-all"
+                className="w-full pl-10 md:pl-12 pr-3 md:pr-4 py-2.5 md:py-3 rounded-xl bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7] text-sm md:text-base placeholder-[#FFFBE7]/30 focus:border-[#F9D949] focus:outline-none transition-all"
               />
             </div>
             <div className="flex items-center gap-2">
-              <SlidersHorizontal className="w-5 h-5 text-[#FFFBE7]/60" />
+              <SlidersHorizontal className="w-4 h-4 md:w-5 md:h-5 text-[#FFFBE7]/60" />
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as 'name' | 'price' | 'change')}
-                className="px-4 py-3 rounded-xl bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7] focus:border-[#F9D949] focus:outline-none transition-all"
+                className="px-3 md:px-4 py-2.5 md:py-3 rounded-xl bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7] text-sm md:text-base focus:border-[#F9D949] focus:outline-none transition-all"
               >
                 <option value="name">Sort by Name</option>
                 <option value="price">Sort by Price</option>
@@ -90,22 +92,22 @@ export default function ChartsPage() {
         </div>
 
         {/* Price Ticker */}
-        <div className="mb-8 overflow-x-auto">
-          <div className="flex gap-4 min-w-max pb-2">
+        <div className="mb-6 md:mb-8 overflow-x-auto">
+          <div className="flex gap-3 md:gap-4 min-w-max pb-2">
             {tickers.map((ticker, index) => (
               <div
                 key={index}
-                className="flex items-center gap-4 px-6 py-4 rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30 hover:border-[#F9D949]/50 transition-all"
+                className="flex items-center gap-3 md:gap-4 px-4 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30 hover:border-[#F9D949]/50 transition-all"
               >
                 <div>
                   <div className="text-[#FFFBE7]/60 text-xs font-semibold uppercase tracking-wide mb-1">
                     {ticker.pair}
                   </div>
-                  <div className="text-2xl font-bold text-[#FFFBE7]">
+                  <div className="text-xl md:text-2xl font-bold text-[#FFFBE7]">
                     {ticker.price}
                   </div>
                 </div>
-                <div className={`flex items-center gap-1 px-3 py-1.5 rounded-lg font-bold text-sm ${
+                <div className={`flex items-center gap-1 px-2 md:px-3 py-1 md:py-1.5 rounded-lg font-bold text-xs md:text-sm ${
                   ticker.trend === 'up' 
                     ? 'bg-[#4ADE80]/20 text-[#4ADE80]' 
                     : 'bg-[#F87171]/20 text-[#F87171]'
