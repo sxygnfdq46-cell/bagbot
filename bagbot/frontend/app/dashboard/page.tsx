@@ -136,7 +136,7 @@ export default function DashboardPage() {
     <>
       <LiveTickerTape />
       <Navigation active="/dashboard" />
-      <div className="min-h-screen bg-black p-4 md:p-8">
+      <div className="min-h-screen bg-black p-4 md:p-8 md:ml-64">
         <div className="max-w-7xl mx-auto">
         {/* Navigation */}
         <nav className="mb-6 md:mb-8 flex items-center gap-2 text-sm">
@@ -277,8 +277,8 @@ export default function DashboardPage() {
                     onClick={handleBotToggle}
                     className={`w-full px-6 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-3 depth-5d-2 emboss-5d ${
                       botActive
-                        ? 'bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black hover:from-[#22C55E] hover:to-[#4ADE80] shadow-[0_0_30px_rgba(74,222,128,0.5)]'
-                        : 'bg-gradient-to-r from-[#7C2F39] to-[#991B1B] text-[#FFFBE7] hover:from-[#991B1B] hover:to-[#7C2F39]'
+                        ? 'bg-gradient-to-r from-[#EF4444] to-[#DC2626] text-white hover:from-[#DC2626] hover:to-[#B91C1C] shadow-[0_0_30px_rgba(239,68,68,0.5)]'
+                        : 'bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black hover:from-[#22C55E] hover:to-[#16A34A] shadow-[0_0_30px_rgba(74,222,128,0.3)]'
                     }`}
                   >
                     {botActive ? (
@@ -327,21 +327,29 @@ export default function DashboardPage() {
               {/* Strategy Selection */}
               <div>
                 <label className="block text-sm font-semibold text-[#FFFBE7] mb-3">Trading Strategy</label>
-                <select
-                  value={selectedStrategy}
-                  onChange={(e) => setSelectedStrategy(e.target.value)}
-                  disabled={botActive}
-                  className={`w-full px-4 py-3 rounded-xl bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7] font-semibold focus:border-[#F9D949] focus:outline-none transition-all appearance-none ${
-                    botActive ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                >
-                  {strategies.map(strategy => (
-                    <option key={strategy.id} value={strategy.id}>
-                      {strategy.name}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-[#FFFBE7]/50 mt-2">
+                <div className="relative">
+                  <select
+                    value={selectedStrategy}
+                    onChange={(e) => setSelectedStrategy(e.target.value)}
+                    disabled={botActive}
+                    className={`w-full px-4 py-3 rounded-xl bg-[#1a0a0f] border-2 border-[#7C2F39] text-[#F9D949] font-bold text-lg focus:border-[#F9D949] focus:outline-none transition-all cursor-pointer shadow-lg hover:shadow-[#F9D949]/20 ${
+                      botActive ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23F9D949' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'right 1rem center',
+                      paddingRight: '3rem'
+                    }}
+                  >
+                    {strategies.map(strategy => (
+                      <option key={strategy.id} value={strategy.id} className="bg-[#1a0a0f] text-[#F9D949] font-semibold py-2">
+                        {strategy.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <p className="text-xs text-[#FFFBE7]/70 mt-2 font-medium">
                   {strategies.find(s => s.id === selectedStrategy)?.desc}
                 </p>
               </div>

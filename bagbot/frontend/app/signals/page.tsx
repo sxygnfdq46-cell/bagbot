@@ -119,7 +119,7 @@ export default function SignalsPage() {
     <>
       <LiveTickerTape />
       <Navigation active="/signals" />
-      <div className="min-h-screen bg-black p-4 md:p-8">
+      <div className="min-h-screen bg-black p-4 md:p-8 md:ml-64">
       <div className="max-w-7xl mx-auto">
         {/* Navigation */}
         <nav className="mb-6 md:mb-8 flex items-center gap-2 text-sm">

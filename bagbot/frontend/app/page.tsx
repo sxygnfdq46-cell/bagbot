@@ -96,7 +96,7 @@ export default function LandingPage() {
           >
             <h2 className="text-5xl md:text-6xl font-black mb-6">
               <span className="bg-gradient-to-r from-[#FFFBE7] to-[#F9D949] bg-clip-text text-transparent">
-                Powered by Intelligence
+                Powered by A.Intelligence
               </span>
             </h2>
             <p className="text-xl text-[#FFFBE7]/60 max-w-2xl mx-auto">

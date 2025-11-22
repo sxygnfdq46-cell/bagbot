@@ -20,7 +20,7 @@ export default function ChartsPage() {
     <>
       <LiveTickerTape />
       <Navigation active="/charts" />
-      <div className="min-h-screen bg-black p-4 md:p-8">
+      <div className="min-h-screen bg-black p-4 md:p-8 md:ml-64">
       <div className="max-w-7xl mx-auto">
         {/* Navigation */}
         <nav className="mb-6 md:mb-8 flex items-center gap-2 text-sm">
@@ -148,7 +148,7 @@ export default function ChartsPage() {
               </div>
               
               {/* Placeholder Chart */}
-              <div className="relative h-96 rounded-xl bg-black/50 border border-[#7C2F39]/20 overflow-hidden">
+              <div className="relative h-[500px] rounded-xl bg-black/50 border border-[#7C2F39]/20 overflow-hidden">
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
                     <Activity className="w-16 h-16 text-[#7C2F39]/30 mx-auto mb-4" />

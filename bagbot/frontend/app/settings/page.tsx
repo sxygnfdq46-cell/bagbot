@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Sun, Moon, Key, Shield, Zap, Bell, DollarSign, TrendingUp, Save, CheckCircle, Home, LayoutDashboard, BarChart3, Radio, FileText, Settings } from 'lucide-react';
+import { Sun, Moon, Key, Shield, Zap, Bell, DollarSign, TrendingUp, Save, CheckCircle, Home, LayoutDashboard, BarChart3, Radio, FileText, Settings, CreditCard, Smartphone, Wallet } from 'lucide-react';
 import Navigation from '../components/Navigation';
 import LiveTickerTape from '@/components/Dashboard/LiveTickerTape';
 
@@ -12,6 +12,20 @@ export default function SettingsPage() {
   const [apiKey, setApiKey] = useState('');
   const [apiSecret, setApiSecret] = useState('');
   const [saved, setSaved] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('');
+  const [paymentPhone, setPaymentPhone] = useState('');
+  const [paymentEmail, setPaymentEmail] = useState('');
+
+  // Apply theme changes to the document
+  useEffect(() => {
+    if (theme === 'light') {
+      document.documentElement.classList.add('light-theme');
+      document.documentElement.classList.remove('dark-theme');
+    } else {
+      document.documentElement.classList.add('dark-theme');
+      document.documentElement.classList.remove('light-theme');
+    }
+  }, [theme]);
 
   const handleSave = () => {
     setSaved(true);
@@ -22,7 +36,7 @@ export default function SettingsPage() {
     <>
       <LiveTickerTape />
       <Navigation active="/settings" />
-      <div className="min-h-screen bg-black p-4 md:p-8">
+      <div className="min-h-screen bg-black p-4 md:p-8 md:ml-64">
       <div className="max-w-5xl mx-auto">
         {/* Navigation */}
         <nav className="mb-6 md:mb-8 flex items-center gap-2 text-sm">
@@ -217,6 +231,145 @@ export default function SettingsPage() {
               </p>
             </button>
           </div>
+        </div>
+
+        {/* Payment Methods */}
+        <div className="mb-6 p-6 md:p-8 rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30 glass-5d depth-5d-2">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-3 rounded-xl bg-[#4ADE80]/20">
+              <Wallet className="w-6 h-6 text-[#4ADE80]" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-[#FFFBE7]">Payment Methods</h2>
+              <p className="text-[#FFFBE7]/60 text-sm">Add your preferred payment methods for deposits & withdrawals</p>
+            </div>
+          </div>
+
+          {/* Payment Method Selection */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+            {[
+              { id: 'mtn', name: 'MTN Mobile Money', icon: Smartphone, color: 'from-[#FFCB05] to-[#FFA500]' },
+              { id: 'airtel', name: 'Airtel Money', icon: Smartphone, color: 'from-[#EF4444] to-[#DC2626]' },
+              { id: 'mpesa', name: 'M-Pesa', icon: Smartphone, color: 'from-[#4ADE80] to-[#22C55E]' },
+              { id: 'visa', name: 'Visa/Mastercard', icon: CreditCard, color: 'from-[#1E40AF] to-[#1E3A8A]' },
+            ].map((method) => {
+              const Icon = method.icon;
+              const isSelected = selectedPaymentMethod === method.id;
+              
+              return (
+                <button
+                  key={method.id}
+                  onClick={() => setSelectedPaymentMethod(method.id)}
+                  className={`p-4 md:p-6 rounded-xl transition-all relative overflow-hidden group ${
+                    isSelected
+                      ? 'bg-[#7C2F39] border-2 border-[#F9D949] scale-105'
+                      : 'bg-black/50 border-2 border-[#7C2F39]/30 hover:border-[#F9D949]/50 hover:scale-102'
+                  }`}
+                >
+                  <div className={`w-12 h-12 md:w-14 md:h-14 mx-auto mb-3 rounded-xl bg-gradient-to-br ${method.color} flex items-center justify-center shadow-lg ${isSelected ? 'animate-pulse' : ''}`}>
+                    <Icon className="w-6 h-6 md:w-7 md:h-7 text-white" />
+                  </div>
+                  <h3 className="text-xs md:text-sm font-bold text-[#FFFBE7] text-center">{method.name}</h3>
+                  {isSelected && (
+                    <div className="absolute top-2 right-2">
+                      <CheckCircle className="w-5 h-5 text-[#F9D949]" />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Payment Details Form */}
+          {selectedPaymentMethod && (
+            <div className="space-y-4 p-4 md:p-6 rounded-xl bg-black/30 border border-[#7C2F39]/20 animate-fade-in">
+              <h3 className="text-lg font-bold text-[#FFFBE7] mb-4">
+                {selectedPaymentMethod === 'visa' ? 'Card Details' : 'Mobile Money Details'}
+              </h3>
+              
+              {selectedPaymentMethod !== 'visa' ? (
+                <>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#FFFBE7] mb-2">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={paymentPhone}
+                      onChange={(e) => setPaymentPhone(e.target.value)}
+                      placeholder="+256 700 000 000"
+                      className="w-full px-4 py-3 rounded-xl bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7] placeholder-[#FFFBE7]/30 focus:border-[#F9D949] focus:outline-none transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#FFFBE7] mb-2">
+                      Account Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="John Doe"
+                      className="w-full px-4 py-3 rounded-xl bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7] placeholder-[#FFFBE7]/30 focus:border-[#F9D949] focus:outline-none transition-all"
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#FFFBE7] mb-2">
+                      Card Number
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="1234 5678 9012 3456"
+                      maxLength={19}
+                      className="w-full px-4 py-3 rounded-xl bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7] placeholder-[#FFFBE7]/30 focus:border-[#F9D949] focus:outline-none transition-all"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-[#FFFBE7] mb-2">
+                        Expiry Date
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="MM/YY"
+                        maxLength={5}
+                        className="w-full px-4 py-3 rounded-xl bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7] placeholder-[#FFFBE7]/30 focus:border-[#F9D949] focus:outline-none transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-[#FFFBE7] mb-2">
+                        CVV
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="123"
+                        maxLength={3}
+                        className="w-full px-4 py-3 rounded-xl bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7] placeholder-[#FFFBE7]/30 focus:border-[#F9D949] focus:outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#FFFBE7] mb-2">
+                      Cardholder Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="John Doe"
+                      className="w-full px-4 py-3 rounded-xl bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7] placeholder-[#FFFBE7]/30 focus:border-[#F9D949] focus:outline-none transition-all"
+                    />
+                  </div>
+                </>
+              )}
+
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-[#4ADE80]/10 border border-[#4ADE80]/30 mt-4">
+                <Shield className="w-5 h-5 text-[#4ADE80] flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-[#FFFBE7]/70">
+                  Your payment information is encrypted and secure. We never store your card CVV or mobile money PIN.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Notifications */}
