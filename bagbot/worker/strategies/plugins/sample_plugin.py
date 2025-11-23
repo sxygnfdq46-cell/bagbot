@@ -1,4 +1,4 @@
-from worker.strategies.plugin import PluginBase
+from bagbot.worker.strategies.plugin import PluginBase
 
 class SamplePlugin(PluginBase):
     def on_price_update(self, market_snapshot):

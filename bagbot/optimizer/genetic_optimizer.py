@@ -23,12 +23,12 @@ from dataclasses import dataclass, asdict
 from typing import Any, List, Tuple, Callable, Optional
 
 # IMPORTS — adapt to your project layout
-from backtest.loader import load_candles
-from backtest.executor import BacktestExecutor
-from backtest.replay import ReplayEngine
-from backtest.reporting import generate_report, compute_sharpe
-from worker.strategies.ai_fusion import AIFusionStrategy, AIFusionConfig
-from worker.executor.account import VirtualAccount
+from bagbot.backtest.loader import load_candles
+from bagbot.backtest.executor import BacktestExecutor
+from bagbot.backtest.replay import ReplayEngine
+from bagbot.backtest.reporting import generate_report, compute_sharpe
+from bagbot.worker.strategies.ai_fusion import AIFusionStrategy, AIFusionConfig
+from bagbot.worker.executor.account import VirtualAccount
 
 # ——————————————————————————
 # Helper dataclasses

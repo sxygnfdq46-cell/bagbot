@@ -29,9 +29,9 @@ The file should be runnable locally with:
 Do exactly this, no assumptions, no added code.
 """
 
-from worker.queue import JobQueue
-from worker.engine import WorkerEngine
-from worker.tasks import JobType
+from bagbot.worker.queue import JobQueue
+from bagbot.worker.engine import WorkerEngine
+from bagbot.worker.tasks import JobType
 
 
 def main():

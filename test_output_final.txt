@@ -1,0 +1,38 @@
+............FF.............................                              [100%]
+=================================== FAILURES ===================================
+__________________ test_brain_routes_price_update_to_strategy __________________
+
+    def test_brain_routes_price_update_to_strategy():
+        q = JobQueue()
+        brain = Brain(job_queue=q)
+        spy = SpyStrategy()
+        register_strategy('test-spy', spy)
+        q.add_job(JobType.PRICE_UPDATE, {"symbol":"BTCUSDT","price":12345})
+        brain.process_next_job()  # use the Brain public method that processes a single job; if the API is process_next_job() use that; adjust to call whichever function in brain.py that you previously wired for processing a job — but do not modify other files.
+>       assert len(spy.price_updates) == 1
+E       assert 0 == 1
+E        +  where 0 = len([])
+E        +    where [] = <test_brain_integration.SpyStrategy object at 0x105bdce80>.price_updates
+
+bagbot/tests/test_brain_integration.py:35: AssertionError
+----------------------------- Captured stdout call -----------------------------
+🚀 BAGBOT WORKER STARTING...
+__________________ test_brain_routes_signal_check_to_strategy __________________
+
+    def test_brain_routes_signal_check_to_strategy():
+        q = JobQueue()
+        brain = Brain(job_queue=q)
+        spy = SpyStrategy()
+        register_strategy('test-spy', spy)
+        q.add_job(JobType.SIGNAL_CHECK, {"symbol":"ETHUSDT"})
+        brain.process_next_job()
+>       assert len(spy.signal_checks) == 1
+E       assert 0 == 1
+E        +  where 0 = len([])
+E        +    where [] = <test_brain_integration.SpyStrategy object at 0x105be6f10>.signal_checks
+
+bagbot/tests/test_brain_integration.py:46: AssertionError
+=========================== short test summary info ============================
+FAILED bagbot/tests/test_brain_integration.py::test_brain_routes_price_update_to_strategy
+FAILED bagbot/tests/test_brain_integration.py::test_brain_routes_signal_check_to_strategy
+2 failed, 41 passed in 0.30s

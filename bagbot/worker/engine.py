@@ -37,11 +37,11 @@ Important:
 After implementing this file, STOP and wait for approval.
 """
 
-from worker.queue import JobQueue
-from worker.tasks import JobType, handle_price_update, handle_signal_check, handle_execute_trade, handle_sync_state, handle_heartbeat
-from worker.utils import log_job_received, log_job_completed, log
-from worker.brain.brain import TradingBrain
-from worker.brain.strategy_router import StrategyRouter
+from bagbot.worker.queue import JobQueue
+from bagbot.worker.tasks import JobType, handle_price_update, handle_signal_check, handle_execute_trade, handle_sync_state, handle_heartbeat
+from bagbot.worker.utils import log_job_received, log_job_completed, log
+from bagbot.worker.brain.brain import TradingBrain
+from bagbot.worker.brain.strategy_router import StrategyRouter
 
 
 class WorkerEngine:

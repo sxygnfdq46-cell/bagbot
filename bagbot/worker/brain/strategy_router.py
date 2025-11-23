@@ -1,8 +1,8 @@
-from worker.tasks import JobType
-from worker.strategies.registry import get_strategy
-from worker.strategies.registry import STRATEGY_REGISTRY
-from worker.indicators.registry import indicator_registry
-from worker.ai.engine import AIDecisionEngine
+from bagbot.worker.tasks import JobType
+from bagbot.worker.strategies.registry import get_strategy
+from bagbot.worker.strategies.registry import STRATEGY_REGISTRY
+from bagbot.worker.indicators.registry import indicator_registry
+from bagbot.worker.ai.engine import AIDecisionEngine
 
 class StrategyRouter:
     def __init__(self, market_state=None):

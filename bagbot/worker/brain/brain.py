@@ -1,12 +1,12 @@
-from worker.brain.market_state import MarketState
-from worker.brain.strategy_router import StrategyRouter
-from worker.tasks import JobType  # only if needed where code already uses it
-from worker.brain.strategy_router import get_strategy
-from worker.strategies.master import MasterStrategy
-from worker.executor.account import VirtualAccount
-from worker.executor.executor import VirtualExecutor
-from worker.indicators.engine import IndicatorEngine
-from worker.executor.execution_router import ExecutionRouter
+from bagbot.worker.brain.market_state import MarketState
+from bagbot.worker.brain.strategy_router import StrategyRouter
+from bagbot.worker.tasks import JobType  # only if needed where code already uses it
+from bagbot.worker.brain.strategy_router import get_strategy
+from bagbot.worker.strategies.master import MasterStrategy
+from bagbot.worker.executor.account import VirtualAccount
+from bagbot.worker.executor.executor import VirtualExecutor
+from bagbot.worker.indicators.engine import IndicatorEngine
+from bagbot.worker.executor.execution_router import ExecutionRouter
 
 class TradingBrain:
     def __init__(self, job_queue=None, *args, **kwargs):

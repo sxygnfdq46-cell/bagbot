@@ -1,8 +1,8 @@
 # worker/manual_test_runner.py
 #!/usr/bin/env python3
-from worker.queue import JobQueue
-from worker.tasks import JobType
-from worker.runner import run_once_or_process_all  # adapt to actual public name
+from bagbot.worker.queue import JobQueue
+from bagbot.worker.tasks import JobType
+from bagbot.worker.runner import run_once_or_process_all  # adapt to actual public name
 
 # If worker.runner provides main() that processes jobs from an internal queue, instead import worker.runner and call the API documented there. Do not add new functions to other files.
 

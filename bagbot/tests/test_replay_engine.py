@@ -3,7 +3,7 @@
 
 def test_replay_engine_calls_callback():
     """Test that ReplayEngine iterates candles and calls callback for each."""
-    from backtest.replay import ReplayEngine
+    from bagbot.backtest.replay import ReplayEngine
     
     candles = [
         {"timestamp": "1", "close": 100.0},
@@ -27,7 +27,7 @@ def test_replay_engine_calls_callback():
 
 def test_replay_engine_run_from_to():
     """Test run_from_to calls callback for subset of candles."""
-    from backtest.replay import ReplayEngine
+    from bagbot.backtest.replay import ReplayEngine
     
     candles = [
         {"timestamp": "1", "close": 100.0},
