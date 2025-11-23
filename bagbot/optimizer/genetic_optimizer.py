@@ -179,7 +179,16 @@ def evaluate_genome(genome: Genome, candles: List[dict], objective: str = "sharp
             
             # Handle None (insufficient data) -> give a low score so optimizer avoids it
             if sharpe is None:
-                # very low but finite; if you want negative large to penalize, change -999.0
+                # For dual objective, still return dict structure
+                if objective == "dual":
+                    return {
+                        "sharpe": -999.0,
+                        "max_drawdown": 0.0,
+                        "score": -999.0,
+                        "final_equity": 10000.0,
+                        "penalty_factor": penalty_factor
+                    }
+                # For sharpe objective, return float
                 return -999.0
             
             # For dual objective, compute max drawdown and apply penalty
