@@ -261,7 +261,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <>
+    <div>
       <LiveTickerTape />
       <Navigation active="/dashboard" />
       <PageContent>
@@ -796,11 +796,8 @@ Worker Toggle: ${isTogglingWorker ? 'In Progress' : 'Ready'}`}
             </div>
           </div>
         </div>
-            </div>
-          </div>
-        </div>
         </div>
       </PageContent>
-    </>
+    </div>
   );
 }
