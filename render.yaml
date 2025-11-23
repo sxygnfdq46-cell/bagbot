@@ -15,7 +15,7 @@ services:
     plan: free
     rootDir: bagbot
     buildCommand: pip install -r requirements.txt
-    startCommand: python -u worker.py
+    startCommand: python3 -u worker.py
     autoDeploy: true
 
   - type: web
