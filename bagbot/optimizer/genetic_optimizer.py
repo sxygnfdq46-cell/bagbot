@@ -17,9 +17,12 @@ import argparse
 import copy
 import json
 import math
+import os
 import random
 import statistics
 from dataclasses import dataclass, asdict
+from datetime import datetime
+from pathlib import Path
 from typing import Any, List, Tuple, Callable, Optional
 
 # IMPORTS — adapt to your project layout
@@ -355,7 +358,6 @@ def main():
         # best_result is a dict with breakdown
         if isinstance(best_result, dict):
             print(f"Dual score: {best_result['score']:.4f} | Sharpe: {best_result['sharpe']:.4f} | MaxDD: {best_result['max_drawdown']:.2%} | Penalty: {best_result['penalty_factor']}")
-            print(f"Saved to best_genome_dual.json")
         else:
             print(f"best score (Dual: Sharpe - {args.penalty_factor}*Drawdown):", best_result)
     else:
@@ -363,10 +365,24 @@ def main():
     print("best genome:")
     print(json.dumps(asdict(best_genome), indent=2))
     
-    # save genome - use different filename for dual objective
-    save_path = args.save
-    if args.objective == "dual" and args.save == "best_genome.json":
-        save_path = "best_genome_dual.json"
+    # Generate timestamp for artifact filenames
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    # Create artifacts directory structure if it doesn't exist
+    artifacts_root = Path("artifacts")
+    genomes_dir = artifacts_root / "genomes"
+    reports_dir = artifacts_root / "reports"
+    genomes_dir.mkdir(parents=True, exist_ok=True)
+    reports_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Determine save path with timestamp
+    if args.save and args.save != "best_genome.json":
+        # User provided custom path - use it as-is for backward compatibility
+        save_path = args.save
+    else:
+        # Default: save to artifacts with timestamp
+        genome_filename = f"best_genome_{args.objective}_{timestamp}.json"
+        save_path = str(genomes_dir / genome_filename)
     
     genome_data = asdict(best_genome)
     # Include metrics in saved JSON for dual objective
@@ -375,6 +391,16 @@ def main():
         genome_data["sharpe"] = best_result["sharpe"]
         genome_data["max_drawdown"] = best_result["max_drawdown"]
         genome_data["penalty_factor"] = args.penalty_factor
+    
+    # Add metadata
+    genome_data["_metadata"] = {
+        "timestamp": timestamp,
+        "objective": args.objective,
+        "population_size": args.pop,
+        "generations": args.gens,
+        "seed": args.seed,
+        "data_file": args.data
+    }
     
     with open(save_path, "w") as f:
         f.write(json.dumps(genome_data, indent=2))
@@ -391,6 +417,25 @@ def main():
     
     report = generate_report(getattr(account, "trade_history", []), getattr(account, "equity_history", []))
     print("Final report with best genome:", report)
+    
+    # Save report to artifacts
+    report_filename = f"backtest_report_{args.objective}_{timestamp}.txt"
+    report_path = reports_dir / report_filename
+    with open(report_path, "w") as f:
+        f.write(f"Optimization Report - {timestamp}\n")
+        f.write(f"{'=' * 60}\n\n")
+        f.write(f"Objective: {args.objective}\n")
+        f.write(f"Population: {args.pop} | Generations: {args.gens} | Seed: {args.seed}\n")
+        f.write(f"Data: {args.data}\n\n")
+        if args.objective == "dual" and isinstance(best_result, dict):
+            f.write(f"Dual Score: {best_result['score']:.4f}\n")
+            f.write(f"Sharpe Ratio: {best_result['sharpe']:.4f}\n")
+            f.write(f"Max Drawdown: {best_result['max_drawdown']:.2%}\n")
+            f.write(f"Penalty Factor: {best_result['penalty_factor']}\n\n")
+        f.write(f"Backtest Report:\n")
+        f.write(str(report))
+    
+    print(f"Saved report to: {report_path}")
 
 if __name__ == "__main__":
     main()
