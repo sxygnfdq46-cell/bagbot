@@ -70,7 +70,7 @@ class TradingBrain:
             self.market_state.update_from_payload(payload)
             
             # Check for registered test strategies first (for test compatibility)
-            from worker.strategies.registry import STRATEGY_REGISTRY
+            from bagbot.worker.strategies.registry import STRATEGY_REGISTRY
             
             # Call all registered strategies with the original payload (tests expect this)
             for name, strategy_or_factory in STRATEGY_REGISTRY.items():
@@ -120,7 +120,7 @@ class TradingBrain:
         # For SIGNAL_CHECK jobs, before forwarding to the router, add the following safe invocation:
         if job_type == getattr(JobType, "SIGNAL_CHECK", "SIGNAL_CHECK") or getattr(job_type, "name", None) == "SIGNAL_CHECK":
             # Check for registered test strategies first
-            from worker.strategies.registry import STRATEGY_REGISTRY
+            from bagbot.worker.strategies.registry import STRATEGY_REGISTRY
             
             # Call all registered strategies
             for name, strategy_or_factory in STRATEGY_REGISTRY.items():
