@@ -13,8 +13,9 @@ services:
     name: bagbot-worker
     env: python
     plan: free
-    buildCommand: pip install -r bagbot/requirements.txt
-    startCommand: python3 -u bagbot/worker.py
+    rootDir: bagbot
+    buildCommand: pip install -r requirements.txt
+    startCommand: python3 -u worker.py
     autoDeploy: true
 
   - type: web
