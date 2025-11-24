@@ -1,0 +1,14 @@
+{
+  "TestStrategy": {
+    "strategy_name": "TestStrategy",
+    "confidence_score": 1.0,
+    "win_rate": 100.0,
+    "avg_profit": 0.0,
+    "consecutive_wins": 1,
+    "consecutive_losses": 0,
+    "last_updated": "2025-11-24T19:31:44.711882",
+    "is_active": true,
+    "total_trades": 1,
+    "total_wins": 1
+  }
+}

@@ -2,3 +2,8 @@ fastapi
 uvicorn[standard]
 requests
 httpx
+stripe
+sqlalchemy
+aiosqlite
+ccxt
+python-binance

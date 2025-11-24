@@ -9,8 +9,16 @@ from api.optimizer_routes import router as optimizer_router
 from api.artifacts_routes import router as artifacts_router
 from api.strategy_routes import router as strategy_router
 from api.logs_routes import router as logs_router
+from api.payment_routes import router as payment_router
+from api.order_routes import router as order_router
+from api.tradingview_routes import router as tradingview_router
+from api.admin_routes import router as admin_router
+from api.strategy_arsenal_routes import router as strategy_arsenal_router
+from api.risk_engine_routes import router as risk_engine_router
+from api.systems_routes import router as systems_router
 from backend.queue_bridge import submit_job
 from worker.tasks import JobType
+from backend.models import init_db
 
 # Load configuration
 try:
@@ -28,6 +36,10 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Initialize database
+init_db()
+logger.info("Database initialized")
 
 # Disable debug mode in production
 app = FastAPI(
@@ -55,6 +67,13 @@ app.include_router(optimizer_router)
 app.include_router(artifacts_router)
 app.include_router(strategy_router)
 app.include_router(logs_router)
+app.include_router(payment_router)
+app.include_router(order_router)
+app.include_router(tradingview_router)
+app.include_router(admin_router)
+app.include_router(strategy_arsenal_router)
+app.include_router(risk_engine_router)
+app.include_router(systems_router)
 
 
 class JobSubmission(BaseModel):

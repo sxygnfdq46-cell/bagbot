@@ -35,10 +35,30 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       
-      - name: Run pytest
+      - name: Run all unit tests
         run: |
           cd bagbot
-          pytest tests/ -q
+          pytest tests/ -v --tb=short
+      
+      - name: Run connector tests
+        run: |
+          cd bagbot
+          pytest tests/test_binance_connector.py -v
+      
+      - name: Run order router tests
+        run: |
+          cd bagbot
+          pytest tests/test_order_router.py -v
+      
+      - name: Run risk manager tests
+        run: |
+          cd bagbot
+          pytest tests/test_risk.py -v
+      
+      - name: Run backtester tests
+        run: |
+          cd bagbot
+          pytest tests/test_backtester.py -v
       
       - name: Run determinism tests
         run: |

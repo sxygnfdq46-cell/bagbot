@@ -14,7 +14,7 @@ apt update && apt upgrade -y
 echo "📦 Installing Docker, nginx, fail2ban, ufw..."
 apt install -y \
     docker.io \
-    docker-compose \
+    docker-compose-plugin \
     nginx \
     certbot \
     python3-certbot-nginx \
@@ -47,7 +47,8 @@ chmod 600 /home/deploy/.ssh/authorized_keys
 chown -R deploy:deploy /home/deploy/.ssh
 
 echo "📝 Add your SSH public key to /home/deploy/.ssh/authorized_keys"
-echo "   Run: cat ~/.ssh/id_rsa.pub | ssh root@<VPS_IP> 'cat >> /home/deploy/.ssh/authorized_keys'"
+echo "   Option 1: ssh-copy-id -i scripts/keys/deploy_key.pub deploy@<VPS_IP>"
+echo "   Option 2: cat scripts/keys/deploy_key.pub | ssh root@<VPS_IP> 'cat >> /home/deploy/.ssh/authorized_keys'"
 
 # Configure UFW firewall
 echo "🔥 Configuring firewall..."
@@ -122,10 +123,13 @@ echo "✅ VPS provisioning complete!"
 echo ""
 echo "📋 Next steps:"
 echo "1. Add your SSH public key to /home/deploy/.ssh/authorized_keys"
-echo "2. Test SSH login: ssh deploy@<VPS_IP>"
-echo "3. Run: /root/harden_ssh.sh (as root)"
-echo "4. Upload docker-compose.prod.yml and .env.production to /srv/bagbot"
-echo "5. Configure nginx site in /etc/nginx/sites-available/"
-echo "6. Run certbot for SSL"
-echo "7. Start bagbot: systemctl enable bagbot.service && systemctl start bagbot.service"
+echo "2. Test SSH login: ssh -i scripts/keys/deploy_key deploy@<VPS_IP>"
+echo "3. Run: sudo /root/harden_ssh.sh (after confirming SSH key works)"
+echo "4. Clone repo to /srv/bagbot: cd /srv/bagbot && git clone <REPO_URL> ."
+echo "5. Create .env file in /srv/bagbot from .env.production.example"
+echo "6. Configure nginx: sudo cp deploy/nginx.conf /etc/nginx/sites-available/bagbot"
+echo "7. Enable site: sudo ln -s /etc/nginx/sites-available/bagbot /etc/nginx/sites-enabled/"
+echo "8. Test nginx: sudo nginx -t && sudo systemctl restart nginx"
+echo "9. Run certbot: sudo certbot --nginx -d thebagbot.trade -d api.thebagbot.trade"
+echo "10. Start bagbot: sudo systemctl enable bagbot.service && sudo systemctl start bagbot.service"
 echo ""

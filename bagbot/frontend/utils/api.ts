@@ -22,7 +22,15 @@ const generateRequestId = (): string => {
 
 // Get API base URL from environment
 const getApiBaseUrl = (): string => {
-  return process.env.NEXT_PUBLIC_API_URL || 'https://bagbot2-backend.onrender.com';
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
+  
+  if (!envUrl) {
+    console.error('NEXT_PUBLIC_API_URL is not defined. Check your environment configuration.');
+    // Fallback for development only
+    return 'http://localhost:8000';
+  }
+  
+  return envUrl;
 };
 
 // Create axios instance with default config

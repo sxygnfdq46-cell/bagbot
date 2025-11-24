@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Home, LayoutDashboard, BarChart3, Radio, FileText, Settings, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, LayoutDashboard, BarChart3, Radio, FileText, Settings, Menu, X, ChevronLeft, ChevronRight, Target, Shield, Brain, MessageSquare, Activity } from 'lucide-react';
 import WalletLogo from '@/components/WalletLogo';
 import { useSidebar } from '@/context/SidebarContext';
 
@@ -19,6 +19,9 @@ interface NavigationProps {
 const navigationItems: NavigationItem[] = [
   { name: 'Home', href: '/', icon: Home },
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Systems', href: '/systems', icon: Activity },
+  { name: 'Strategies', href: '/strategies', icon: Target },
+  { name: 'AI Chat', href: '/chat', icon: MessageSquare },
   { name: 'Charts', href: '/charts', icon: BarChart3 },
   { name: 'Signals', href: '/signals', icon: Radio },
   { name: 'Logs', href: '/logs', icon: FileText },
