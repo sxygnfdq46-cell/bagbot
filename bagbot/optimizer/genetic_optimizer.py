@@ -378,7 +378,10 @@ def main():
     # Determine save path with timestamp
     if args.save and args.save != "best_genome.json":
         # User provided custom path - use it as-is for backward compatibility
-        save_path = args.save
+        save_path = Path(args.save)
+        # Ensure parent directory exists for custom paths
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+        save_path = str(save_path)
     else:
         # Default: save to artifacts with timestamp
         genome_filename = f"best_genome_{args.objective}_{timestamp}.json"

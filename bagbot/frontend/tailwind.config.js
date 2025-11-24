@@ -14,13 +14,54 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Institutional maroon palette
+        maroon: {
+          50: '#FFF5F7',
+          100: '#FFE3E9',
+          200: '#FFC7D4',
+          300: '#FF9AB0',
+          400: '#FF5C7C',
+          500: '#8A3A3A',
+          600: '#7C2F39',
+          700: '#6B2845',
+          800: '#5A1F3A',
+          900: '#491830',
+        },
+        // Premium gold/yellow accent
+        gold: {
+          50: '#FFFBEB',
+          100: '#FEF3C7',
+          200: '#FDE68A',
+          300: '#FCD34D',
+          400: '#FBBF24',
+          500: '#F9D949',
+          600: '#E6A800',
+          700: '#D97706',
+          800: '#B45309',
+          900: '#92400E',
+        },
+        // Clean neutrals
+        neutral: {
+          50: '#FAFAFA',
+          100: '#F5F5F5',
+          200: '#E5E5E5',
+          300: '#D4D4D4',
+          400: '#A3A3A3',
+          500: '#737373',
+          600: '#525252',
+          700: '#404040',
+          800: '#262626',
+          900: '#171717',
+          950: '#0A0A0A',
+        },
+        // Keep for backwards compatibility
         primary: {
-          DEFAULT: '#A63F45',
-          700: '#8B2E2E',
-          200: '#E8B3B4'
+          DEFAULT: '#8A3A3A',
+          700: '#7C2F39',
+          200: '#FFC7D4'
         },
         accent: {
-          DEFAULT: '#FFC107',
+          DEFAULT: '#F9D949',
           700: '#E6A800'
         },
         black: '#0A0A0A',
@@ -29,8 +70,9 @@ module.exports = {
         white: '#FFFFFF'
       },
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', 'sans-serif', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'],
-        inter: ['Inter', 'sans-serif']
+        sans: ['var(--font-inter)', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+        inter: ['var(--font-inter)', 'Inter', 'sans-serif'],
+        display: ['var(--font-inter)', 'Inter', 'sans-serif'],
       },
       spacing: {
         '0.5': '0.125rem',    // 2px
@@ -95,14 +137,19 @@ module.exports = {
         'full': '9999px',
       },
       boxShadow: {
-        'sm': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-        'DEFAULT': '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
-        'md': '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-        'lg': '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-        'xl': '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
-        '2xl': '0 25px 50px -12px rgb(0 0 0 / 0.25)',
-        'inner': 'inset 0 2px 4px 0 rgb(0 0 0 / 0.05)',
+        'sm': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        'DEFAULT': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)',
+        'md': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
+        'lg': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
+        'xl': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+        '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+        'inner': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)',
         'none': 'none',
+        // Institutional shadows with maroon tint
+        'maroon-sm': '0 2px 4px 0 rgba(138, 58, 58, 0.2)',
+        'maroon-md': '0 6px 20px rgba(138, 58, 58, 0.25)',
+        'maroon-lg': '0 16px 40px rgba(138, 58, 58, 0.3)',
+        'gold-glow': '0 0 20px rgba(249, 217, 73, 0.4)',
       },
       animation: {
         'spin': 'spin 1s linear infinite',

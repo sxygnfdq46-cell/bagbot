@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build && npm run postbuild",
+    "build:prod": "NODE_ENV=production next build && npm run postbuild",
     "postbuild": "cp -r public .next/standalone/public && cp -r .next/static .next/standalone/.next/static && echo '✓ Static files copied to standalone build'",
     "start": "node ./.next/standalone/server.js",
+    "start:prod": "NODE_ENV=production node ./.next/standalone/server.js",
     "lint": "next lint",
     "test": "jest --watch",
     "test:ci": "jest --ci --coverage",

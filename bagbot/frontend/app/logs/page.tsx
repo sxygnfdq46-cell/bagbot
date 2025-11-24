@@ -1,184 +1,102 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { CheckCircle, AlertTriangle, XCircle, Info, TrendingUp, TrendingDown, Activity, Settings, Zap, RefreshCw, Home, LayoutDashboard, BarChart3, Radio, FileText, Search } from 'lucide-react';
+import { CheckCircle, AlertTriangle, XCircle, Info, TrendingUp, TrendingDown, Activity, Settings, Zap, RefreshCw, Home, LayoutDashboard, BarChart3, Radio, FileText, Search, Download, Filter, Wifi, WifiOff } from 'lucide-react';
 import Navigation from '../components/Navigation';
 import LiveTickerTape from '@/components/Dashboard/LiveTickerTape';
 import PageContent from '@/components/Layout/PageContent';
+import { useLogs } from '@/utils/hooks';
+import api from '@/utils/apiService';
+import { getUserFriendlyError } from '@/utils/api';
 
 export default function LogsPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('All');
-  const [isLoading, setIsLoading] = useState(false);
-  const logs = [
-    {
-      time: '14:32:18',
-      date: 'Nov 21, 2024',
-      type: 'success',
-      category: 'Trade',
-      message: 'BUY order executed successfully',
-      details: 'BTC/USDT @ $43,250.00 | Quantity: 0.025 BTC',
-      icon: CheckCircle
-    },
-    {
-      time: '14:28:45',
-      date: 'Nov 21, 2024',
-      type: 'success',
-      category: 'Signal',
-      message: 'New trading signal generated',
-      details: 'ETH/USDT BUY signal | Confidence: 92%',
-      icon: TrendingUp
-    },
-    {
-      time: '14:25:12',
-      date: 'Nov 21, 2024',
-      type: 'info',
-      category: 'System',
-      message: 'Worker task completed',
-      details: 'Market analysis cycle finished | Duration: 2.4s',
-      icon: Activity
-    },
-    {
-      time: '14:21:03',
-      date: 'Nov 21, 2024',
-      type: 'warning',
-      category: 'Risk',
-      message: 'High volatility detected',
-      details: 'SOL/USDT volatility: 18.5% | Position size reduced',
-      icon: AlertTriangle
-    },
-    {
-      time: '14:18:37',
-      date: 'Nov 21, 2024',
-      type: 'success',
-      category: 'Trade',
-      message: 'SELL order executed successfully',
-      details: 'ETH/USDT @ $2,340.50 | Profit: +$189.00',
-      icon: CheckCircle
-    },
-    {
-      time: '14:15:22',
-      date: 'Nov 21, 2024',
-      type: 'error',
-      category: 'API',
-      message: 'Exchange API rate limit reached',
-      details: 'Binance API | Retry scheduled in 60s',
-      icon: XCircle
-    },
-    {
-      time: '14:12:08',
-      date: 'Nov 21, 2024',
-      type: 'info',
-      category: 'System',
-      message: 'Configuration updated',
-      details: 'Risk parameters adjusted | Max position: 2.5%',
-      icon: Settings
-    },
-    {
-      time: '14:08:45',
-      date: 'Nov 21, 2024',
-      type: 'success',
-      category: 'Signal',
-      message: 'Signal accuracy validation passed',
-      details: 'Last 24h accuracy: 78.4% | Above threshold',
-      icon: Zap
-    },
-    {
-      time: '14:05:19',
-      date: 'Nov 21, 2024',
-      type: 'warning',
-      category: 'Trade',
-      message: 'Stop loss triggered',
-      details: 'ADA/USDT @ $0.51 | Loss: -$23.00',
-      icon: TrendingDown
-    },
-    {
-      time: '14:02:56',
-      date: 'Nov 21, 2024',
-      type: 'info',
-      category: 'System',
-      message: 'Database backup completed',
-      details: 'Size: 245 MB | Location: cloud-backup-001',
-      icon: Info
-    },
-    {
-      time: '13:58:31',
-      date: 'Nov 21, 2024',
-      type: 'success',
-      category: 'Trade',
-      message: 'BUY order executed successfully',
-      details: 'SOL/USDT @ $98.50 | Quantity: 2.5 SOL',
-      icon: CheckCircle
-    },
-    {
-      time: '13:54:17',
-      date: 'Nov 21, 2024',
-      type: 'error',
-      category: 'Network',
-      message: 'Connection timeout',
-      details: 'Exchange: Kraken | Auto-reconnecting...',
-      icon: XCircle
-    },
-    {
-      time: '13:50:42',
-      date: 'Nov 21, 2024',
-      type: 'info',
-      category: 'Worker',
-      message: 'Scheduled task started',
-      details: 'Market sentiment analysis | Queue: 3 pending',
-      icon: RefreshCw
-    },
-    {
-      time: '13:47:28',
-      date: 'Nov 21, 2024',
-      type: 'success',
-      category: 'Signal',
-      message: 'Multi-indicator confirmation',
-      details: 'BTC/USDT | 5 of 7 indicators bullish',
-      icon: TrendingUp
-    },
-    {
-      time: '13:43:05',
-      date: 'Nov 21, 2024',
-      type: 'warning',
-      category: 'Risk',
-      message: 'Portfolio exposure near limit',
-      details: 'Current: 87.5% | Max: 90% | Review positions',
-      icon: AlertTriangle
-    }
-  ];
+  const [activeFilter, setActiveFilter] = useState<'all' | 'ERROR' | 'WARNING' | 'INFO'>('all');
+  const [limit, setLimit] = useState(50);
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected'>('disconnected');
+  
+  // Use custom hook for real-time logs (refresh every 5 seconds)
+  const { logs, loading, error, refetch } = useLogs({ 
+    level: activeFilter !== 'all' ? activeFilter : undefined,
+    limit 
+  }, 5000);
 
-  const getStatusStyles = (type: string) => {
-    switch (type) {
-      case 'success':
+  // Check connection status
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        await api.apiHealth();
+        setConnectionStatus('connected');
+      } catch {
+        setConnectionStatus('disconnected');
+      }
+    };
+    checkConnection();
+  }, []);
+
+  // Filter logs by search query
+  const filteredLogs = logs.filter(log => 
+    log.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    log.level.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Calculate stats
+  const stats = {
+    total: logs.length,
+    success: logs.filter(l => l.level === 'INFO').length,
+    warnings: logs.filter(l => l.level === 'WARNING').length,
+    errors: logs.filter(l => l.level === 'ERROR').length
+  };
+
+  const getStatusStyles = (level: string) => {
+    switch (level) {
+      case 'INFO':
         return {
           bg: 'bg-[#4ADE80]/20',
           border: 'border-[#4ADE80]/30',
           text: 'text-[#4ADE80]',
-          chip: 'bg-[#4ADE80]/20 text-[#4ADE80]'
+          chip: 'bg-[#4ADE80]/20 text-[#4ADE80]',
+          icon: CheckCircle
         };
-      case 'warning':
+      case 'WARNING':
         return {
           bg: 'bg-[#F9D949]/20',
           border: 'border-[#F9D949]/30',
           text: 'text-[#F9D949]',
-          chip: 'bg-[#F9D949]/20 text-[#F9D949]'
+          chip: 'bg-[#F9D949]/20 text-[#F9D949]',
+          icon: AlertTriangle
         };
-      case 'error':
+      case 'ERROR':
         return {
           bg: 'bg-[#F87171]/20',
           border: 'border-[#F87171]/30',
           text: 'text-[#F87171]',
-          chip: 'bg-[#F87171]/20 text-[#F87171]'
+          chip: 'bg-[#F87171]/20 text-[#F87171]',
+          icon: XCircle
         };
       default:
         return {
           bg: 'bg-[#60A5FA]/20',
           border: 'border-[#60A5FA]/30',
           text: 'text-[#60A5FA]',
-          chip: 'bg-[#60A5FA]/20 text-[#60A5FA]'
+          chip: 'bg-[#60A5FA]/20 text-[#60A5FA]',
+          icon: Info
         };
+    }
+  };
+
+  const handleExportLogs = async () => {
+    try {
+      const blob = new Blob([JSON.stringify(logs, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `logs-${new Date().toISOString()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to export logs:', error);
     }
   };
 
@@ -244,12 +162,18 @@ export default function LogsPage() {
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-6 mb-6 md:mb-8">
           {[
-            { label: 'Total Events', value: '1,247', type: 'info', icon: Activity },
-            { label: 'Success', value: '892', type: 'success', icon: CheckCircle },
-            { label: 'Warnings', value: '127', type: 'warning', icon: AlertTriangle },
-            { label: 'Errors', value: '18', type: 'error', icon: XCircle }
+            { label: 'Total Events', value: stats.total.toString(), type: 'info', icon: Activity },
+            { label: 'Info', value: stats.success.toString(), type: 'success', icon: CheckCircle },
+            { label: 'Warnings', value: stats.warnings.toString(), type: 'warning', icon: AlertTriangle },
+            { label: 'Errors', value: stats.errors.toString(), type: 'error', icon: XCircle },
+            { 
+              label: 'Connection', 
+              value: connectionStatus === 'connected' ? 'Live' : 'Offline', 
+              type: connectionStatus === 'connected' ? 'success' : 'error', 
+              icon: connectionStatus === 'connected' ? Wifi : WifiOff 
+            }
           ].map((stat, index) => {
             const Icon = stat.icon;
             const styles = getStatusStyles(stat.type);
@@ -268,115 +192,145 @@ export default function LogsPage() {
           })}
         </div>
 
-        {/* Filters */}
-        <div className="mb-6 flex flex-wrap gap-2 md:gap-3">
-          {['All', 'Trade', 'Signal', 'System', 'API', 'Risk', 'Worker', 'Network'].map((filter) => (
+        {/* Filters & Actions */}
+        <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-2 md:gap-3">
+            {(['all', 'INFO', 'WARNING', 'ERROR'] as const).map((filter) => (
+              <button
+                key={filter}
+                onClick={() => setActiveFilter(filter)}
+                className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-semibold transition-all ${
+                  activeFilter === filter
+                    ? 'bg-[#7C2F39] text-[#FFFBE7] border border-[#F9D949]'
+                    : 'bg-black/50 text-[#FFFBE7]/60 hover:bg-[#7C2F39]/50 border border-[#7C2F39]/30'
+                }`}
+              >
+                {filter === 'all' ? 'All' : filter}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2">
             <button
-              key={filter}
-              onClick={() => setActiveFilter(filter)}
-              className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-semibold transition-all ${
-                activeFilter === filter
-                  ? 'bg-[#7C2F39] text-[#FFFBE7] border border-[#F9D949]'
-                  : 'bg-black/50 text-[#FFFBE7]/60 hover:bg-[#7C2F39]/50 border border-[#7C2F39]/30'
-              }`}
+              onClick={() => refetch()}
+              disabled={loading}
+              className="px-4 py-2 rounded-lg bg-[#7C2F39]/50 hover:bg-[#7C2F39] text-[#FFFBE7] border border-[#7C2F39]/30 hover:border-[#F9D949]/50 transition-all flex items-center gap-2 text-sm font-semibold disabled:opacity-50"
             >
-              {filter}
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
             </button>
-          ))}
+            <button
+              onClick={handleExportLogs}
+              className="px-4 py-2 rounded-lg bg-[#7C2F39]/50 hover:bg-[#7C2F39] text-[#FFFBE7] border border-[#7C2F39]/30 hover:border-[#F9D949]/50 transition-all flex items-center gap-2 text-sm font-semibold"
+            >
+              <Download className="w-4 h-4" />
+              Export
+            </button>
+          </div>
         </div>
+
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-8">
+            <RefreshCw className="w-8 h-8 text-[#F9D949] animate-spin mx-auto mb-2" />
+            <p className="text-[#FFFBE7]/60">Loading logs...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="p-6 rounded-xl bg-[#F87171]/10 border border-[#F87171]/30 mb-6">
+            <div className="flex items-center gap-3">
+              <XCircle className="w-6 h-6 text-[#F87171]" />
+              <div>
+                <h3 className="text-lg font-bold text-[#F87171]">Failed to load logs</h3>
+                <p className="text-[#FFFBE7]/60 text-sm">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Activity Feed */}
-        <div className="space-y-3 md:space-y-4">
-          {logs
-            .filter(log => {
-              if (activeFilter !== 'All' && log.category !== activeFilter) return false;
-              if (searchQuery && !(
-                log.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                log.details.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                log.category.toLowerCase().includes(searchQuery.toLowerCase())
-              )) return false;
-              return true;
-            })
-            .map((log, index) => {
-            const styles = getStatusStyles(log.type);
-            const Icon = log.icon;
-            return (
-              <div
-                key={index}
-                className={`p-4 md:p-6 rounded-xl md:rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border ${styles.border} hover:border-[#F9D949]/50 transition-all`}
-              >
-                {/* Mobile Layout - Stack vertically */}
-                <div className="flex flex-col md:hidden gap-3">
-                  {/* Top Row: Time + Status Badge + Icon */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="text-lg font-bold text-[#FFFBE7]">{log.time}</div>
-                      <div className="text-xs text-[#FFFBE7]/40">{log.date}</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-1 rounded-lg text-xs font-bold uppercase ${styles.chip}`}>
-                        {log.type}
-                      </span>
-                      <div className={`p-2 rounded-lg ${styles.bg}`}>
-                        <Icon className={`w-5 h-5 ${styles.text}`} />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Category Badge */}
-                  <div>
-                    <span className="px-2 py-1 rounded-lg text-xs font-bold bg-[#7C2F39]/20 text-[#F9D949] border border-[#7C2F39]/30">
-                      {log.category}
-                    </span>
-                  </div>
-
-                  {/* Message & Details */}
-                  <div>
-                    <h3 className="text-base font-bold text-[#FFFBE7] mb-1">{log.message}</h3>
-                    <p className="text-sm text-[#FFFBE7]/60 leading-relaxed">{log.details}</p>
-                  </div>
-                </div>
-
-                {/* Desktop Layout - Horizontal */}
-                <div className="hidden md:flex gap-6">
-                  {/* Timestamp Column */}
-                  <div className="flex-shrink-0 w-32">
-                    <div className="text-2xl font-bold text-[#FFFBE7]">{log.time}</div>
-                    <div className="text-xs text-[#FFFBE7]/40 mt-1">{log.date}</div>
-                  </div>
-
-                  {/* Icon */}
-                  <div className={`flex-shrink-0 p-3 rounded-xl ${styles.bg} h-fit`}>
-                    <Icon className={`w-6 h-6 ${styles.text}`} />
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide ${styles.chip}`}>
-                          {log.type}
-                        </span>
-                        <span className="px-3 py-1 rounded-lg text-xs font-bold bg-[#7C2F39]/20 text-[#F9D949] border border-[#7C2F39]/30">
-                          {log.category}
-                        </span>
-                      </div>
-                    </div>
-                    <h3 className="text-lg font-bold text-[#FFFBE7] mb-1">{log.message}</h3>
-                    <p className="text-sm text-[#FFFBE7]/60">{log.details}</p>
-                  </div>
-                </div>
+        {!loading && !error && (
+          <div className="space-y-3 md:space-y-4">
+            {filteredLogs.length === 0 ? (
+              <div className="text-center py-12">
+                <Info className="w-12 h-12 text-[#FFFBE7]/20 mx-auto mb-4" />
+                <p className="text-[#FFFBE7]/60">No logs found</p>
               </div>
-            );
-          })}
-        </div>
+            ) : (
+              filteredLogs.map((log, index) => {
+                const styles = getStatusStyles(log.level);
+                const Icon = styles.icon;
+                return (
+                  <div
+                    key={`${log.timestamp}-${index}`}
+                    className={`p-4 md:p-6 rounded-xl md:rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border ${styles.border} hover:border-[#F9D949]/50 transition-all`}
+                  >
+                    {/* Mobile Layout */}
+                    <div className="flex flex-col md:hidden gap-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="text-lg font-bold text-[#FFFBE7]">
+                            {new Date(log.timestamp).toLocaleTimeString()}
+                          </div>
+                          <div className="text-xs text-[#FFFBE7]/40">
+                            {new Date(log.timestamp).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-1 rounded-lg text-xs font-bold uppercase ${styles.chip}`}>
+                            {log.level}
+                          </span>
+                          <div className={`p-2 rounded-lg ${styles.bg}`}>
+                            <Icon className={`w-5 h-5 ${styles.text}`} />
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-[#FFFBE7] mb-1">{log.message}</h3>
+                      </div>
+                    </div>
+
+                    {/* Desktop Layout */}
+                    <div className="hidden md:flex gap-6">
+                      <div className="flex-shrink-0 w-32">
+                        <div className="text-2xl font-bold text-[#FFFBE7]">
+                          {new Date(log.timestamp).toLocaleTimeString()}
+                        </div>
+                        <div className="text-xs text-[#FFFBE7]/40 mt-1">
+                          {new Date(log.timestamp).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <div className={`flex-shrink-0 p-3 rounded-xl ${styles.bg} h-fit`}>
+                        <Icon className={`w-6 h-6 ${styles.text}`} />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between mb-2">
+                          <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide ${styles.chip}`}>
+                            {log.level}
+                          </span>
+                        </div>
+                        <h3 className="text-lg font-bold text-[#FFFBE7] mb-1">{log.message}</h3>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
 
         {/* Load More */}
-        <div className="mt-8 text-center">
-          <button className="px-8 py-3 rounded-xl bg-gradient-to-r from-[#7C2F39] to-[#991B1B] text-[#FFFBE7] font-bold hover:from-[#991B1B] hover:to-[#7C2F39] transition-all">
-            Load More Logs
-          </button>
-        </div>
+        {!loading && !error && filteredLogs.length >= limit && (
+          <div className="mt-8 text-center">
+            <button 
+              onClick={() => setLimit(prev => prev + 50)}
+              className="px-8 py-3 rounded-xl bg-gradient-to-r from-[#7C2F39] to-[#991B1B] text-[#FFFBE7] font-bold hover:from-[#991B1B] hover:to-[#7C2F39] transition-all"
+            >
+              Load More Logs
+            </button>
+          </div>
+        )}
 
         {/* Info Box */}
         <div className="mt-12 p-6 rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30">

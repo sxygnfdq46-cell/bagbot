@@ -201,10 +201,18 @@ def test_custom_save_path_still_works():
         
         custom_path = Path(tmpdir) / "my_custom_genome.json"
         
+        # Set PYTHONPATH to parent of bagbot directory
+        env = os.environ.copy()
+        bagbot_parent = str(Path(__file__).parent.parent.parent)
+        env['PYTHONPATH'] = bagbot_parent
+        
+        # Get the optimizer module path
+        optimizer_path = Path(__file__).parent.parent / "optimizer" / "genetic_optimizer.py"
+        
         # Run with custom save path
         result = subprocess.run(
             [
-                sys.executable, "-m", "bagbot.optimizer.genetic_optimizer",
+                sys.executable, str(optimizer_path),
                 "--data", str(test_csv),
                 "--pop", "2",
                 "--gens", "1",
@@ -212,12 +220,19 @@ def test_custom_save_path_still_works():
                 "--objective", "sharpe",
                 "--save", str(custom_path)
             ],
-            cwd=tmpdir,
             capture_output=True,
-            text=True
+            text=True,
+            env=env
         )
         
+        # Debug: print output if failed
+        if result.returncode != 0 or not custom_path.exists():
+            print(f"STDOUT: {result.stdout}")
+            print(f"STDERR: {result.stderr}")
+            print(f"Return code: {result.returncode}")
+        
         # Verify custom path was used
+        assert result.returncode == 0, f"Optimizer failed: {result.stderr}"
         assert custom_path.exists(), f"Custom path {custom_path} not created"
         
         with open(custom_path) as f:

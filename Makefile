@@ -1,4 +1,4 @@
-.PHONY: help test test-cov test-fast lint format clean install setup pre-commit docs
+.PHONY: help test test-cov test-fast lint format clean install setup pre-commit docs build up down logs ps deploy-prod
 
 help:
 	@echo "BAGBOT Development Commands"
@@ -13,6 +13,12 @@ help:
 	@echo "make pre-commit    - Run pre-commit hooks on all files"
 	@echo "make docs          - Validate documentation"
 	@echo "make clean         - Remove cache and temporary files"
+	@echo "make build         - Build Docker containers"
+	@echo "make up            - Start Docker containers"
+	@echo "make down          - Stop Docker containers"
+	@echo "make logs          - View Docker logs"
+	@echo "make ps            - List Docker containers"
+	@echo "make deploy-prod   - Deploy to production VPS"
 
 install:
 	pip install -r requirements.txt
@@ -54,7 +60,38 @@ clean:
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name "*.pyc" -delete
 	find . -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
+
+# Docker commands
+build:
+	docker-compose build
+
+up:
+	docker-compose up -d
+
+down:
+	docker-compose down
+
+logs:
+	docker-compose logs -f
+
+ps:
+	docker-compose ps
 	find . -type d -name "htmlcov" -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name ".coverage" -delete
 	find . -type f -name "coverage.xml" -delete
 	@echo "Cleaned up cache and temporary files!"
+
+# Production deployment
+deploy-prod:
+	@echo "🚀 Deploying to production..."
+	@if [ -z "$(VPS_HOST)" ]; then \
+		echo "❌ Error: VPS_HOST not set. Usage: make deploy-prod VPS_HOST=user@host"; \
+		exit 1; \
+	fi
+	@echo "📦 Syncing files to VPS..."
+	rsync -avz --exclude='.git' --exclude='node_modules' --exclude='.venv' \
+		--exclude='__pycache__' --exclude='.next' \
+		./ $(VPS_HOST):/srv/bagbot/
+	@echo "🔄 Running deployment script on VPS..."
+	ssh $(VPS_HOST) 'cd /srv/bagbot && bash deploy/deploy.sh'
+	@echo "✅ Deployment complete!"

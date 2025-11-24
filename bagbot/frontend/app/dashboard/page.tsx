@@ -7,9 +7,16 @@ import Navigation from '../components/Navigation';
 import LiveTickerTape from '@/components/Dashboard/LiveTickerTape';
 import PageContent from '@/components/Layout/PageContent';
 import api from '@/utils/apiService';
+import { useWorkerStatus, useStrategyConfig, useLogs } from '@/utils/hooks';
 import { getUserFriendlyError } from '@/utils/api';
 
 export default function DashboardPage() {
+  // Use custom hooks for real-time data
+  const { status: workerStatus, loading: workerLoading, error: workerError, refetch: refetchWorker } = useWorkerStatus(5000);
+  const { config: strategyConfig, loading: strategyLoading } = useStrategyConfig();
+  const { logs: recentLogs, loading: logsLoading } = useLogs({ limit: 10 }, 10000);
+  
+  // UI state
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
@@ -17,47 +24,42 @@ export default function DashboardPage() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-  
-  // API data with loading/error states
-  const [apiHealth, setApiHealth] = useState<any>(null);
-  const [workerStatus, setWorkerStatus] = useState<any>(null);
-  const [isLoadingHealth, setIsLoadingHealth] = useState(false);
-  const [isLoadingWorker, setIsLoadingWorker] = useState(false);
-  const [apiError, setApiError] = useState<string | null>(null);
-  const [workerError, setWorkerError] = useState<string | null>(null);
-  
-  // Bot controls
-  const [botActive, setBotActive] = useState(false);
   const [isTogglingWorker, setIsTogglingWorker] = useState(false);
   const [stakeAmount, setStakeAmount] = useState('1000');
   const [selectedStrategy, setSelectedStrategy] = useState('conservative');
+  
+  // Strategy options
+  const strategies = [
+    { id: 'conservative', name: 'Conservative', desc: 'Low risk, steady gains' },
+    { id: 'balanced', name: 'Balanced', desc: 'Medium risk, balanced returns' },
+    { id: 'aggressive', name: 'Aggressive', desc: 'High risk, maximum returns' },
+    { id: 'scalping', name: 'Scalping', desc: 'Quick trades, frequent signals' },
+  ];
+  
+  // API health check
+  const [apiHealth, setApiHealth] = useState<any>(null);
+  const [isLoadingHealth, setIsLoadingHealth] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
   
   // Live chart data
   const [chartData, setChartData] = useState<number[]>(
     Array.from({ length: 20 }, () => Math.random() * 100 + 50)
   );
   
-  // Live updates
+  // Live updates from logs
   const [liveUpdates, setLiveUpdates] = useState<Array<{
-    type: 'trade' | 'signal' | 'alert';
+    type: 'trade' | 'signal' | 'alert' | 'info';
     message: string;
     time: string;
     id: number;
-  }>>([
-    { type: 'trade', message: 'BUY BTC/USDT @ $43,250 executed', time: '2 min ago', id: 1 },
-    { type: 'signal', message: 'New bullish signal detected for ETH/USDT', time: '5 min ago', id: 2 },
-    { type: 'trade', message: 'SELL SOL/USDT @ $98.50 completed', time: '8 min ago', id: 3 },
-  ]);
+  }>>([]);
 
-  // Fetch API data with proper error handling
-  const fetchApiData = async () => {
+  // Check API health
+  const checkApiHealth = async () => {
     setIsLoadingHealth(true);
-    setIsLoadingWorker(true);
     setApiError(null);
-    setWorkerError(null);
     
     try {
-      // Fetch backend health
       const healthResponse = await api.apiHealth();
       setApiHealth(healthResponse.data);
       setConnectionStatus('connected');
@@ -69,40 +71,42 @@ export default function DashboardPage() {
     } finally {
       setIsLoadingHealth(false);
     }
-    
-    try {
-      // Fetch worker status
-      const workerResponse = await api.getWorkerStatus();
-      setWorkerStatus(workerResponse.data);
-      
-      // Update botActive based on worker status
-      setBotActive(workerResponse.data.status === 'running');
-    } catch (error) {
-      console.error('Failed to fetch worker status:', error);
-      setWorkerError(getUserFriendlyError(error));
-    } finally {
-      setIsLoadingWorker(false);
-    }
   };
 
-  // Initial fetch on mount
+  // Initial health check
   useEffect(() => {
-    fetchApiData();
+    checkApiHealth();
   }, []);
 
-  // Auto-refresh every 30 seconds
+  // Auto-refresh health check
   useEffect(() => {
     if (autoRefresh) {
       const interval = setInterval(() => {
-        fetchApiData();
+        checkApiHealth();
       }, 30000);
       return () => clearInterval(interval);
     }
   }, [autoRefresh]);
-  
-  // Simulate live chart updates
+
+  // Update live updates from logs
   useEffect(() => {
-    if (botActive) {
+    if (recentLogs && recentLogs.length > 0) {
+      const updates = recentLogs.slice(0, 10).map((log, idx) => ({
+        type: log.level === 'ERROR' ? 'alert' : 
+              log.level === 'WARNING' ? 'alert' : 
+              log.message.includes('signal') ? 'signal' :
+              log.message.includes('trade') || log.message.includes('TRADE') ? 'trade' : 'info',
+        message: log.message,
+        time: new Date(log.timestamp).toLocaleTimeString(),
+        id: Date.now() + idx
+      } as {type: 'trade' | 'signal' | 'alert' | 'info'; message: string; time: string; id: number}));
+      setLiveUpdates(updates);
+    }
+  }, [recentLogs]);
+  
+  // Simulate live chart updates when worker is running
+  useEffect(() => {
+    if (workerStatus === 'running') {
       const interval = setInterval(() => {
         setChartData(prev => {
           const newData = [...prev.slice(1), Math.random() * 100 + 50];
@@ -111,84 +115,47 @@ export default function DashboardPage() {
       }, 2000);
       return () => clearInterval(interval);
     }
-  }, [botActive]);
-  
-  // Simulate live updates when bot is active
-  useEffect(() => {
-    if (botActive) {
-      const interval = setInterval(() => {
-        const updateTypes: Array<'trade' | 'signal' | 'alert'> = ['trade', 'signal', 'alert'];
-        const messages = [
-          'BUY order executed successfully',
-          'New signal detected',
-          'Stop loss triggered',
-          'Take profit reached',
-          'Position opened',
-          'Market analysis completed'
-        ];
-        
-        const newUpdate = {
-          type: updateTypes[Math.floor(Math.random() * updateTypes.length)],
-          message: messages[Math.floor(Math.random() * messages.length)],
-          time: 'Just now',
-          id: Date.now()
-        };
-        
-        setLiveUpdates(prev => [newUpdate, ...prev.slice(0, 9)]);
-      }, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [botActive]);
+  }, [workerStatus]);
 
   const handleManualRefresh = () => {
-    fetchApiData();
+    checkApiHealth();
+    refetchWorker();
   };
   
-  // Optimistic UI for worker toggle with proper error handling
+  // Worker toggle with real API calls
   const handleBotToggle = async () => {
-    if (isTogglingWorker) return; // Prevent double-clicks
+    if (isTogglingWorker) return;
     
     setIsTogglingWorker(true);
-    const previousState = botActive;
+    const previousState = workerStatus;
     
     try {
-      if (!botActive) {
-        // Optimistically update UI
-        setBotActive(true);
-        
-        // Start worker
+      if (workerStatus !== 'running') {
         const response = await api.startWorker();
         
         setLiveUpdates(prev => [{
           type: 'alert',
-          message: `✅ ${response.data.status}`,
+          message: `✅ Worker started: ${response.data.status}`,
           time: 'Just now',
           id: Date.now()
         }, ...prev.slice(0, 9)]);
       } else {
-        // Optimistically update UI
-        setBotActive(false);
-        
-        // Stop worker
         const response = await api.stopWorker();
         
         setLiveUpdates(prev => [{
           type: 'alert',
-          message: `⏹ ${response.data.status}`,
+          message: `⏹ Worker stopped: ${response.data.status}`,
           time: 'Just now',
           id: Date.now()
         }, ...prev.slice(0, 9)]);
       }
       
-      // Refresh worker status to confirm
+      // Refresh worker status
       setTimeout(() => {
-        fetchApiData();
+        refetchWorker();
       }, 1000);
       
     } catch (error) {
-      // Revert optimistic update on error
-      setBotActive(previousState);
-      
       const errorMsg = getUserFriendlyError(error);
       console.error('Failed to toggle worker:', error);
       
@@ -202,14 +169,6 @@ export default function DashboardPage() {
       setIsTogglingWorker(false);
     }
   };
-  
-  const strategies = [
-    { id: 'conservative', name: 'Conservative', desc: 'Low risk, steady gains' },
-    { id: 'balanced', name: 'Balanced', desc: 'Medium risk, balanced returns' },
-    { id: 'aggressive', name: 'Aggressive', desc: 'High risk, maximum returns' },
-    { id: 'scalping', name: 'Scalping', desc: 'Quick trades, frequent signals' },
-  ];
-  
   // Stats with real API data and loading states
   const stats = [
     { 
@@ -228,19 +187,19 @@ export default function DashboardPage() {
     },
     { 
       label: 'Worker Status', 
-      value: isLoadingWorker 
+      value: workerLoading 
         ? '⏳ Loading...' 
         : workerError 
           ? '❌ Error' 
-          : workerStatus?.status === 'running' 
+          : workerStatus === 'running' 
             ? '🟢 Running' 
-            : workerStatus?.status === 'stopped' 
+            : workerStatus === 'stopped' 
               ? '🔴 Stopped' 
               : '⚪ Unknown', 
-      change: isLoadingWorker ? 'Checking...' : workerError || (workerStatus?.uptime ? `Uptime: ${workerStatus.uptime}` : 'Not started'),
+      change: workerLoading ? 'Checking...' : workerError || (workerStatus === 'running' ? 'Active' : 'Idle'),
       icon: Zap,
-      color: workerStatus?.status === 'running' ? 'from-[#4ADE80] to-[#22C55E]' : 'from-[#F9D949] to-[#FDE68A]',
-      bgColor: workerStatus?.status === 'running' ? 'from-[#4ADE80]/10 to-black' : 'from-[#F9D949]/10 to-black'
+      color: workerStatus === 'running' ? 'from-[#4ADE80] to-[#22C55E]' : 'from-[#F9D949] to-[#FDE68A]',
+      bgColor: workerStatus === 'running' ? 'from-[#4ADE80]/10 to-black' : 'from-[#F9D949]/10 to-black'
     },
     { 
       label: 'Connection', 
@@ -251,10 +210,10 @@ export default function DashboardPage() {
       bgColor: connectionStatus === 'connected' ? 'from-[#60A5FA]/10 to-black' : 'from-[#7C2F39]/10 to-black'
     },
     { 
-      label: 'Last Update', 
-      value: lastUpdate.toLocaleTimeString(), 
-      change: autoRefresh ? 'Auto-refreshing (30s)' : 'Manual mode',
-      icon: RefreshCw,
+      label: 'Active Strategy', 
+      value: strategyLoading ? '⏳ Loading...' : (strategyConfig?.active_strategy || 'None'), 
+      change: strategyConfig?.parameters ? `${Object.keys(strategyConfig.parameters).length} parameters` : 'Not configured',
+      icon: Target,
       color: 'from-[#F9D949] to-[#FDE68A]',
       bgColor: 'from-[#F9D949]/10 to-black'
     }
@@ -434,7 +393,7 @@ export default function DashboardPage() {
                     className={`w-full px-6 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-3 depth-5d-2 emboss-5d ${
                       isTogglingWorker
                         ? 'bg-gradient-to-r from-[#6B7280] to-[#4B5563] text-white cursor-wait opacity-75'
-                        : botActive
+                        : workerStatus === 'running'
                           ? 'bg-gradient-to-r from-[#EF4444] to-[#DC2626] text-white hover:from-[#DC2626] hover:to-[#B91C1C] shadow-[0_0_30px_rgba(239,68,68,0.5)]'
                           : 'bg-gradient-to-r from-[#4ADE80] to-[#22C55E] text-black hover:from-[#22C55E] hover:to-[#16A34A] shadow-[0_0_30px_rgba(74,222,128,0.3)]'
                     }`}
@@ -444,7 +403,7 @@ export default function DashboardPage() {
                         <RefreshCw className="w-5 h-5 animate-spin" />
                         Processing...
                       </>
-                    ) : botActive ? (
+                    ) : workerStatus === 'running' ? (
                       <>
                         <Pause className="w-5 h-5" />
                         Stop Bot
@@ -458,7 +417,7 @@ export default function DashboardPage() {
                   </button>
                 </div>
                 
-                {botActive && (
+                {workerStatus === 'running' && (
                   <div className="flex items-center gap-2 p-3 rounded-lg bg-[#4ADE80]/10 border border-[#4ADE80]/30">
                     <span className="relative flex h-3 w-3">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4ADE80] opacity-75"></span>
@@ -476,9 +435,9 @@ export default function DashboardPage() {
                   type="number"
                   value={stakeAmount}
                   onChange={(e) => setStakeAmount(e.target.value)}
-                  disabled={botActive}
+                  disabled={workerStatus === 'running'}
                   className={`w-full px-4 py-3 rounded-xl bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7] text-lg font-semibold focus:border-[#F9D949] focus:outline-none transition-all ${
-                    botActive ? 'opacity-50 cursor-not-allowed' : ''
+                    workerStatus === 'running' ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   placeholder="1000"
                   min="100"
@@ -494,9 +453,9 @@ export default function DashboardPage() {
                   <select
                     value={selectedStrategy}
                     onChange={(e) => setSelectedStrategy(e.target.value)}
-                    disabled={botActive}
+                    disabled={workerStatus === 'running'}
                     className={`w-full px-4 py-3 rounded-xl bg-[#1a0a0f] border-2 border-[#7C2F39] text-[#F9D949] font-bold text-lg focus:border-[#F9D949] focus:outline-none transition-all cursor-pointer shadow-lg hover:shadow-[#F9D949]/20 ${
-                      botActive ? 'opacity-50 cursor-not-allowed' : ''
+                      workerStatus === 'running' ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                     style={{
                       backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23F9D949' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
@@ -531,9 +490,9 @@ export default function DashboardPage() {
                   <p className="text-sm text-[#FFFBE7]/60">Real-time profit tracking</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${botActive ? 'bg-[#4ADE80] animate-pulse' : 'bg-[#7C2F39]'}`} />
+                  <div className={`w-2 h-2 rounded-full ${workerStatus === 'running' ? 'bg-[#4ADE80] animate-pulse' : 'bg-[#7C2F39]'}`} />
                   <span className="text-sm font-semibold text-[#FFFBE7]/60">
-                    {botActive ? 'LIVE' : 'PAUSED'}
+                    {workerStatus === 'running' ? 'LIVE' : 'PAUSED'}
                   </span>
                 </div>
               </div>
@@ -594,7 +553,7 @@ export default function DashboardPage() {
             <div className="p-6 rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30 h-full">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-[#FFFBE7]">Live Updates</h3>
-                <div className={`w-2 h-2 rounded-full ${botActive ? 'bg-[#4ADE80] animate-pulse' : 'bg-[#7C2F39]'}`} />
+                <div className={`w-2 h-2 rounded-full ${workerStatus === 'running' ? 'bg-[#4ADE80] animate-pulse' : 'bg-[#7C2F39]'}`} />
               </div>
               
               <div className="space-y-3 max-h-96 overflow-y-auto custom-scrollbar">
@@ -776,7 +735,7 @@ export default function DashboardPage() {
             <div>
               <h3 className="text-sm font-semibold text-[#FFFBE7]/80 mb-2">
                 Worker Status (/api/worker/status)
-                {isLoadingWorker && <span className="ml-2 text-xs text-[#FFFBE7]/50">Loading...</span>}
+                {workerLoading && <span className="ml-2 text-xs text-[#FFFBE7]/50">Loading...</span>}
               </h3>
               <pre className="bg-black/80 p-3 rounded-lg overflow-x-auto text-xs text-[#F9D949] border border-[#7C2F39]/20">
                 {workerError ? `Error: ${workerError}` : (workerStatus ? JSON.stringify(workerStatus, null, 2) : 'Waiting...')}

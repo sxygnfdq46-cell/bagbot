@@ -13,13 +13,13 @@ from pathlib import Path
 
 def test_brain_blueprint_exists():
     """Test that brain_blueprint.md exists."""
-    blueprint_path = Path("docs/brain_blueprint.md")
+    blueprint_path = Path("../docs/brain_blueprint.md")
     assert blueprint_path.exists(), "brain_blueprint.md not found"
 
 
 def test_brain_blueprint_contains_key_sections():
     """Test that brain_blueprint.md contains all required sections."""
-    blueprint_path = Path("docs/brain_blueprint.md")
+    blueprint_path = Path("../docs/brain_blueprint.md")
     content = blueprint_path.read_text()
     
     required_sections = [
@@ -46,15 +46,15 @@ def test_brain_blueprint_contains_key_sections():
 
 def test_brain_blueprint_references_actual_files():
     """Test that brain_blueprint.md references existing source files."""
-    blueprint_path = Path("docs/brain_blueprint.md")
+    blueprint_path = Path("../docs/brain_blueprint.md")
     content = blueprint_path.read_text()
     
     # Check that documented files exist
     expected_files = [
-        "bagbot/worker/brain/brain.py",
-        "bagbot/worker/brain/strategy_router.py",
-        "bagbot/worker/brain/market_state.py",
-        "bagbot/worker/strategies/registry.py"
+        "worker/brain/brain.py",
+        "worker/brain/strategy_router.py",
+        "worker/brain/market_state.py",
+        "worker/strategies/registry.py"
     ]
     
     for file_path in expected_files:
@@ -63,13 +63,13 @@ def test_brain_blueprint_references_actual_files():
 
 def test_api_contracts_json_exists():
     """Test that api_contracts.json exists."""
-    contracts_path = Path("docs/api_contracts.json")
+    contracts_path = Path("../docs/api_contracts.json")
     assert contracts_path.exists(), "api_contracts.json not found"
 
 
 def test_api_contracts_json_is_valid():
     """Test that api_contracts.json is valid JSON."""
-    contracts_path = Path("docs/api_contracts.json")
+    contracts_path = Path("../docs/api_contracts.json")
     with open(contracts_path) as f:
         data = json.load(f)
     
@@ -81,7 +81,7 @@ def test_api_contracts_json_is_valid():
 
 def test_api_contracts_contains_required_endpoints():
     """Test that api_contracts.json defines all core endpoints."""
-    contracts_path = Path("docs/api_contracts.json")
+    contracts_path = Path("../docs/api_contracts.json")
     with open(contracts_path) as f:
         data = json.load(f)
     
@@ -100,7 +100,7 @@ def test_api_contracts_contains_required_endpoints():
 
 def test_api_contracts_endpoints_have_descriptions():
     """Test that all endpoints have descriptions."""
-    contracts_path = Path("docs/api_contracts.json")
+    contracts_path = Path("../docs/api_contracts.json")
     with open(contracts_path) as f:
         data = json.load(f)
     
@@ -114,13 +114,13 @@ def test_api_contracts_endpoints_have_descriptions():
 
 def test_ui_api_map_exists():
     """Test that ui_api_map.md exists."""
-    map_path = Path("docs/ui_api_map.md")
+    map_path = Path("../docs/ui_api_map.md")
     assert map_path.exists(), "ui_api_map.md not found"
 
 
 def test_ui_api_map_contains_key_sections():
     """Test that ui_api_map.md contains all required sections."""
-    map_path = Path("docs/ui_api_map.md")
+    map_path = Path("../docs/ui_api_map.md")
     content = map_path.read_text()
     
     required_sections = [
@@ -142,10 +142,10 @@ def test_ui_api_map_contains_key_sections():
 
 def test_ui_api_map_references_api_contracts():
     """Test that ui_api_map.md references endpoints from api_contracts.json."""
-    map_path = Path("docs/ui_api_map.md")
+    map_path = Path("../docs/ui_api_map.md")
     map_content = map_path.read_text()
     
-    contracts_path = Path("docs/api_contracts.json")
+    contracts_path = Path("../docs/api_contracts.json")
     with open(contracts_path) as f:
         contracts = json.load(f)
     
@@ -164,7 +164,7 @@ def test_ui_api_map_references_api_contracts():
 
 def test_ui_api_map_includes_frontend_usage():
     """Test that ui_api_map.md includes frontend usage examples."""
-    map_path = Path("docs/ui_api_map.md")
+    map_path = Path("../docs/ui_api_map.md")
     content = map_path.read_text()
     
     # Should have TypeScript/React examples
@@ -208,22 +208,22 @@ def test_brain_blueprint_documents_actual_attributes():
 
 def test_documentation_references_correct_paths():
     """Test that documentation references use correct relative paths."""
-    blueprint_path = Path("docs/brain_blueprint.md")
+    blueprint_path = Path("../docs/brain_blueprint.md")
     content = blueprint_path.read_text()
     
     # Check for common path references
     if "bagbot/worker/brain/" in content:
-        assert Path("bagbot/worker/brain/").exists(), "Referenced directory not found"
+        assert Path("worker/brain/").exists(), "Referenced directory not found"
     
     if "bagbot/tests/" in content:
-        assert Path("bagbot/tests/").exists(), "Referenced test directory not found"
+        assert Path("tests/").exists(), "Referenced test directory not found"
 
 
 def test_all_docs_have_references_section():
     """Test that all main docs have a references section."""
     doc_files = [
-        Path("docs/brain_blueprint.md"),
-        Path("docs/ui_api_map.md")
+        Path("../docs/brain_blueprint.md"),
+        Path("../docs/ui_api_map.md")
     ]
     
     for doc_path in doc_files:
@@ -235,7 +235,7 @@ def test_all_docs_have_references_section():
 
 def test_api_contracts_has_all_tags():
     """Test that api_contracts.json defines all used tags."""
-    contracts_path = Path("docs/api_contracts.json")
+    contracts_path = Path("../docs/api_contracts.json")
     with open(contracts_path) as f:
         data = json.load(f)
     
@@ -256,7 +256,7 @@ def test_api_contracts_has_all_tags():
 
 def test_docs_directory_structure():
     """Test that docs directory has expected structure."""
-    docs_dir = Path("docs")
+    docs_dir = Path("../docs")
     assert docs_dir.exists(), "docs/ directory not found"
     
     expected_files = [

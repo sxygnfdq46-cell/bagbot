@@ -16,7 +16,7 @@ def test_dual_objective_returns_dict():
     from bagbot.optimizer.genetic_optimizer import evaluate_genome, Genome
     from bagbot.backtest.loader import load_candles
     
-    candles = load_candles('bagbot/tests/data/BTCSTUSDT-1h-merged.csv')[:50]
+    candles = load_candles('tests/data/BTCSTUSDT-1h-merged.csv')[:50]
     
     genome = Genome(
         sma_short=10, sma_long=30,
@@ -50,7 +50,7 @@ def test_optimizer_deterministic_with_seed():
     from bagbot.optimizer.genetic_optimizer import run_ga
     from bagbot.backtest.loader import load_candles
     
-    candles = load_candles('bagbot/tests/data/BTCSTUSDT-1h-merged.csv')[:100]
+    candles = load_candles('tests/data/BTCSTUSDT-1h-merged.csv')[:100]
     
     # Run 1
     best_genome1, best_result1 = run_ga(
@@ -85,7 +85,7 @@ def test_optimizer_different_seeds_differ():
     from bagbot.optimizer.genetic_optimizer import run_ga
     from bagbot.backtest.loader import load_candles
     
-    candles = load_candles('bagbot/tests/data/BTCSTUSDT-1h-merged.csv')[:100]
+    candles = load_candles('tests/data/BTCSTUSDT-1h-merged.csv')[:100]
     
     # Run with seed 42
     best_genome1, best_result1 = run_ga(
@@ -117,7 +117,7 @@ def test_penalty_factor_affects_score():
     from bagbot.optimizer.genetic_optimizer import evaluate_genome, Genome
     from bagbot.backtest.loader import load_candles
     
-    candles = load_candles('bagbot/tests/data/BTCSTUSDT-1h-merged.csv')[:50]
+    candles = load_candles('tests/data/BTCSTUSDT-1h-merged.csv')[:50]
     
     # Fixed genome for consistent testing
     genome = Genome(
@@ -155,7 +155,7 @@ def test_sharpe_objective_still_works():
     from bagbot.optimizer.genetic_optimizer import evaluate_genome, Genome
     from bagbot.backtest.loader import load_candles
     
-    candles = load_candles('bagbot/tests/data/BTCSTUSDT-1h-merged.csv')[:50]
+    candles = load_candles('tests/data/BTCSTUSDT-1h-merged.csv')[:50]
     
     genome = Genome(
         sma_short=10, sma_long=30,
@@ -178,7 +178,7 @@ def test_equity_objective_still_works():
     from bagbot.optimizer.genetic_optimizer import evaluate_genome, Genome
     from bagbot.backtest.loader import load_candles
     
-    candles = load_candles('bagbot/tests/data/BTCSTUSDT-1h-merged.csv')[:50]
+    candles = load_candles('tests/data/BTCSTUSDT-1h-merged.csv')[:50]
     
     genome = Genome(
         sma_short=10, sma_long=30,
@@ -203,7 +203,7 @@ def test_dual_objective_handles_no_trades():
     from bagbot.optimizer.genetic_optimizer import evaluate_genome, Genome
     from bagbot.backtest.loader import load_candles
     
-    candles = load_candles('bagbot/tests/data/BTCSTUSDT-1h-merged.csv')[:20]
+    candles = load_candles('tests/data/BTCSTUSDT-1h-merged.csv')[:20]
     
     # Extreme parameters that likely won't trigger trades
     genome = Genome(

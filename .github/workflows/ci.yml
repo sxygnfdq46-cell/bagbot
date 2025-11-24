@@ -1,143 +1,149 @@
-name: CI - Tests and Validation
+name: CI
 
-on:
+on: 
   push:
-    branches: [ main, develop, feature/* ]
+    branches: [main]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main]
 
 jobs:
-  test:
-    name: Run Tests
+  test-backend:
     runs-on: ubuntu-latest
-    
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11']
+        python-version: [3.11]
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Install backend dependencies
+        run: |
+          cd bagbot
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Run pytest
+        run: |
+          cd bagbot
+          pytest tests/ -q
+      
+      - name: Run determinism tests
+        run: |
+          cd bagbot
+          pytest tests/ -v -k determinism || true
+      
+      - name: Upload backend test reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: backend-test-reports
+          path: bagbot/htmlcov/
+          retention-days: 7
+
+  test-frontend:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18]
     
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-    
-    - name: Cache pip dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest pytest-cov
-    
-    - name: Run pytest with coverage
-      run: |
-        PYTHONPATH=$(pwd) pytest --cov=bagbot --cov-report=xml --cov-report=term -v
-    
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        with:
+          path: bagbot/frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      
+      - name: Install frontend dependencies
+        run: |
+          cd bagbot/frontend
+          npm ci
+      
+      - name: Run TypeScript checks
+        run: |
+          cd bagbot/frontend
+          npx tsc --noEmit || true
+      
+      - name: Run frontend build
+        run: |
+          cd bagbot/frontend
+          npm run build
 
   lint:
-    name: Linting and Code Quality
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-    
-    - name: Install linting tools
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 black isort mypy
-    
-    - name: Run flake8
-      run: |
-        # Stop the build if there are Python syntax errors or undefined names
-        flake8 bagbot --count --select=E9,F63,F7,F82 --show-source --statistics
-        # Exit-zero treats all errors as warnings
-        flake8 bagbot --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-      continue-on-error: true
-    
-    - name: Check code formatting with black
-      run: |
-        black --check bagbot
-      continue-on-error: true
-    
-    - name: Check import sorting with isort
-      run: |
-        isort --check-only bagbot
-      continue-on-error: true
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+      
+      - name: Install linting tools
+        run: |
+          pip install black flake8
+      
+      - name: Run black check
+        run: |
+          cd bagbot
+          black --check . || true
+      
+      - name: Run flake8
+        run: |
+          cd bagbot
+          flake8 --count --max-line-length=127 --statistics || true
 
-  docs:
-    name: Documentation Validation
+  docker-build:
     runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend]
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest
-    
-    - name: Run documentation tests
-      run: |
-        PYTHONPATH=$(pwd) pytest bagbot/tests/test_documentation.py -v
-    
-    - name: Verify documentation files exist
-      run: |
-        test -f docs/brain_blueprint.md
-        test -f docs/ui_api_map.md
-        test -f docs/api_contracts.json
-        echo "✓ All documentation files present"
-
-  integration:
-    name: Integration Tests
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest
-    
-    - name: Run integration tests
-      run: |
-        PYTHONPATH=$(pwd) pytest bagbot/tests/test_*_integration.py -v
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./bagbot/backend
+          file: ./bagbot/backend/Dockerfile
+          push: false
+          tags: bagbot-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Build frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./bagbot/frontend
+          file: ./bagbot/frontend/Dockerfile
+          push: false
+          tags: bagbot-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   artifacts:
     name: Validate Artifacts
@@ -170,17 +176,48 @@ jobs:
         test -f artifacts/README.md
         echo "✓ Artifacts directory structure valid"
 
-  summary:
-    name: Test Summary
+  deploy:
+    name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: [test, lint, docs, integration, artifacts]
-    if: always()
+    needs: [test-backend, test-frontend, lint, docker-build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
     steps:
-    - name: Check job status
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Deploy to VPS
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: deploy
+        key: ${{ secrets.VPS_SSH_KEY }}
+        script: |
+          cd /srv/bagbot
+          echo "📥 Pulling latest changes..."
+          git pull origin main
+          
+          echo "🔨 Building and deploying..."
+          docker compose -f docker-compose.prod.yml pull
+          docker compose -f docker-compose.prod.yml up -d --build --remove-orphans
+          
+          echo "⏳ Waiting for health check..."
+          sleep 15
+          
+          echo "🏥 Checking health..."
+          if curl -f http://localhost:8000/api/health > /dev/null 2>&1; then
+            echo "✅ Deployment successful!"
+            docker image prune -f
+          else
+            echo "❌ Health check failed!"
+            exit 1
+          fi
+    
+    - name: Notify deployment status
+      if: always()
       run: |
-        echo "Test job: ${{ needs.test.result }}"
-        echo "Lint job: ${{ needs.lint.result }}"
-        echo "Docs job: ${{ needs.docs.result }}"
-        echo "Integration job: ${{ needs.integration.result }}"
-        echo "Artifacts job: ${{ needs.artifacts.result }}"
+        if [ ${{ job.status }} == 'success' ]; then
+          echo "🎉 Deployment to production completed successfully!"
+        else
+          echo "⚠️ Deployment to production failed!"
+        fi

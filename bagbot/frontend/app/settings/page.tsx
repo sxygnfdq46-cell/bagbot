@@ -2,14 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Sun, Moon, Key, Shield, Zap, Bell, DollarSign, TrendingUp, Save, CheckCircle, Home, LayoutDashboard, BarChart3, Radio, FileText, Settings, CreditCard, Smartphone, Wallet, Lock, Users, Download, Gift, Info, Copy } from 'lucide-react';
+import { Sun, Moon, Key, Shield, Zap, Bell, DollarSign, TrendingUp, Save, CheckCircle, Home, LayoutDashboard, BarChart3, Radio, FileText, Settings, CreditCard, Smartphone, Wallet, Lock, Users, Download, Gift, Info, Copy, AlertTriangle, RefreshCw } from 'lucide-react';
 import Navigation from '../components/Navigation';
 import LiveTickerTape from '@/components/Dashboard/LiveTickerTape';
 import PageContent from '@/components/Layout/PageContent';
+import { useStrategies, useStrategyConfig, useWorkerStatus } from '@/utils/hooks';
+import api from '@/utils/apiService';
+import { getUserFriendlyError } from '@/utils/api';
 
 export default function SettingsPage() {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
-  const [tradingMode, setTradingMode] = useState<'live' | 'paper' | 'conservative'>('paper');
   const [apiKey, setApiKey] = useState('');
   const [apiSecret, setApiSecret] = useState('');
   const [saved, setSaved] = useState(false);
@@ -20,6 +22,25 @@ export default function SettingsPage() {
   const [showReferralModal, setShowReferralModal] = useState(false);
   const [referralCode, setReferralCode] = useState('BAGBOT-' + Math.random().toString(36).substr(2, 9).toUpperCase());
   const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Use custom hooks for real API data
+  const { strategies, loading: strategiesLoading } = useStrategies();
+  const { config: strategyConfig, loading: configLoading, refetch: refetchConfig } = useStrategyConfig();
+  const { status: workerStatus } = useWorkerStatus(5000);
+  
+  // Local state for strategy parameters
+  const [selectedStrategy, setSelectedStrategy] = useState<string>('');
+  const [strategyParams, setStrategyParams] = useState<Record<string, any>>({});
+
+  // Initialize from fetched config
+  useEffect(() => {
+    if (strategyConfig) {
+      setSelectedStrategy(strategyConfig.active_strategy || '');
+      setStrategyParams(strategyConfig.parameters || {});
+    }
+  }, [strategyConfig]);
 
   // Apply theme changes to the document
   useEffect(() => {
@@ -32,9 +53,41 @@ export default function SettingsPage() {
     }
   }, [theme]);
 
+  const handleSaveStrategy = async () => {
+    if (!selectedStrategy) {
+      setSaveError('Please select a strategy');
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveError(null);
+
+    try {
+      await api.updateStrategyConfig({
+        strategy: selectedStrategy,
+        parameters: strategyParams
+      });
+      await refetchConfig();
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (error) {
+      const errorMsg = getUserFriendlyError(error);
+      setSaveError(errorMsg);
+      console.error('Failed to save strategy config:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleParamChange = (paramName: string, value: any) => {
+    setStrategyParams(prev => ({
+      ...prev,
+      [paramName]: value
+    }));
+  };
+
   const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    handleSaveStrategy();
   };
 
   return (
@@ -178,64 +231,93 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Trading Mode */}
+        {/* Strategy Configuration */}
         <div className="mb-6 p-8 rounded-2xl bg-gradient-to-br from-[#7C2F39]/10 to-black border border-[#7C2F39]/30">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 rounded-xl bg-[#7C2F39]/20">
-              <TrendingUp className="w-6 h-6 text-[#7C2F39]" />
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-xl bg-[#7C2F39]/20">
+                <TrendingUp className="w-6 h-6 text-[#7C2F39]" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-[#FFFBE7]">Strategy Configuration</h2>
+                <p className="text-[#FFFBE7]/60 text-sm">Configure active trading strategy and parameters</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-2xl font-bold text-[#FFFBE7]">Trading Mode</h2>
-              <p className="text-[#FFFBE7]/60 text-sm">Select your risk and execution strategy</p>
-            </div>
+            {workerStatus === 'running' && (
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#F9D949]/20 border border-[#F9D949]/30">
+                <div className="w-2 h-2 rounded-full bg-[#F9D949] animate-pulse" />
+                <span className="text-xs font-semibold text-[#F9D949]">Worker Running</span>
+              </div>
+            )}
           </div>
 
-          <div className="grid md:grid-cols-3 gap-4">
-            <button
-              onClick={() => setTradingMode('paper')}
-              className={`p-6 rounded-xl transition-all ${
-                tradingMode === 'paper'
-                  ? 'bg-[#7C2F39] border-2 border-[#F9D949]'
-                  : 'bg-black/50 border-2 border-[#7C2F39]/30 hover:border-[#F9D949]/50'
-              }`}
-            >
-              <Zap className={`w-8 h-8 mb-3 ${tradingMode === 'paper' ? 'text-[#F9D949]' : 'text-[#FFFBE7]/60'}`} />
-              <h3 className="text-lg font-bold text-[#FFFBE7] mb-2">Paper Trading</h3>
-              <p className="text-xs text-[#FFFBE7]/60">
-                Test strategies with virtual money. Zero risk, perfect for learning.
-              </p>
-            </button>
+          {configLoading || strategiesLoading ? (
+            <div className="text-center py-8">
+              <RefreshCw className="w-8 h-8 text-[#F9D949] animate-spin mx-auto mb-2" />
+              <p className="text-[#FFFBE7]/60">Loading strategies...</p>
+            </div>
+          ) : (
+            <>
+              {/* Strategy Selection */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-[#FFFBE7] mb-3">
+                  Active Strategy
+                </label>
+                <select
+                  value={selectedStrategy}
+                  onChange={(e) => setSelectedStrategy(e.target.value)}
+                  disabled={workerStatus === 'running'}
+                  className={`w-full px-4 py-3 rounded-xl bg-[#1a0a0f] border-2 border-[#7C2F39] text-[#F9D949] font-bold text-lg focus:border-[#F9D949] focus:outline-none transition-all cursor-pointer shadow-lg ${
+                    workerStatus === 'running' ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  <option value="">Select a strategy...</option>
+                  {strategies.map((strategy) => (
+                    <option key={strategy} value={strategy} className="bg-[#1a0a0f] text-[#F9D949] font-semibold py-2">
+                      {strategy}
+                    </option>
+                  ))}
+                </select>
+                {workerStatus === 'running' && (
+                  <p className="text-xs text-[#F9D949] mt-2">
+                    ⚠️ Stop the worker to change strategy
+                  </p>
+                )}
+              </div>
 
-            <button
-              onClick={() => setTradingMode('conservative')}
-              className={`p-6 rounded-xl transition-all ${
-                tradingMode === 'conservative'
-                  ? 'bg-[#7C2F39] border-2 border-[#F9D949]'
-                  : 'bg-black/50 border-2 border-[#7C2F39]/30 hover:border-[#F9D949]/50'
-              }`}
-            >
-              <Shield className={`w-8 h-8 mb-3 ${tradingMode === 'conservative' ? 'text-[#F9D949]' : 'text-[#FFFBE7]/60'}`} />
-              <h3 className="text-lg font-bold text-[#FFFBE7] mb-2">Conservative</h3>
-              <p className="text-xs text-[#FFFBE7]/60">
-                Lower risk, smaller positions. Ideal for steady growth.
-              </p>
-            </button>
+              {/* Strategy Parameters */}
+              {selectedStrategy && Object.keys(strategyParams).length > 0 && (
+                <div className="space-y-4 p-6 rounded-xl bg-black/30 border border-[#7C2F39]/20">
+                  <h3 className="text-lg font-bold text-[#FFFBE7] mb-4">Strategy Parameters</h3>
+                  {Object.entries(strategyParams).map(([key, value]) => (
+                    <div key={key}>
+                      <label className="block text-sm font-semibold text-[#FFFBE7] mb-2 capitalize">
+                        {key.replace(/_/g, ' ')}
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={value as number}
+                        onChange={(e) => handleParamChange(key, parseFloat(e.target.value) || 0)}
+                        disabled={workerStatus === 'running'}
+                        className={`w-full px-4 py-3 rounded-xl bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7] focus:border-[#F9D949] focus:outline-none transition-all ${
+                          workerStatus === 'running' ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
 
-            <button
-              onClick={() => setTradingMode('live')}
-              className={`p-6 rounded-xl transition-all ${
-                tradingMode === 'live'
-                  ? 'bg-[#7C2F39] border-2 border-[#F9D949]'
-                  : 'bg-black/50 border-2 border-[#7C2F39]/30 hover:border-[#F9D949]/50'
-              }`}
-            >
-              <DollarSign className={`w-8 h-8 mb-3 ${tradingMode === 'live' ? 'text-[#F9D949]' : 'text-[#FFFBE7]/60'}`} />
-              <h3 className="text-lg font-bold text-[#FFFBE7] mb-2">Live Trading</h3>
-              <p className="text-xs text-[#FFFBE7]/60">
-                Full automation with real capital. Maximum potential.
-              </p>
-            </button>
-          </div>
+              {/* Save Error */}
+              {saveError && (
+                <div className="mt-4 p-4 rounded-xl bg-[#F87171]/10 border border-[#F87171]/30 flex items-center gap-3">
+                  <AlertTriangle className="w-5 h-5 text-[#F87171]" />
+                  <p className="text-sm text-[#F87171]">{saveError}</p>
+                </div>
+              )}
+            </>
+          )}
         </div>
 
         {/* Payment Methods */}
@@ -486,14 +568,28 @@ export default function SettingsPage() {
 
         {/* Save Button */}
         <div className="flex justify-end gap-4">
-          <button className="px-6 py-3 rounded-xl bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7] font-semibold hover:border-[#F9D949]/50 transition-all">
-            Reset to Default
+          <button 
+            onClick={() => {
+              setSelectedStrategy('');
+              setStrategyParams({});
+              setSaveError(null);
+            }}
+            disabled={isSaving}
+            className="px-6 py-3 rounded-xl bg-black/50 border border-[#7C2F39]/30 text-[#FFFBE7] font-semibold hover:border-[#F9D949]/50 transition-all disabled:opacity-50"
+          >
+            Reset
           </button>
           <button
             onClick={handleSave}
-            className="px-8 py-3 rounded-xl bg-gradient-to-r from-[#7C2F39] to-[#991B1B] text-[#FFFBE7] font-bold hover:from-[#991B1B] hover:to-[#7C2F39] transition-all flex items-center gap-2"
+            disabled={isSaving || !selectedStrategy || workerStatus === 'running'}
+            className="px-8 py-3 rounded-xl bg-gradient-to-r from-[#7C2F39] to-[#991B1B] text-[#FFFBE7] font-bold hover:from-[#991B1B] hover:to-[#7C2F39] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {saved ? (
+            {isSaving ? (
+              <>
+                <RefreshCw className="w-5 h-5 animate-spin" />
+                Saving...
+              </>
+            ) : saved ? (
               <>
                 <CheckCircle className="w-5 h-5" />
                 Saved Successfully!
@@ -501,7 +597,7 @@ export default function SettingsPage() {
             ) : (
               <>
                 <Save className="w-5 h-5" />
-                Save Changes
+                Save Strategy
               </>
             )}
           </button>

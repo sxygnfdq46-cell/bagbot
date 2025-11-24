@@ -11,7 +11,13 @@ stop_event = None
 
 @router.get("/api/health")
 async def health_check():
-    return {"status": "api healthy"}
+    """Health check endpoint for monitoring and load balancers."""
+    return {
+        "ok": True,
+        "status": "healthy",
+        "service": "bagbot-backend",
+        "version": "2.0.0"
+    }
 
 @router.post("/api/worker/start")
 async def start_worker():
