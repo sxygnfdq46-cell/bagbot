@@ -1,7 +1,7 @@
 'use client';
 
 import React, { Suspense, lazy } from 'react';
-import Skeleton from '@/components/UI/Skeleton';
+import Skeleton from '@/components/ui/Skeleton';
 import { CandlestickData, TechnicalIndicators } from '@/components/MainChart';
 
 // Lazy load the main chart component

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'link';
+import Link from 'next/link';
 import { NeonCard } from '@/components/ui/neon-card';
 import { NeonButton } from '@/components/ui/neon-button';
 import { AlertPanel } from '@/components/ui/alert-panel';
