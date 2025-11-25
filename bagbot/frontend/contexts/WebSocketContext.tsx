@@ -114,7 +114,12 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
 export function useWebSocket() {
   const context = useContext(WebSocketContext);
   if (!context) {
-    throw new Error('useWebSocket must be used within WebSocketProvider');
+    // Return safe fallback for SSR/build time
+    return {
+      status: 'disconnected' as WebSocketStatus,
+      subscribe: () => () => {},
+      send: () => {},
+    };
   }
   return context;
 }
