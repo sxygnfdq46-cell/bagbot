@@ -7,7 +7,7 @@ import React from 'react';
 import { cn } from '@/utils/cn';
 
 interface StatusIndicatorProps {
-  status: 'online' | 'offline' | 'warning' | 'loading';
+  status: 'online' | 'offline' | 'warning' | 'loading' | 'error' | 'connecting' | 'processing' | 'active';
   label?: string;
   size?: 'sm' | 'md' | 'lg';
   showPulse?: boolean;
@@ -18,7 +18,11 @@ const statusColors = {
   online: 'bg-green-400',
   offline: 'bg-neutral-500',
   warning: 'bg-yellow-400',
-  loading: 'bg-cyan-400'
+  loading: 'bg-cyan-400',
+  error: 'bg-red-400',
+  connecting: 'bg-yellow-400',
+  processing: 'bg-cyan-400',
+  active: 'bg-green-400'
 };
 
 const sizes = {
@@ -42,11 +46,11 @@ export default function StatusIndicator({
           'rounded-full',
           statusColors[status],
           sizes[size],
-          status === 'loading' && 'animate-pulse'
+          (status === 'loading' || status === 'processing') && 'animate-pulse'
         )} />
         
         {/* Pulse ring */}
-        {showPulse && status === 'online' && (
+        {showPulse && (status === 'online' || status === 'active') && (
           <div className={cn(
             'absolute inset-0 rounded-full',
             'bg-green-400 animate-ping opacity-75'
