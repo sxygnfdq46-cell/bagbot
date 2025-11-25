@@ -1,20 +1,27 @@
 import React from 'react';
 
 interface AlertPanelProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   variant?: 'info' | 'success' | 'warning' | 'error';
+  type?: 'info' | 'success' | 'warning' | 'error';
   title?: string;
+  message?: string;
   onClose?: () => void;
   className?: string;
 }
 
 export const AlertPanel: React.FC<AlertPanelProps> = ({
   children,
-  variant = 'info',
+  variant,
+  type,
   title,
+  message,
   onClose,
   className = '',
 }) => {
+  // Use type if provided, otherwise fall back to variant, default to 'info'
+  const alertType = type || variant || 'info';
+  
   const variantStyles = {
     info: {
       bg: 'bg-blue-500/10',
@@ -42,7 +49,7 @@ export const AlertPanel: React.FC<AlertPanelProps> = ({
     },
   };
 
-  const style = variantStyles[variant];
+  const style = variantStyles[alertType];
 
   return (
     <div
@@ -59,7 +66,7 @@ export const AlertPanel: React.FC<AlertPanelProps> = ({
           {title && (
             <h4 className={`font-semibold mb-1 ${style.text}`}>{title}</h4>
           )}
-          <div className="text-gray-300 text-sm">{children}</div>
+          <div className="text-gray-300 text-sm">{message || children}</div>
         </div>
         {onClose && (
           <button
