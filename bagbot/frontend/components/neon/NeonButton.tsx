@@ -68,3 +68,6 @@ export default function NeonButton({
     </button>
   );
 }
+
+// Named export for compatibility
+export { NeonButton };

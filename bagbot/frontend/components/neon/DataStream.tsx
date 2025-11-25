@@ -106,3 +106,6 @@ export default function DataStream({
     </div>
   );
 }
+
+// Named export for compatibility
+export { DataStream };

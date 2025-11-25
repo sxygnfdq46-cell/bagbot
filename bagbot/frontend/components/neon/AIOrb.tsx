@@ -89,3 +89,6 @@ export default function AIOrb({
     </div>
   );
 }
+
+// Named export for compatibility
+export { AIOrb };

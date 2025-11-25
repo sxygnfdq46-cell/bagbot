@@ -72,3 +72,6 @@ export default function NeonCard({
     </div>
   );
 }
+
+// Named export for compatibility
+export { NeonCard };

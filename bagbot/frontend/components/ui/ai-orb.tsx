@@ -3,6 +3,7 @@ import React from 'react';
 interface AIOrbProps {
   isActive?: boolean;
   isPulsing?: boolean;
+  thinking?: boolean;  // Add thinking prop
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
@@ -10,6 +11,7 @@ interface AIOrbProps {
 export const AIOrb: React.FC<AIOrbProps> = ({
   isActive = false,
   isPulsing = false,
+  thinking = false,
   size = 'md',
   className = '',
 }) => {
@@ -19,6 +21,9 @@ export const AIOrb: React.FC<AIOrbProps> = ({
     lg: 'w-32 h-32',
   };
 
+  // Use thinking prop to control pulsing
+  const shouldPulse = thinking || isPulsing;
+
   return (
     <div className={`relative flex items-center justify-center ${className}`}>
       {/* Outer glow */}
@@ -26,7 +31,7 @@ export const AIOrb: React.FC<AIOrbProps> = ({
         className={`
           absolute ${sizeClasses[size]} rounded-full
           ${isActive ? 'bg-cyan-500/20' : 'bg-gray-500/20'}
-          ${isPulsing ? 'animate-pulse' : ''}
+          ${shouldPulse ? 'animate-pulse' : ''}
           blur-xl
         `}
       />
@@ -36,7 +41,7 @@ export const AIOrb: React.FC<AIOrbProps> = ({
         className={`
           absolute ${sizeClasses[size]} rounded-full
           border-2 ${isActive ? 'border-cyan-400/40' : 'border-gray-400/40'}
-          ${isPulsing ? 'animate-ping' : ''}
+          ${shouldPulse ? 'animate-ping' : ''}
         `}
       />
       

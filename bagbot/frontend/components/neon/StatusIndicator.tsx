@@ -61,3 +61,6 @@ export default function StatusIndicator({
     </div>
   );
 }
+
+// Named export for compatibility
+export { StatusIndicator };

@@ -98,3 +98,6 @@ export default function ReactorCore({
     </div>
   );
 }
+
+// Named export for compatibility
+export { ReactorCore };
