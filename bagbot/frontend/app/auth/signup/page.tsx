@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { NeonCard } from '@/components/ui/neon-card';
-import { NeonButton } from '@/components/ui/neon-button';
-import { NeonBadge } from '@/components/ui/neon-badge';
+import { NeonCard } from '@/components/neon/NeonCard';
+import { NeonButton } from '@/components/neon/NeonButton';
+import { NeonBadge } from '@/components/neon/NeonBadge';
 import { AlertPanel } from '@/components/ui/alert-panel';
 import { AIOrb } from '@/components/ui/ai-orb';
 import { Lock, Mail, User, Eye, EyeOff, UserPlus, Check } from 'lucide-react';
@@ -200,7 +200,7 @@ export default function SignupPage() {
         </div>
       </div>
 
-      <NeonButton type="submit" glowColor="cyan" className="w-full">
+      <NeonButton type="submit" variant="primary" className="w-full">
         Continue to Plan Selection
       </NeonButton>
     </form>
@@ -218,7 +218,7 @@ export default function SignupPage() {
             }`}
           >
             <NeonCard
-              glowColor={tier.color as any}
+              glow={tier.color as any}
               className={`p-6 h-full ${
                 selectedTier === tier.id ? 'ring-2 ring-offset-2 ring-offset-gray-900' : ''
               }`}
@@ -268,14 +268,13 @@ export default function SignupPage() {
       <div className="flex gap-3">
         <NeonButton
           variant="outline"
-          glowColor="gray"
           onClick={() => setStep('account')}
           className="flex-1"
         >
           Back
         </NeonButton>
         <NeonButton
-          glowColor="cyan"
+          variant="primary"
           onClick={handleSignup}
           disabled={loading}
           className="flex-1 gap-2"
@@ -306,7 +305,7 @@ export default function SignupPage() {
 
       {/* Signup Card */}
       <div className="relative w-full max-w-4xl">
-        <NeonCard glowColor="cyan" className="p-8">
+        <NeonCard glow="cyan" className="p-8">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">

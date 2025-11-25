@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { NeonCard } from '@/components/ui/neon-card';
-import { NeonButton } from '@/components/ui/neon-button';
+import { NeonCard } from '@/components/neon/NeonCard';
+import { NeonButton } from '@/components/neon/NeonButton';
 import { AlertPanel } from '@/components/ui/alert-panel';
 import { AIOrb } from '@/components/ui/ai-orb';
 import { Lock, Mail, Eye, EyeOff, LogIn } from 'lucide-react';
@@ -56,7 +56,7 @@ export default function LoginPage() {
 
       {/* Login Card */}
       <div className="relative w-full max-w-md">
-        <NeonCard glowColor="cyan" className="p-8">
+        <NeonCard glow="cyan" className="p-8">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
@@ -128,7 +128,7 @@ export default function LoginPage() {
 
             <NeonButton
               type="submit"
-              glowColor="cyan"
+              variant="primary"
               className="w-full gap-2"
               disabled={loading}
             >

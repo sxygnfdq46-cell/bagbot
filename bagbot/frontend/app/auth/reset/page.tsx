@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { NeonCard } from '@/components/ui/neon-card';
-import { NeonButton } from '@/components/ui/neon-button';
+import { NeonCard } from '@/components/neon/NeonCard';
+import { NeonButton } from '@/components/neon/NeonButton';
 import { AlertPanel } from '@/components/ui/alert-panel';
 import { AIOrb } from '@/components/ui/ai-orb';
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
@@ -50,7 +50,7 @@ export default function ResetPasswordPage() {
 
       {/* Reset Card */}
       <div className="relative w-full max-w-md">
-        <NeonCard glowColor="cyan" className="p-8">
+        <NeonCard glow="cyan" className="p-8">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
@@ -85,7 +85,7 @@ export default function ResetPasswordPage() {
                 message="Please check your email and follow the instructions to reset your password. The link will expire in 1 hour."
               />
               <Link href="/auth/login">
-                <NeonButton glowColor="cyan" className="w-full gap-2">
+                <NeonButton variant="primary" className="w-full gap-2">
                   <ArrowLeft className="w-5 h-5" />
                   Back to Login
                 </NeonButton>
@@ -110,7 +110,7 @@ export default function ResetPasswordPage() {
 
               <NeonButton
                 type="submit"
-                glowColor="cyan"
+                variant="primary"
                 className="w-full gap-2"
                 disabled={loading}
               >
@@ -128,7 +128,7 @@ export default function ResetPasswordPage() {
               </NeonButton>
 
               <Link href="/auth/login">
-                <NeonButton variant="outline" glowColor="gray" className="w-full gap-2">
+                <NeonButton variant="outline" className="w-full gap-2">
                   <ArrowLeft className="w-4 h-4" />
                   Back to Login
                 </NeonButton>
