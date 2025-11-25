@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = "force-dynamic";
+
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { TrendingUp, DollarSign, Target, Activity, Server, Zap, Home, BarChart3, Radio, FileText, Settings, RefreshCw, Download, Filter, Play, Pause, ChevronDown, Plus, Minus, Wifi, WifiOff, ArrowUpCircle, ArrowDownCircle, Copy } from 'lucide-react';

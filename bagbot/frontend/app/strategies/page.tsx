@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = "force-dynamic";
+
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Home, Target, TrendingUp, Shield, Zap, Play, Pause, Settings } from 'lucide-react';

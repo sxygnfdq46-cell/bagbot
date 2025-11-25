@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = "force-dynamic";
+
 import { useState, useRef, useEffect } from 'react';
 import { NeonCard } from '@/components/neon/NeonCard';
 import { NeonButton } from '@/components/neon/NeonButton';

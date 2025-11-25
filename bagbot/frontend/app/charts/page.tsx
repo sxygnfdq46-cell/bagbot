@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = "force-dynamic";
+
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { TrendingUp, TrendingDown, Activity, Home, BarChart3, Radio, FileText, Settings, LayoutDashboard, Search, SlidersHorizontal } from 'lucide-react';
