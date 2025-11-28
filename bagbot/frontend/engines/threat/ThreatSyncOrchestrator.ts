@@ -647,5 +647,74 @@ export function resetThreatSyncOrchestrator(): void {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// LEGACY COMPATIBLE EXPORT
+// ═══════════════════════════════════════════════════════════════════
+
+export const threatSyncOrchestrator = {
+  synchronizeThreats: (feed?: any) => {
+    // Safe stub logic - initializes and syncs threats
+    const orchestrator = getThreatSyncOrchestrator();
+    
+    if (!orchestrator.isReady()) {
+      orchestrator.initialize().catch(err => {
+        console.error('Failed to initialize ThreatSyncOrchestrator:', err);
+      });
+    }
+    
+    // Optionally inject feed data as threats if provided
+    if (feed && typeof feed === 'object') {
+      try {
+        orchestrator.injectThreat({
+          severity: feed.severity || 'LOW',
+          code: feed.code || 'UNKNOWN',
+          confidence: feed.confidence || 50,
+          source: feed.source || 'ExternalFeed',
+          details: feed.details || 'Threat from external feed',
+          affectedAssets: feed.affectedAssets || [],
+          recommendedAction: feed.recommendedAction
+        });
+      } catch (error) {
+        console.error('Failed to inject threat from feed:', error);
+      }
+    }
+    
+    return orchestrator.sync();
+  },
+  
+  getThreatSnapshot: () => {
+    const orchestrator = getThreatSyncOrchestrator();
+    
+    if (!orchestrator.isReady()) {
+      return { 
+        status: "initializing", 
+        lastUpdated: Date.now(),
+        threats: [],
+        metrics: {
+          totalThreats: 0,
+          activeCritical: 0,
+          activeHigh: 0,
+          activeMedium: 0,
+          activeLow: 0,
+          averageConfidence: 0,
+          lastUpdate: 0
+        }
+      };
+    }
+    
+    const currentThreat = orchestrator.getThreatState();
+    const allThreats = orchestrator.getAllThreats();
+    const metrics = orchestrator.getMetrics();
+    
+    return {
+      status: currentThreat.severity === 'NONE' ? "stable" : "active",
+      lastUpdated: Date.now(),
+      currentThreat,
+      threats: allThreats,
+      metrics
+    };
+  }
+};
+
 // Default export for convenience
 export default ThreatSyncOrchestrator;
