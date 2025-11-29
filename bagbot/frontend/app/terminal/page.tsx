@@ -1,7 +1,7 @@
 'use client';
 
 import { SciFiShell } from '../sci-fi-shell';
-import { HoloCard } from '@/design-system/components/cards/HoloCard';
+import { HoloCard } from '../../design-system/components/cards/HoloCard';
 import { useTheme } from '../providers';
 import { useState, useRef, useEffect } from 'react';
 import PageTransition from '../../components/PageTransition';

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { InputHTMLAttributes } from 'react';
-import { useTheme } from '@/app/providers';
+import { useTheme } from '../../app/providers';
 
 interface GlassInputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;

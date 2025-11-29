@@ -1,9 +1,9 @@
 'use client';
 
 import { SciFiShell } from '../sci-fi-shell';
-import { HoloCard } from '@/design-system/components/cards/HoloCard';
-import { NeonTabs } from '@/design-system/components/tabs/NeonTabs';
-import { HoloButton } from '@/design-system/components/buttons/HoloButton';
+import { HoloCard } from '../../design-system/components/cards/HoloCard';
+import { NeonTabs } from '../../design-system/components/tabs/NeonTabs';
+import { HoloButton } from '../../design-system/components/buttons/HoloButton';
 import { useTheme } from '../providers';
 import { useState } from 'react';
 import PageTransition from '../../components/PageTransition';

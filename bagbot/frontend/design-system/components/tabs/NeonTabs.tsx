@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useTheme } from '@/app/providers';
+import { useTheme } from '../../app/providers';
 
 interface NeonTab {
   id: string;

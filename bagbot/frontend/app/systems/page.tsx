@@ -1,8 +1,8 @@
 'use client';
 
 import { SciFiShell } from '../sci-fi-shell';
-import { HoloCard } from '@/design-system/components/cards/HoloCard';
-import { HUDWidget } from '@/design-system/components/hud/HUDWidget';
+import { HoloCard } from '../../design-system/components/cards/HoloCard';
+import { HUDWidget } from '../../design-system/components/hud/HUDWidget';
 import { useTheme } from '../providers';
 import PageTransition from '../../components/PageTransition';
 import AnimatedText from '../../components/AnimatedText';

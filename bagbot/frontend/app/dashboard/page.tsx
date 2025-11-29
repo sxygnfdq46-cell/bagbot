@@ -1,9 +1,9 @@
 'use client';
 
 import { SciFiShell } from '../sci-fi-shell';
-import { HoloCard } from '@/design-system/components/cards/HoloCard';
-import { HUDWidget } from '@/design-system/components/hud/HUDWidget';
-import { NeonTabs } from '@/design-system/components/tabs/NeonTabs';
+import { HoloCard } from '../../design-system/components/cards/HoloCard';
+import { HUDWidget } from '../../design-system/components/hud/HUDWidget';
+import { NeonTabs } from '../../design-system/components/tabs/NeonTabs';
 import { useTheme } from '../providers';
 import { useState, useEffect, useRef } from 'react';
 import PageTransition from '../../components/PageTransition';

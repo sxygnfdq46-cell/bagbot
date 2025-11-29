@@ -1,8 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { neonDark, type NeonDarkTheme } from '@/design-system/themes/neon-dark';
-import { holoLight, type HoloLightTheme } from '@/design-system/themes/holo-light';
+import { neonDark, type NeonDarkTheme } from '../../design-system/themes/neon-dark';
+import { holoLight, type HoloLightTheme } from '../../design-system/themes/holo-light';
 
 type ThemeMode = 'neon-dark' | 'holo-light';
 type Theme = NeonDarkTheme | HoloLightTheme;

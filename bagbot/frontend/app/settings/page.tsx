@@ -1,11 +1,11 @@
 'use client';
 
 import { SciFiShell } from '../sci-fi-shell';
-import { HoloCard } from '@/design-system/components/cards/HoloCard';
-import { GlassInput } from '@/design-system/components/inputs/GlassInput';
-import { NeonSwitch } from '@/design-system/components/inputs/NeonSwitch';
-import { HoloButton } from '@/design-system/components/buttons/HoloButton';
-import { NeonTabs } from '@/design-system/components/tabs/NeonTabs';
+import { HoloCard } from '../../design-system/components/cards/HoloCard';
+import { GlassInput } from '../../design-system/components/inputs/GlassInput';
+import { NeonSwitch } from '../../design-system/components/inputs/NeonSwitch';
+import { HoloButton } from '../../design-system/components/buttons/HoloButton';
+import { NeonTabs } from '../../design-system/components/tabs/NeonTabs';
 import { useTheme } from '../providers';
 import { useState } from 'react';
 import PageTransition from '../../components/PageTransition';
