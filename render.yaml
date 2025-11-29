@@ -1,6 +1,7 @@
 services:
+  # Backend API Service (Python FastAPI)
   - type: web
-    name: bagbot-web
+    name: bagbot-backend
     env: python
     plan: free
     rootDir: bagbot
@@ -12,17 +13,7 @@ services:
       - key: PYTHON_VERSION
         value: 3.11.9
 
-  - type: worker
-    name: bagbot-worker
-    env: python
-    plan: free
-    buildCommand: pip install -r bagbot/requirements.txt
-    startCommand: python3 -u worker.py
-    autoDeploy: true
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.9
-
+  # Frontend Service (Next.js)
   - type: web
     name: bagbot-frontend
     env: node
@@ -34,9 +25,24 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: NODE_VERSION
+        value: 20.11.0
       - key: NEXT_PUBLIC_API_URL
-        value: https://bagbot2-backend.onrender.com
+        value: https://bagbot-backend.onrender.com
       - key: PORT
         value: "10000"
       - key: HOSTNAME
         value: "0.0.0.0"
+
+  # Worker Service (Background Tasks)
+  - type: worker
+    name: bagbot-worker
+    env: python
+    plan: free
+    rootDir: bagbot
+    buildCommand: pip install -r requirements.txt
+    startCommand: python3 -u worker.py
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
