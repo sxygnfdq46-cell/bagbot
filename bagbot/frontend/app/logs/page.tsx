@@ -9,8 +9,8 @@ import { useState } from 'react';
 import PageTransition from '../../components/PageTransition';
 import AnimatedText from '../../components/AnimatedText';
 import AnimatedCard from '../../components/AnimatedCard';
-import { useAPIPoll } from '@/lib/hooks/useAPI';
-import { useWebSocket } from '@/lib/hooks/useWebSocket';
+import { useAPIPoll } from '../../lib/hooks/useAPI';
+import { useWebSocket } from '../../lib/hooks/useWebSocket';
 import { ParticleUniverse, HoloRefract } from '../../components/quantum/QuantumEffects';
 import { TemporalDisplacement } from '../../components/ascension/AscensionEffects';
 

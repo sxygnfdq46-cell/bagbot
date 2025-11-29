@@ -9,8 +9,8 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { BehaviorCore, BehaviorOutput } from './BehaviorCore';
-import { useAPI, useAPIPoll } from '@/lib/hooks/useAPI';
-import { useWebSocket } from '@/lib/hooks/useWebSocket';
+import { useAPI, useAPIPoll } from '../../lib/hooks/useAPI';
+import { useWebSocket } from '../../lib/hooks/useWebSocket';
 
 interface BehaviorContextValue {
   behavior: BehaviorOutput;

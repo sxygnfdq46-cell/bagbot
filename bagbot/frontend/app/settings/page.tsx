@@ -11,7 +11,7 @@ import { useState } from 'react';
 import PageTransition from '../../components/PageTransition';
 import AnimatedText from '../../components/AnimatedText';
 import AnimatedCard from '../../components/AnimatedCard';
-import { useAPI, useAPIMutation } from '@/lib/hooks/useAPI';
+import { useAPI, useAPIMutation } from '../../lib/hooks/useAPI';
 import { ParticleUniverse } from '../../components/quantum/QuantumEffects';
 import { AuroraBackground } from '../../components/ascension/AscensionEffects';
 

@@ -9,8 +9,8 @@ import { useState } from 'react';
 import PageTransition from '../../components/PageTransition';
 import AnimatedText from '../../components/AnimatedText';
 import AnimatedCard from '../../components/AnimatedCard';
-import { useAPI, useAPIPoll } from '@/lib/hooks/useAPI';
-import { useWebSocket } from '@/lib/hooks/useWebSocket';
+import { useAPI, useAPIPoll } from '../../lib/hooks/useAPI';
+import { useWebSocket } from '../../lib/hooks/useWebSocket';
 import { ParticleUniverse, CameraDrift, HoloRefract } from '../../components/quantum/QuantumEffects';
 import { GravityWarp, QuantumRipple } from '../../components/ascension/AscensionEffects';
 

@@ -7,8 +7,8 @@ import { useState, useRef, useEffect } from 'react';
 import PageTransition from '../../components/PageTransition';
 import AnimatedText from '../../components/AnimatedText';
 import AnimatedCard from '../../components/AnimatedCard';
-import { useAPI, useAPIMutation } from '@/lib/hooks/useAPI';
-import { useWebSocket } from '@/lib/hooks/useWebSocket';
+import { useAPI, useAPIMutation } from '../../lib/hooks/useAPI';
+import { useWebSocket } from '../../lib/hooks/useWebSocket';
 import { AIAura, ParticleUniverse, HoloRefract } from '../../components/quantum/QuantumEffects';
 import { AIEmotionAura, TemporalDisplacement } from '../../components/ascension/AscensionEffects';
 

@@ -8,8 +8,8 @@ import { useState, useEffect } from 'react';
 import PageTransition from '../../components/PageTransition';
 import AnimatedText from '../../components/AnimatedText';
 import AnimatedCard from '../../components/AnimatedCard';
-import { useAPIPoll } from '@/lib/hooks/useAPI';
-import { useWebSocket } from '@/lib/hooks/useWebSocket';
+import { useAPIPoll } from '../../lib/hooks/useAPI';
+import { useWebSocket } from '../../lib/hooks/useWebSocket';
 import { SignalStorm, HoloRefract, ParticleUniverse } from '../../components/quantum/QuantumEffects';
 import { SignalRipple, AuroraStream, NeuralSynapse } from '../../components/ascension/AscensionEffects';
 

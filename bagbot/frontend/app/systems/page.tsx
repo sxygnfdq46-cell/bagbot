@@ -7,7 +7,7 @@ import { useTheme } from '../providers';
 import PageTransition from '../../components/PageTransition';
 import AnimatedText from '../../components/AnimatedText';
 import AnimatedCard from '../../components/AnimatedCard';
-import { useAPI, useAPIPoll } from '@/lib/hooks/useAPI';
+import { useAPI, useAPIPoll } from '../../lib/hooks/useAPI';
 import { ParticleUniverse, HoloRefract, QuantumField, CameraDrift } from '../../components/quantum/QuantumEffects';
 import { TemporalDisplacement, HaloFlux } from '../../components/ascension/AscensionEffects';
 

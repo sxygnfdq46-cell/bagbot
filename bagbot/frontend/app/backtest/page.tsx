@@ -10,7 +10,7 @@ import { useState } from 'react';
 import PageTransition from '../../components/PageTransition';
 import AnimatedText from '../../components/AnimatedText';
 import AnimatedCard from '../../components/AnimatedCard';
-import { useAPI, useAPIMutation } from '@/lib/hooks/useAPI';
+import { useAPI, useAPIMutation } from '../../lib/hooks/useAPI';
 import { ParticleUniverse, QuantumField, HoloRefract } from '../../components/quantum/QuantumEffects';
 import { AdaptiveHUD, AuroraStream } from '../../components/ascension/AscensionEffects';
 
