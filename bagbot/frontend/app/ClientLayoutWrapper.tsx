@@ -1,21 +1,21 @@
 "use client";
 
-import { ThemeProvider } from './providers';
-import GodModeIntro from './components/intro/GodModeIntro';
-import { BehaviorProvider } from './engine/bic/BehaviorProvider';
-import { CognitiveFusionProvider } from './engine/cognitive/CognitiveFusionProvider';
-import { EntityProvider } from './engine/entity/EntityProvider';
-import { MemoryImprintProvider } from './engine/entity/MemoryImprintProvider';
-import { EnvironmentalConsciousnessCore } from './engine/environmental/EnvironmentalConsciousnessCore';
-import { EnvironmentalFusionProvider } from './engine/fusion';
-import { StabilityProvider } from './engine/reflex';
-import { IdentityPersistenceLayer } from './components/presence/IdentityPersistenceLayer';
-import { SymbioticGuardianProvider } from './components/guardian/SymbioticGuardianProvider';
-import { SovereignProvider } from './components/sovereignty/SovereignProvider';
-import Navigation from './components/navigation/Navigation';
-import ThreatOverlay from './components/threat/ThreatOverlay';
-import ThreatReactivePanel from './components/threat/ThreatReactivePanel';
-import SafeModeBanner from '../components/SafeModeBanner';
+import { ThemeProvider } from '@/app/providers';
+import GodModeIntro from '@/app/components/intro/GodModeIntro';
+import { BehaviorProvider } from '@/app/engine/bic/BehaviorProvider';
+import { CognitiveFusionProvider } from '@/app/engine/cognitive/CognitiveFusionProvider';
+import { EntityProvider } from '@/app/engine/entity/EntityProvider';
+import { MemoryImprintProvider } from '@/app/engine/entity/MemoryImprintProvider';
+import { EnvironmentalConsciousnessCore } from '@/app/engine/environmental/EnvironmentalConsciousnessCore';
+import { EnvironmentalFusionProvider } from '@/app/engine/fusion';
+import { StabilityProvider } from '@/app/engine/reflex';
+import { IdentityPersistenceLayer } from '@/components/presence/IdentityPersistenceLayer';
+import { SymbioticGuardianProvider } from '@/components/guardian/SymbioticGuardianProvider';
+import { SovereignProvider } from '@/components/sovereignty/SovereignProvider';
+import Navigation from '@/app/components/navigation/Navigation';
+import ThreatOverlay from '@/app/components/threat/ThreatOverlay';
+import ThreatReactivePanel from '@/app/components/threat/ThreatReactivePanel';
+import SafeModeBanner from '@/components/SafeModeBanner';
 
 export default function ClientLayoutWrapper({
   children,
