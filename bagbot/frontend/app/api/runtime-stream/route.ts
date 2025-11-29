@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { eventBus } from "@/lib/runtime/eventBus";
+import { NextResponse } from 'next/server';
+import { eventBus } from "@/app/lib/runtime/eventBus";
 
 export async function GET() {
   const stream = new ReadableStream({

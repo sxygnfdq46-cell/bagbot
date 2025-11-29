@@ -1,4 +1,4 @@
-import { continuousRuntime } from "@/lib/runtime/ContinuousRuntimeLoop";
+import { continuousRuntime } from "@/app/lib/runtime/ContinuousRuntimeLoop";
 
 export async function POST(request: Request) {
   try {
