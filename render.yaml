@@ -39,7 +39,7 @@ services:
     name: bagbot-worker
     env: python
     plan: free
-    buildCommand: pip install -r bagbot/requirements.txt
+    buildCommand: pip install -r requirements.txt
     startCommand: python3 -u worker.py
     autoDeploy: true
     envVars:
