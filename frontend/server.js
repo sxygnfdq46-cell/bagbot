@@ -18,8 +18,8 @@ app.prepare()
     // Serve _next static files
     server.use("/_next/static", express.static(path.join(__dirname, ".next/static")));
 
-    // Fallback for all Next.js routes
-    server.get("*", (req, res) => {
+    // Fallback for all Next.js routes - use middleware instead of route
+    server.use((req, res) => {
       return handle(req, res);
     });
 
