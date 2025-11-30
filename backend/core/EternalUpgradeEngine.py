@@ -421,8 +421,10 @@ class EternalUpgradeEngine:
                 errors.append(f"Module self-validation failed: {error}")
         
         # Future compatibility checks
-        if hasattr(module, 'level') and module.level and module.level > 100:
-            warnings.append("Module level is beyond current supported range (>100)")
+        if hasattr(module, 'level'):
+            level = module.level if not isinstance(module.level, property) else None
+            if level and level > 100:
+                warnings.append("Module level is beyond current supported range (>100)")
         
         return ValidationResult(
             valid=len(errors) == 0,
