@@ -1,17 +1,46 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import "./landing.css";
 
-export default function HomePage() {
+export default function LandingPage() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // smooth fade-in
+    setMounted(true);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-6xl font-bold text-cyan-400 mb-8">BagBot 2.0</h1>
-        <p className="text-xl text-gray-400 mb-12">Quantum Trading Intelligence</p>
-        <Link href="/dashboard" className="px-8 py-4 bg-cyan-500 text-black rounded-lg text-lg font-bold hover:bg-cyan-400 transition-all">
-          Enter Dashboard →
+    <div className={`landing-container ${mounted ? "loaded" : ""}`}>
+      {/* Background Video */}
+      <video
+        className="landing-video"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+      >
+        <source src="/intro.mp4" type="video/mp4" />
+      </video>
+
+      {/* Overlay & Glow */}
+      <div className="overlay" />
+
+      {/* Content */}
+      <div className="content">
+        <h1 className="title">BagBot 2.0</h1>
+        <p className="subtitle">Quantum Trading Intelligence System</p>
+
+        <Link href="/dashboard">
+          <button className="start-btn">Enter Dashboard →</button>
         </Link>
       </div>
+
+      {/* Side Badge */}
+      <div className="badge">🛡️ Threat Center</div>
     </div>
   );
 }

@@ -1,0 +1,19 @@
+:root {
+  --bg-main: #02030d;
+  --accent-blue: #00eaff;
+  --accent-purple: #b24bff;
+  --text-secondary: #cfcfcf;
+  --border-glow: 1px solid rgba(0, 240, 255, 0.28);
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-main);
+  color: white;
+  font-family: "Inter", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}

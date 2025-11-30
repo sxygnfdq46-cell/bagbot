@@ -1,34 +1,38 @@
+// server.js — BagBot 2.0 Standalone Server
+
 const path = require("path");
-const express = require("express");
-const next = require("next");
+const { createServer } = require("http");
+const { parse } = require("url");
 
-const dev = process.env.NODE_ENV !== "production";
-const app = next({ dev: false, dir: __dirname });
-const handle = app.getRequestHandler();
-const port = process.env.PORT || 10000;
+// Path to Next.js standalone server
+const nextServer = require("./.next/standalone/server.js");
 
-app.prepare()
-  .then(() => {
-    const server = express();
+// Serve static files from .next/static
+const staticPath = path.join(__dirname, ".next", "static");
 
-    // Serve static files (videos, images, css, fonts)
-    server.use(express.static(path.join(__dirname, "public")));
-    server.use(express.static(path.join(__dirname, ".next/static")));
+// Create basic HTTP server
+const server = createServer((req, res) => {
+  try {
+    const parsedUrl = parse(req.url, true);
 
-    // Serve _next static files
-    server.use("/_next/static", express.static(path.join(__dirname, ".next/static")));
+    // Handle _next/static files manually
+    if (parsedUrl.pathname.startsWith("/_next/static")) {
+      nextServer.handleRequest(req, res);
+      return;
+    }
 
-    // Fallback for all Next.js routes - use middleware instead of route
-    server.use((req, res) => {
-      return handle(req, res);
-    });
+    // Everything else is handled by Next.js router
+    nextServer.handleRequest(req, res);
+  } catch (error) {
+    console.error("❌ Server error:", error);
+    res.statusCode = 500;
+    res.end("Internal server error");
+  }
+});
 
-    server.listen(port, (err) => {
-      if (err) throw err;
-      console.log(`> Ready on http://localhost:${port}`);
-    });
-  })
-  .catch((err) => {
-    console.error("Error starting server:", err);
-    process.exit(1);
-  });
+// Start Server
+const PORT = process.env.PORT || 10000;
+
+server.listen(PORT, () => {
+  console.log(`🚀 BagBot Frontend running on port ${PORT}`);
+});
