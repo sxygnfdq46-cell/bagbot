@@ -1,0 +1,485 @@
+/**
+ * LEVEL 12.4 — TONE STABILITY PULSE CSS
+ * 
+ * Visual pulse stabilization with coherence alignment glow.
+ * Smooth harmonic visuals with zero-flicker rendering.
+ * 
+ * Features:
+ * - Pulse harmonic softening
+ * - Stability wave pulses
+ * - Zero-flicker rendering
+ * - Contrast-preserving glow filters
+ * - GPU-accelerated animations
+ * - Refined emotional gradients
+ * 
+ * ~400 lines
+ * Zero data storage (ephemeral CSS only)
+ */
+
+/* ================================ */
+/* CSS CUSTOM PROPERTIES            */
+/* ================================ */
+
+:root {
+  /* Tone Stability Pulse Properties */
+  --tone-pulse-rate: 2s;
+  --tone-stability-level: 100;
+  --tone-coherence-glow: 0.6;
+  --tone-harmonic-phase: 0deg;
+  --tone-refinement-softness: 0.8;
+  
+  /* Stability Pulse Colors */
+  --pulse-stable: hsla(180, 75%, 65%, 0.7);
+  --pulse-refining: hsla(200, 70%, 60%, 0.6);
+  --pulse-locked: hsla(160, 80%, 55%, 0.8);
+  --pulse-glow: hsla(180, 100%, 75%, 0.5);
+  
+  /* Harmonic Softening */
+  --harmonic-level-1: 1.0;
+  --harmonic-level-2: 0.5;
+  --harmonic-level-3: 0.25;
+  --harmonic-level-4: 0.125;
+}
+
+/* ================================ */
+/* TONE STABILITY PULSE BASE        */
+/* ================================ */
+
+.tone-stability-pulse {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
+.tone-stability-pulse::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    var(--pulse-stable) 0%,
+    transparent 70%
+  );
+  opacity: calc(var(--tone-stability-level) / 150);
+  animation: tone-pulse-softening var(--tone-pulse-rate) ease-in-out infinite;
+  filter: blur(25px);
+  transform: translateZ(0);
+}
+
+.tone-stability-pulse::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    var(--pulse-glow) 0%,
+    transparent 60%
+  );
+  opacity: var(--tone-coherence-glow);
+  animation: coherence-glow-pulse 3s ease-in-out infinite;
+  mix-blend-mode: screen;
+  filter: blur(20px);
+  transform: translateZ(0);
+}
+
+/* ================================ */
+/* PULSE HARMONIC SOFTENING         */
+/* ================================ */
+
+@keyframes tone-pulse-softening {
+  0%, 100% {
+    opacity: calc(var(--tone-stability-level) / 150);
+    transform: scale(1) translateZ(0);
+    filter: blur(25px);
+  }
+  25% {
+    opacity: calc(var(--tone-stability-level) / 130);
+    transform: scale(1.02) translateZ(0);
+    filter: blur(27px);
+  }
+  50% {
+    opacity: calc(var(--tone-stability-level) / 120);
+    transform: scale(1.03) translateZ(0);
+    filter: blur(28px);
+  }
+  75% {
+    opacity: calc(var(--tone-stability-level) / 130);
+    transform: scale(1.02) translateZ(0);
+    filter: blur(27px);
+  }
+}
+
+@keyframes coherence-glow-pulse {
+  0%, 100% {
+    opacity: var(--tone-coherence-glow);
+    filter: blur(20px);
+    transform: scale(1) translateZ(0);
+  }
+  50% {
+    opacity: calc(var(--tone-coherence-glow) * 1.2);
+    filter: blur(22px);
+    transform: scale(1.05) translateZ(0);
+  }
+}
+
+/* ================================ */
+/* STABILITY WAVE PULSES            */
+/* ================================ */
+
+.stability-wave {
+  position: relative;
+  animation: wave-pulse 4s ease-in-out infinite;
+}
+
+@keyframes wave-pulse {
+  0%, 100% {
+    transform: translateY(0) translateZ(0);
+    opacity: 1;
+  }
+  25% {
+    transform: translateY(-2px) translateZ(0);
+    opacity: 0.95;
+  }
+  50% {
+    transform: translateY(-3px) translateZ(0);
+    opacity: 0.9;
+  }
+  75% {
+    transform: translateY(-2px) translateZ(0);
+    opacity: 0.95;
+  }
+}
+
+.stability-wave::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--pulse-refining) 50%,
+    transparent 100%
+  );
+  opacity: 0.4;
+  animation: wave-sweep 5s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes wave-sweep {
+  0% {
+    transform: translateX(-100%) translateZ(0);
+  }
+  100% {
+    transform: translateX(100%) translateZ(0);
+  }
+}
+
+/* ================================ */
+/* ZERO-FLICKER RENDERING           */
+/* ================================ */
+
+.zero-flicker {
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.zero-flicker * {
+  backface-visibility: hidden;
+}
+
+/* Smooth opacity transitions */
+.smooth-opacity {
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Smooth transform transitions */
+.smooth-transform {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ================================ */
+/* CONTRAST-PRESERVING GLOW         */
+/* ================================ */
+
+.coherence-glow {
+  position: relative;
+  filter: drop-shadow(0 0 15px var(--pulse-glow));
+}
+
+.coherence-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  filter: brightness(1.1) contrast(1.05);
+  opacity: 0.3;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+.coherence-glow-strong {
+  filter: drop-shadow(0 0 20px var(--pulse-glow)) brightness(1.05);
+}
+
+.coherence-glow-soft {
+  filter: drop-shadow(0 0 10px var(--pulse-glow)) brightness(1.02);
+}
+
+/* ================================ */
+/* REFINEMENT SOFTNESS              */
+/* ================================ */
+
+.refinement-soft {
+  filter: blur(calc(var(--tone-refinement-softness) * 2px));
+  opacity: calc(1 - var(--tone-refinement-softness) * 0.2);
+}
+
+.refinement-soft-high {
+  --tone-refinement-softness: 1.0;
+}
+
+.refinement-soft-medium {
+  --tone-refinement-softness: 0.6;
+}
+
+.refinement-soft-low {
+  --tone-refinement-softness: 0.3;
+}
+
+/* ================================ */
+/* HARMONIC LEVELS                  */
+/* ================================ */
+
+.harmonic-level-1 {
+  opacity: var(--harmonic-level-1);
+}
+
+.harmonic-level-2 {
+  opacity: var(--harmonic-level-2);
+}
+
+.harmonic-level-3 {
+  opacity: var(--harmonic-level-3);
+}
+
+.harmonic-level-4 {
+  opacity: var(--harmonic-level-4);
+}
+
+.harmonic-combined {
+  position: relative;
+}
+
+.harmonic-combined::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  opacity: var(--harmonic-level-2);
+  filter: blur(5px);
+  pointer-events: none;
+}
+
+.harmonic-combined::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  opacity: var(--harmonic-level-3);
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+/* ================================ */
+/* STABILITY LOCK INDICATORS        */
+/* ================================ */
+
+.stability-locked {
+  position: relative;
+  animation: lock-pulse 2s ease-in-out infinite;
+}
+
+@keyframes lock-pulse {
+  0%, 100% {
+    filter: brightness(1) drop-shadow(0 0 15px var(--pulse-locked));
+  }
+  50% {
+    filter: brightness(1.05) drop-shadow(0 0 20px var(--pulse-locked));
+  }
+}
+
+.stability-locked::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border: 2px solid var(--pulse-locked);
+  border-radius: 6px;
+  opacity: 0.7;
+  animation: lock-ring 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes lock-ring {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.4;
+  }
+}
+
+/* ================================ */
+/* REFINED EMOTIONAL GRADIENTS      */
+/* ================================ */
+
+.emotional-gradient-cool {
+  background: linear-gradient(
+    135deg,
+    hsl(200, 70%, 50%) 0%,
+    hsl(220, 65%, 55%) 100%
+  );
+}
+
+.emotional-gradient-neutral {
+  background: linear-gradient(
+    135deg,
+    hsl(180, 60%, 55%) 0%,
+    hsl(200, 60%, 60%) 100%
+  );
+}
+
+.emotional-gradient-warm {
+  background: linear-gradient(
+    135deg,
+    hsl(160, 75%, 60%) 0%,
+    hsl(180, 70%, 65%) 100%
+  );
+}
+
+.emotional-gradient-hot {
+  background: linear-gradient(
+    135deg,
+    hsl(140, 80%, 55%) 0%,
+    hsl(160, 75%, 60%) 100%
+  );
+}
+
+/* Smooth gradient transitions */
+.emotional-gradient-transition {
+  transition: background 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ================================ */
+/* PERFORMANCE OPTIMIZATIONS        */
+/* ================================ */
+
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform, opacity, filter;
+}
+
+.no-flicker {
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-fill-mode: both;
+}
+
+/* ================================ */
+/* REDUCED MOTION SUPPORT           */
+/* ================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .tone-stability-pulse,
+  .tone-stability-pulse::before,
+  .tone-stability-pulse::after,
+  .stability-wave,
+  .stability-wave::before,
+  .coherence-glow,
+  .stability-locked,
+  .stability-locked::before {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ================================ */
+/* UTILITY CLASSES                  */
+/* ================================ */
+
+.pulse-visible {
+  opacity: 1;
+  animation-play-state: running;
+}
+
+.pulse-hidden {
+  opacity: 0;
+  animation-play-state: paused;
+}
+
+.pulse-fade-in {
+  animation: pulse-fade-in 0.5s ease-in-out;
+}
+
+@keyframes pulse-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateZ(0);
+  }
+}
+
+.pulse-fade-out {
+  animation: pulse-fade-out 0.5s ease-in-out;
+}
+
+@keyframes pulse-fade-out {
+  from {
+    opacity: 1;
+    transform: scale(1) translateZ(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateZ(0);
+  }
+}
+
+/* ================================ */
+/* RESPONSIVE ADJUSTMENTS           */
+/* ================================ */
+
+@media (max-width: 768px) {
+  .tone-stability-pulse::before,
+  .tone-stability-pulse::after {
+    filter: blur(15px);
+  }
+
+  .coherence-glow {
+    filter: drop-shadow(0 0 10px var(--pulse-glow));
+  }
+}
+
+@media (max-width: 480px) {
+  .tone-stability-pulse::before,
+  .tone-stability-pulse::after {
+    filter: blur(10px);
+  }
+
+  .coherence-glow {
+    filter: drop-shadow(0 0 8px var(--pulse-glow));
+  }
+
+  .stability-wave::before {
+    opacity: 0.2;
+  }
+}

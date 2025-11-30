@@ -1,0 +1,570 @@
+/**
+ * LEVEL 11.5 — UNIFIED PRESENCE CSS
+ * 
+ * GPU-accelerated visual effects for unified presence across all surfaces:
+ * - Unified glow harmonics (pulse-synced ambient glow)
+ * - Pulse-linked ripple network (rhythmic waves)
+ * - Personality-color overlays (dynamic color matching)
+ * - Continuity shimmer wave (stability visualization)
+ * - Coherence grid (system-wide harmony)
+ * 
+ * All effects synchronized with UnifiedPulseEngine via CSS custom properties.
+ */
+
+/* ================================ */
+/* CSS CUSTOM PROPERTIES            */
+/* ================================ */
+
+:root {
+  /* Pulse engine properties (set by UnifiedPulseEngine) */
+  --pulse-phase: 0;
+  /* 0-1 */
+  --pulse-value: 0.5;
+  /* 0-1 sine wave */
+  --pulse-intensity: 0.7;
+  /* 0-1 */
+  --breath-value: 0.5;
+  /* 0-1 breath curve */
+  --aura-phase: 0deg;
+  /* 0-360deg */
+  --aura-intensity: 0.8;
+  /* 0-1 */
+  --emotional-beat: 0.6;
+  /* 0-1 */
+
+  /* Presence properties (set by IdentityPersistenceLayer) */
+  --presence-continuity: 0.8;
+  /* 0-1 */
+  --presence-coherence: 0.85;
+  /* 0-1 */
+  --continuity-confidence: 0.75;
+  /* 0-1 */
+  --tone-warmth: 0.65;
+  /* 0-1 */
+  --tone-enthusiasm: 0.6;
+  /* 0-1 */
+  --surface-coherence: 0.8;
+  /* 0-1 */
+
+  /* Derived colors */
+  --unified-primary: rgba(147, 51, 234, calc(var(--pulse-intensity) * 0.6));
+  --unified-secondary: rgba(79, 70, 229, calc(var(--pulse-intensity) * 0.5));
+  --unified-accent: rgba(59, 130, 246, calc(var(--emotional-beat) * 0.7));
+}
+
+/* ================================ */
+/* BASE UNIFIED PRESENCE AURA       */
+/* ================================ */
+
+.unified-presence-aura {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  opacity: calc(0.5 + var(--aura-intensity) * 0.5);
+  will-change: opacity;
+}
+
+/* ================================ */
+/* UNIFIED PULSE GLOW               */
+/* ================================ */
+
+.unified-pulse-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%) scale(calc(0.9 + var(--pulse-value) * 0.2));
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    var(--unified-primary) 0%,
+    var(--unified-secondary) 40%,
+    transparent 70%
+  );
+  filter: blur(calc(80px + var(--breath-value) * 40px));
+  mix-blend-mode: screen;
+  animation: pulseGlowRotate 30s linear infinite;
+  will-change: transform, filter;
+}
+
+@keyframes pulseGlowRotate {
+  0% {
+    transform: translate(-50%, -50%) scale(calc(0.9 + var(--pulse-value) * 0.2)) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(calc(0.9 + var(--pulse-value) * 0.2)) rotate(360deg);
+  }
+}
+
+/* ================================ */
+/* UNIFIED BREATH WAVE              */
+/* ================================ */
+
+.unified-breath-wave {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(60% + var(--breath-value) * 40%);
+  height: calc(60% + var(--breath-value) * 40%);
+  transform: translate(-50%, -50%);
+  border: calc(2px + var(--pulse-value) * 3px) solid
+    rgba(147, 51, 234, calc(0.2 + var(--pulse-intensity) * 0.4));
+  border-radius: 50%;
+  filter: blur(5px);
+  mix-blend-mode: screen;
+  animation: breathWavePulse 4s ease-in-out infinite;
+  will-change: transform, border-width;
+}
+
+@keyframes breathWavePulse {
+  0%,
+  100% {
+    opacity: calc(0.4 + var(--breath-value) * 0.4);
+  }
+  50% {
+    opacity: calc(0.6 + var(--breath-value) * 0.4);
+  }
+}
+
+/* ================================ */
+/* UNIFIED CONTINUITY SHIMMER       */
+/* ================================ */
+
+.unified-continuity-shimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    calc(var(--aura-phase) * 1deg),
+    rgba(147, 51, 234, calc(0.02 + var(--continuity-confidence) * 0.03)) 0%,
+    transparent 50%,
+    rgba(79, 70, 229, calc(0.02 + var(--continuity-confidence) * 0.03)) 100%
+  );
+  animation: continuityShimmerShift 20s linear infinite;
+  mix-blend-mode: screen;
+  will-change: background;
+}
+
+@keyframes continuityShimmerShift {
+  0% {
+    transform: translateX(0) translateY(0);
+  }
+  25% {
+    transform: translateX(2%) translateY(1%);
+  }
+  50% {
+    transform: translateX(0) translateY(2%);
+  }
+  75% {
+    transform: translateX(-2%) translateY(1%);
+  }
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+}
+
+/* ================================ */
+/* UNIFIED COHERENCE GRID           */
+/* ================================ */
+
+.unified-coherence-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: calc(0.1 + var(--surface-coherence) * 0.2);
+  background-image: repeating-linear-gradient(
+      0deg,
+      rgba(147, 51, 234, 0.08) 0px,
+      transparent 1px,
+      transparent calc(40px + var(--pulse-value) * 10px),
+      rgba(147, 51, 234, 0.08) calc(41px + var(--pulse-value) * 10px)
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(147, 51, 234, 0.08) 0px,
+      transparent 1px,
+      transparent calc(40px + var(--pulse-value) * 10px),
+      rgba(147, 51, 234, 0.08) calc(41px + var(--pulse-value) * 10px)
+    );
+  animation: coherenceGridShift 25s linear infinite;
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+}
+
+@keyframes coherenceGridShift {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(50px, 50px);
+  }
+}
+
+/* ================================ */
+/* UNIFIED IDENTITY ANCHOR          */
+/* ================================ */
+
+.unified-identity-anchor {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30%;
+  height: 30%;
+  transform: translate(-50%, -50%) rotate(calc(var(--aura-phase) * 0.5));
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    transparent 40%,
+    rgba(147, 51, 234, calc(0.05 + var(--presence-coherence) * 0.1)) 50%,
+    rgba(79, 70, 229, calc(0.03 + var(--presence-coherence) * 0.07)) 60%,
+    transparent 80%
+  );
+  filter: blur(30px);
+  mix-blend-mode: screen;
+  animation: identityAnchorPulse 6s ease-in-out infinite;
+  will-change: transform, filter;
+}
+
+@keyframes identityAnchorPulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) rotate(calc(var(--aura-phase) * 0.5)) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) rotate(calc(var(--aura-phase) * 0.5))
+      scale(calc(1 + var(--pulse-value) * 0.15));
+  }
+}
+
+/* ================================ */
+/* PULSE-LINKED RIPPLE NETWORK      */
+/* ================================ */
+
+.unified-presence-aura::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40%;
+  height: 40%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid rgba(147, 51, 234, calc(0.15 + var(--pulse-value) * 0.25));
+  filter: blur(3px);
+  mix-blend-mode: screen;
+  animation: rippleExpand 3s ease-out infinite;
+  will-change: transform, opacity, border-width;
+}
+
+.unified-presence-aura::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40%;
+  height: 40%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid rgba(79, 70, 229, calc(0.15 + var(--pulse-value) * 0.25));
+  filter: blur(3px);
+  mix-blend-mode: screen;
+  animation: rippleExpand 3s ease-out infinite 1.5s;
+  will-change: transform, opacity, border-width;
+}
+
+@keyframes rippleExpand {
+  0% {
+    width: 40%;
+    height: 40%;
+    opacity: calc(0.6 + var(--pulse-intensity) * 0.4);
+    border-width: 2px;
+  }
+  100% {
+    width: 120%;
+    height: 120%;
+    opacity: 0;
+    border-width: 0.5px;
+  }
+}
+
+/* ================================ */
+/* PERSONALITY-COLOR OVERLAYS       */
+/* ================================ */
+
+.personality-warm {
+  --unified-primary: rgba(239, 154, 54, calc(var(--tone-warmth) * 0.6));
+  --unified-secondary: rgba(251, 191, 36, calc(var(--tone-warmth) * 0.5));
+  --unified-accent: rgba(252, 211, 77, calc(var(--tone-warmth) * 0.7));
+}
+
+.personality-cool {
+  --unified-primary: rgba(59, 130, 246, calc(var(--pulse-intensity) * 0.6));
+  --unified-secondary: rgba(37, 99, 235, calc(var(--pulse-intensity) * 0.5));
+  --unified-accent: rgba(96, 165, 250, calc(var(--emotional-beat) * 0.7));
+}
+
+.personality-energetic {
+  --unified-primary: rgba(236, 72, 153, calc(var(--tone-enthusiasm) * 0.7));
+  --unified-secondary: rgba(219, 39, 119, calc(var(--tone-enthusiasm) * 0.6));
+  --unified-accent: rgba(244, 114, 182, calc(var(--tone-enthusiasm) * 0.8));
+}
+
+.personality-calm {
+  --unified-primary: rgba(16, 185, 129, calc(var(--pulse-intensity) * 0.5));
+  --unified-secondary: rgba(5, 150, 105, calc(var(--pulse-intensity) * 0.4));
+  --unified-accent: rgba(52, 211, 153, calc(var(--emotional-beat) * 0.6));
+}
+
+.personality-balanced {
+  --unified-primary: rgba(147, 51, 234, calc(var(--pulse-intensity) * 0.6));
+  --unified-secondary: rgba(79, 70, 229, calc(var(--pulse-intensity) * 0.5));
+  --unified-accent: rgba(59, 130, 246, calc(var(--emotional-beat) * 0.7));
+}
+
+/* ================================ */
+/* EMOTIONAL STATE VARIANTS         */
+/* ================================ */
+
+.emotion-calm .unified-pulse-glow {
+  animation-duration: 40s;
+  filter: blur(100px);
+}
+
+.emotion-curious .unified-pulse-glow {
+  animation-duration: 25s;
+  filter: blur(calc(70px + var(--breath-value) * 30px));
+}
+
+.emotion-confident .unified-pulse-glow {
+  animation-duration: 20s;
+  filter: blur(calc(60px + var(--breath-value) * 20px));
+  transform: translate(-50%, -50%) scale(calc(1 + var(--pulse-value) * 0.3));
+}
+
+.emotion-cautious .unified-pulse-glow {
+  animation-duration: 35s;
+  filter: blur(90px);
+  opacity: calc(0.5 + var(--pulse-value) * 0.3);
+}
+
+.emotion-determined .unified-pulse-glow {
+  animation-duration: 15s;
+  filter: blur(calc(50px + var(--breath-value) * 15px));
+  transform: translate(-50%, -50%) scale(calc(1 + var(--pulse-value) * 0.4));
+}
+
+/* ================================ */
+/* CONTINUITY STRENGTH VARIANTS     */
+/* ================================ */
+
+.continuity-high {
+  --continuity-multiplier: 1.2;
+}
+
+.continuity-medium {
+  --continuity-multiplier: 1;
+}
+
+.continuity-low {
+  --continuity-multiplier: 0.7;
+}
+
+.unified-continuity-shimmer {
+  opacity: calc(
+    (0.02 + var(--continuity-confidence) * 0.03) * var(--continuity-multiplier, 1)
+  );
+}
+
+/* ================================ */
+/* SURFACE-SPECIFIC ADAPTATIONS     */
+/* ================================ */
+
+/* Dashboard: Full presence */
+[data-surface='dashboard'] .unified-presence-aura {
+  opacity: calc(0.6 + var(--aura-intensity) * 0.4);
+}
+
+/* Strategies: Focused presence */
+[data-surface='strategies'] .unified-presence-aura {
+  opacity: calc(0.5 + var(--aura-intensity) * 0.3);
+}
+
+[data-surface='strategies'] .unified-pulse-glow {
+  filter: blur(calc(60px + var(--breath-value) * 30px));
+}
+
+/* Signals: Alert presence */
+[data-surface='signals'] .unified-presence-aura {
+  opacity: calc(0.7 + var(--aura-intensity) * 0.3);
+}
+
+[data-surface='signals'] .unified-pulse-glow {
+  animation-duration: 15s;
+}
+
+/* Settings: Subdued presence */
+[data-surface='settings'] .unified-presence-aura {
+  opacity: calc(0.3 + var(--aura-intensity) * 0.2);
+}
+
+[data-surface='settings'] .unified-pulse-glow {
+  filter: blur(100px);
+  animation-duration: 45s;
+}
+
+/* Brain/Environment: Enhanced presence */
+[data-surface='brain'] .unified-presence-aura,
+[data-surface='environment'] .unified-presence-aura {
+  opacity: calc(0.8 + var(--aura-intensity) * 0.2);
+}
+
+[data-surface='brain'] .unified-coherence-grid,
+[data-surface='environment'] .unified-coherence-grid {
+  opacity: calc(0.2 + var(--surface-coherence) * 0.3);
+}
+
+/* ================================ */
+/* CROSS-TAB SYNC INDICATOR         */
+/* ================================ */
+
+.sync-status-master::before {
+  content: '';
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, calc(0.6 + var(--pulse-value) * 0.4));
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+  z-index: 1000;
+  animation: syncPulse 2s ease-in-out infinite;
+}
+
+.sync-status-follower::before {
+  content: '';
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, calc(0.5 + var(--pulse-value) * 0.3));
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+  z-index: 1000;
+  animation: syncPulse 2s ease-in-out infinite;
+}
+
+.sync-status-isolated::before {
+  content: '';
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(156, 163, 175, 0.5);
+  z-index: 1000;
+}
+
+@keyframes syncPulse {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+/* ================================ */
+/* PERFORMANCE OPTIMIZATIONS        */
+/* ================================ */
+
+.unified-presence-aura * {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .unified-presence-aura * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .unified-presence-aura {
+    opacity: 0.3 !important;
+  }
+}
+
+/* ================================ */
+/* LAYERED COMPOSITE EFFECTS        */
+/* ================================ */
+
+.unified-presence-aura {
+  isolation: isolate;
+}
+
+.unified-pulse-glow,
+.unified-breath-wave,
+.unified-continuity-shimmer,
+.unified-coherence-grid,
+.unified-identity-anchor {
+  isolation: isolate;
+}
+
+/* ================================ */
+/* BLEND MODE VARIATIONS            */
+/* ================================ */
+
+.blend-additive .unified-pulse-glow,
+.blend-additive .unified-breath-wave,
+.blend-additive .unified-identity-anchor {
+  mix-blend-mode: screen;
+}
+
+.blend-soft .unified-pulse-glow,
+.blend-soft .unified-breath-wave,
+.blend-soft .unified-identity-anchor {
+  mix-blend-mode: soft-light;
+}
+
+.blend-overlay .unified-pulse-glow,
+.blend-overlay .unified-breath-wave,
+.blend-overlay .unified-identity-anchor {
+  mix-blend-mode: overlay;
+}
+
+/* ================================ */
+/* INTENSITY MODIFIERS              */
+/* ================================ */
+
+.intensity-subtle {
+  --aura-intensity: 0.4;
+  --pulse-intensity: 0.5;
+}
+
+.intensity-normal {
+  --aura-intensity: 0.7;
+  --pulse-intensity: 0.7;
+}
+
+.intensity-strong {
+  --aura-intensity: 1;
+  --pulse-intensity: 1;
+}

@@ -1,0 +1,596 @@
+/**
+ * LEVEL 4: QUANTUM HOLOENGINE
+ * 
+ * The final tier of visual sophistication
+ * Pure GPU-accelerated browser magic
+ * 120fps+ optimized
+ */
+
+/* ========================================
+   1. QUANTUM MESH REACTIVITY
+   ======================================== */
+
+@keyframes quantum-ripple {
+  0% {
+    transform: scale(1) translateZ(0);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05) translateZ(10px);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1) translateZ(0);
+    opacity: 1;
+  }
+}
+
+@keyframes mesh-distortion {
+  0%, 100% {
+    transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+  }
+  25% {
+    transform: perspective(1000px) rotateX(0.5deg) rotateY(-0.5deg);
+  }
+  75% {
+    transform: perspective(1000px) rotateX(-0.5deg) rotateY(0.5deg);
+  }
+}
+
+@keyframes fabric-bend {
+  0% {
+    filter: blur(0px) hue-rotate(0deg);
+    transform: translateZ(0);
+  }
+  50% {
+    filter: blur(0.5px) hue-rotate(5deg);
+    transform: translateZ(5px);
+  }
+  100% {
+    filter: blur(0px) hue-rotate(0deg);
+    transform: translateZ(0);
+  }
+}
+
+.quantum-reactive {
+  will-change: transform, filter;
+  animation: mesh-distortion 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.quantum-ripple {
+  animation: quantum-ripple 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fabric-bend {
+  animation: fabric-bend 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ========================================
+   2. AI PULSE CORE (Neural Aura)
+   ======================================== */
+
+@keyframes neural-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px var(--aura-color, rgba(0, 246, 255, 0.3)),
+      0 0 40px var(--aura-color, rgba(0, 246, 255, 0.2)),
+      0 0 60px var(--aura-color, rgba(0, 246, 255, 0.1)),
+      inset 0 0 20px var(--aura-color, rgba(0, 246, 255, 0.1));
+  }
+  50% {
+    box-shadow: 
+      0 0 30px var(--aura-color, rgba(0, 246, 255, 0.4)),
+      0 0 60px var(--aura-color, rgba(0, 246, 255, 0.3)),
+      0 0 90px var(--aura-color, rgba(0, 246, 255, 0.2)),
+      inset 0 0 30px var(--aura-color, rgba(0, 246, 255, 0.2));
+  }
+}
+
+@keyframes aura-shift {
+  0% { filter: hue-rotate(0deg) brightness(1); }
+  33% { filter: hue-rotate(120deg) brightness(1.2); }
+  66% { filter: hue-rotate(240deg) brightness(1.1); }
+  100% { filter: hue-rotate(360deg) brightness(1); }
+}
+
+.ai-aura {
+  position: relative;
+  animation: neural-pulse 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.ai-aura::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at 50% 50%,
+    var(--aura-color, rgba(0, 246, 255, 0.2)) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: -1;
+  animation: aura-shift 6s linear infinite;
+  will-change: filter;
+}
+
+.ai-aura[data-state="receiving"] { --aura-color: rgba(0, 246, 255, 0.3); }
+.ai-aura[data-state="processing"] { --aura-color: rgba(255, 0, 255, 0.3); }
+.ai-aura[data-state="active"] { --aura-color: rgba(255, 215, 0, 0.3); }
+.ai-aura[data-state="idle"] { --aura-color: rgba(138, 43, 226, 0.2); }
+
+/* ========================================
+   3. 4-LAYER PARTICLE UNIVERSE
+   ======================================== */
+
+@keyframes dust-drift {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+  50% { transform: translate(20px, -30px) scale(1.2); opacity: 0.5; }
+  100% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+}
+
+@keyframes micro-spark {
+  0% { transform: scale(0) rotate(0deg); opacity: 0; }
+  50% { transform: scale(1) rotate(180deg); opacity: 1; }
+  100% { transform: scale(0) rotate(360deg); opacity: 0; }
+}
+
+@keyframes directional-stream {
+  0% { transform: translateX(-100%) translateY(0); opacity: 0; }
+  10% { opacity: 0.8; }
+  90% { opacity: 0.8; }
+  100% { transform: translateX(100vw) translateY(-50px); opacity: 0; }
+}
+
+@keyframes gravity-pull {
+  0% { transform: translate(0, -100px) scale(0.5); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translate(0, 0) scale(1); opacity: 0; }
+}
+
+.particle-universe {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.particle-layer-dust {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: rgba(0, 246, 255, 0.3);
+  border-radius: 50%;
+  animation: dust-drift 12s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform, opacity;
+}
+
+.particle-layer-spark {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: radial-gradient(circle, rgba(255, 0, 255, 1), transparent);
+  border-radius: 50%;
+  animation: micro-spark 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.particle-layer-stream {
+  position: absolute;
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(to bottom, transparent, rgba(0, 246, 255, 0.8), transparent);
+  animation: directional-stream 5s linear infinite;
+}
+
+.particle-layer-gravity {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 215, 0, 0.6);
+  border-radius: 50%;
+  animation: gravity-pull 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* ========================================
+   4. HOLOGRAM REFRACTION ENGINE
+   ======================================== */
+
+@keyframes prism-refract {
+  0%, 100% {
+    background-position: 0% 50%;
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    background-position: 100% 50%;
+    filter: hue-rotate(30deg);
+  }
+}
+
+@keyframes spectral-wave {
+  0% { transform: translateX(-100%) skewX(-10deg); opacity: 0; }
+  50% { opacity: 0.3; }
+  100% { transform: translateX(100%) skewX(10deg); opacity: 0; }
+}
+
+.holo-refract {
+  position: relative;
+  background: 
+    linear-gradient(
+      135deg,
+      rgba(0, 246, 255, 0.05) 0%,
+      rgba(255, 0, 255, 0.05) 50%,
+      rgba(0, 246, 255, 0.05) 100%
+    );
+  background-size: 200% 200%;
+  animation: prism-refract 4s ease-in-out infinite;
+}
+
+.holo-refract::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    rgba(0, 246, 255, 0.2),
+    rgba(255, 0, 255, 0.2),
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: spectral-wave 3s linear infinite;
+  pointer-events: none;
+  border-radius: inherit;
+  will-change: transform;
+}
+
+/* ========================================
+   5. QUANTUM FIELD ANIMATIONS
+   ======================================== */
+
+@keyframes magnetic-field {
+  0%, 100% {
+    box-shadow: 
+      0 0 10px rgba(0, 246, 255, 0.2),
+      0 0 20px rgba(0, 246, 255, 0.1);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 
+      0 0 20px rgba(0, 246, 255, 0.4),
+      0 0 40px rgba(0, 246, 255, 0.2),
+      0 0 60px rgba(0, 246, 255, 0.1);
+    transform: scale(1.02);
+  }
+}
+
+@keyframes subatomic-swirl {
+  0% { transform: rotate(0deg) scale(0); opacity: 0; }
+  50% { transform: rotate(180deg) scale(1); opacity: 0.6; }
+  100% { transform: rotate(360deg) scale(0); opacity: 0; }
+}
+
+@keyframes value-warp {
+  0% { transform: scale(1) skewX(0deg); filter: blur(0px); }
+  50% { transform: scale(1.1) skewX(-5deg); filter: blur(1px); }
+  100% { transform: scale(1) skewX(0deg); filter: blur(0px); }
+}
+
+@keyframes neon-afterglow {
+  0% { opacity: 1; filter: brightness(1.5); }
+  100% { opacity: 0; filter: brightness(1); }
+}
+
+.quantum-field {
+  position: relative;
+  animation: magnetic-field 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform, box-shadow;
+}
+
+.quantum-field::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 246, 255, 0.2);
+  animation: subatomic-swirl 3s linear infinite;
+  pointer-events: none;
+}
+
+.value-update {
+  animation: value-warp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.value-afterglow {
+  position: relative;
+}
+
+.value-afterglow::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  background: radial-gradient(circle, rgba(0, 246, 255, 0.3), transparent);
+  border-radius: inherit;
+  animation: neon-afterglow 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+/* ========================================
+   6. HYPERSPACE THREADLINES
+   ======================================== */
+
+@keyframes thread-draw {
+  0% { 
+    stroke-dashoffset: 1000;
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% { 
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes thread-pulse {
+  0%, 100% { stroke-width: 1; }
+  50% { stroke-width: 2; }
+}
+
+.hyperspace-thread {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999;
+}
+
+.thread-line {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: 
+    thread-draw 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards,
+    thread-pulse 0.5s ease-in-out;
+  stroke: rgba(0, 246, 255, 0.8);
+  fill: none;
+  filter: drop-shadow(0 0 2px rgba(0, 246, 255, 0.8));
+}
+
+/* ========================================
+   7. CINEMATIC CAMERA DRIFT
+   ======================================== */
+
+@keyframes camera-drift-x {
+  0%, 100% { transform: translateX(0) rotateY(0deg); }
+  50% { transform: translateX(5px) rotateY(0.5deg); }
+}
+
+@keyframes camera-drift-y {
+  0%, 100% { transform: translateY(0) rotateX(0deg); }
+  50% { transform: translateY(3px) rotateX(0.3deg); }
+}
+
+@keyframes depth-shift {
+  0%, 100% { transform: translateZ(0) scale(1); }
+  50% { transform: translateZ(10px) scale(1.01); }
+}
+
+.camera-drift-container {
+  perspective: 2000px;
+  transform-style: preserve-3d;
+}
+
+.camera-drift-layer-1 {
+  animation: camera-drift-x 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.camera-drift-layer-2 {
+  animation: camera-drift-y 10s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.depth-layer {
+  animation: depth-shift 12s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform;
+}
+
+/* Parallax on mouse move */
+.parallax-hover {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.parallax-hover[data-depth="1"] {
+  transform: translateZ(10px);
+}
+
+.parallax-hover[data-depth="2"] {
+  transform: translateZ(20px);
+}
+
+.parallax-hover[data-depth="3"] {
+  transform: translateZ(30px);
+}
+
+/* ========================================
+   8. SIGNAL STORM EFFECTS
+   ======================================== */
+
+@keyframes lightning-arc {
+  0% { 
+    opacity: 0;
+    stroke-dashoffset: 500;
+  }
+  10% { 
+    opacity: 1;
+  }
+  20% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.8;
+  }
+  40%, 100% { 
+    opacity: 0;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes static-shimmer {
+  0%, 100% {
+    background-position: 0% 0%;
+    opacity: 0;
+  }
+  50% {
+    background-position: 100% 100%;
+    opacity: 0.3;
+  }
+}
+
+@keyframes energy-flow {
+  0% {
+    transform: translateY(100%) scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-100%) scale(1.2);
+    opacity: 0;
+  }
+}
+
+.signal-storm {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.lightning-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.lightning-arc {
+  stroke: rgba(255, 0, 255, 0.8);
+  stroke-width: 2;
+  fill: none;
+  stroke-dasharray: 500;
+  stroke-dashoffset: 500;
+  filter: 
+    drop-shadow(0 0 3px rgba(255, 0, 255, 0.8))
+    drop-shadow(0 0 6px rgba(0, 246, 255, 0.6));
+  animation: lightning-arc 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.static-shimmer {
+  position: absolute;
+  inset: 0;
+  background: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      rgba(255, 0, 255, 0.1) 2px,
+      transparent 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      rgba(0, 246, 255, 0.1) 2px,
+      transparent 4px
+    );
+  background-size: 100% 100%;
+  animation: static-shimmer 2s linear infinite;
+  mix-blend-mode: screen;
+}
+
+.energy-flow {
+  position: absolute;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(255, 0, 255, 0.8),
+    rgba(0, 246, 255, 0.8),
+    transparent
+  );
+  animation: energy-flow 3s linear infinite;
+  filter: blur(1px);
+}
+
+/* ========================================
+   PERFORMANCE OPTIMIZATIONS
+   ======================================== */
+
+/* GPU acceleration hints */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High refresh rate optimization */
+@media (min-resolution: 120dpi) {
+  * {
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+.quantum-active {
+  animation: quantum-ripple 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ai-thinking {
+  --aura-color: rgba(255, 0, 255, 0.3);
+}
+
+.ai-success {
+  --aura-color: rgba(0, 255, 170, 0.3);
+}
+
+.data-reactive {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.data-reactive:hover {
+  transform: translateZ(5px) scale(1.02);
+}
+
+/* Isolate expensive effects */
+.contain-paint {
+  contain: paint;
+}
+
+.contain-layout {
+  contain: layout;
+}
+
+.contain-strict {
+  contain: strict;
+}

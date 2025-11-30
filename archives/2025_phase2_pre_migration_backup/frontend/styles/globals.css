@@ -1,0 +1,209 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* LEVEL 4: QUANTUM HOLOENGINE */
+@import './quantum-holo.css';
+@import './ascension.css';
+
+/* LEVEL 9.4: SYMBIOTIC ENVIRONMENT FUSION */
+@import './symbiotic-environment.css';
+
+/* LEVEL 9.5: PARALLEL ENVIRONMENT INTELLIGENCE */
+@import './parallel-intelligence.css';
+@import './world-mesh.css';
+
+/* LEVEL 10: ULTRA-ENTITY META-LAYER */
+@import './meta-awareness.css';
+@import './ultra-fusion.css';
+
+/* LEVEL 11.1: ASCENDANT IDENTITY CORE */
+@import './ascendant-identity.css';
+
+/* LEVEL 11.2: EMERGENT PERSONALITY ENGINE */
+@import './persona-effects.css';
+
+/* LEVEL 11.3: EMERGENCE SIGNATURE ENGINE */
+@import './PresenceLayer.css';
+
+/* LEVEL 11.4: COLLECTIVE INTELLIGENCE LAYER */
+@import './CollectiveAuraOverlay.css';
+
+/* LEVEL 11.5: UNIFIED IDENTITY PRESENCE ENGINE */
+@import './UnifiedPresence.css';
+
+/* LEVEL 12.1: SYMBIOTIC GUARDIAN ENGINE */
+@import './guardian.css';
+
+/* LEVEL 12.2: ADAPTIVE EMOTIONAL SOVEREIGNTY ENGINE */
+@import './harmony-pulse.css';
+
+/* LEVEL 12.3: DEEP SOVEREIGN STABILITY GRID */
+@import './StabilityWavefield.css';
+
+/* LEVEL 12.4: SOVEREIGN REFINEMENT ENGINE */
+@import './ToneStabilityPulse.css';
+
+/* LEVEL 13.5: MULTI-FLOW VISUALIZATION LAYER */
+@import '../components/execution/multiflow.css';
+
+/* LEVEL 14: STRATEGIC OVERSIGHT LAYER */
+@import '../components/oversight/strategic.css';
+
+/* LEVEL 15: ROLLING MEMORY INTELLIGENCE LAYER */
+@import '../components/memory/memoryflow.css';
+
+/* LEVEL 16: NEXT-GEN UI SYSTEM */
+@import '../components/ui/nextui.css';
+
+/* LEVEL 17.3: PURPLE TECHWAVE THEME */
+@import '../components/admin/purpleTechwave.css';
+
+/* LEVEL 17.4: CONTROL HUB THEME */
+@import '../components/admin/controlhub.css';
+
+/* LEVEL 17.5: DIAGNOSTICS PANEL THEME */
+@import '../components/admin/diagnostics.css';
+
+:root {
+  /* Neon Colors */
+  --neon-cyan: #00f6ff;
+  --neon-magenta: #ff00ff;
+  --neon-teal: #00ffaa;
+  --plasma-cyan: #00e5ff;
+  
+  /* Vanta Black */
+  --vanta-black: #000000;
+  --deep-void: #0a0a0f;
+  --shadow-gray: #1a1a1f;
+  
+  /* Neon Glows */
+  --glow-cyan: 0 0 20px rgba(0, 246, 255, 0.6), 0 0 40px rgba(0, 246, 255, 0.3);
+  --glow-magenta: 0 0 20px rgba(255, 0, 255, 0.6), 0 0 40px rgba(255, 0, 255, 0.3);
+  --glow-soft: 0 0 10px rgba(0, 246, 255, 0.4);
+  --glow-strong: 0 0 30px rgba(0, 246, 255, 0.8), 0 0 60px rgba(0, 246, 255, 0.5);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background: var(--vanta-black);
+  color: #ffffff;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  font-size: 16px;
+}
+
+@keyframes slide-left {
+  from { transform: translateX(120%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.animate-slide-left {
+  animation: slide-left 0.6s ease-out;
+}
+
+/* Responsive Typography */
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 1440px) {
+  html {
+    font-size: 17px;
+  }
+}
+
+@media (min-width: 2560px) {
+  html {
+    font-size: 18px;
+  }
+}
+
+/* Plasma Grid Background - Responsive */
+.plasma-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: 
+    linear-gradient(rgba(0, 246, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 246, 255, 0.05) 1px, transparent 1px);
+  background-size: 30px 30px;
+  animation: pulse-grid 5s ease-in-out infinite;
+}
+
+@media (min-width: 768px) {
+  .plasma-grid {
+    background-size: 50px 50px;
+  }
+}
+
+@media (min-width: 2560px) {
+  .plasma-grid {
+    background-size: 80px 80px;
+  }
+}
+
+@keyframes pulse-grid {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
+/* Neon Text Glow */
+.neon-text {
+  text-shadow: var(--glow-soft);
+}
+
+.neon-text-strong {
+  text-shadow: var(--glow-strong);
+}
+
+/* Scrollbar - Responsive */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+@media (min-width: 1440px) {
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+::-webkit-scrollbar-track {
+  background: var(--deep-void);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--neon-cyan);
+  border-radius: 4px;
+  box-shadow: var(--glow-soft);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--neon-magenta);
+}
+
+/* Selection */
+::selection {
+  background: var(--neon-cyan);
+  color: var(--vanta-black);
+}

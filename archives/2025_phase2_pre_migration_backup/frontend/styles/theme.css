@@ -1,0 +1,45 @@
+/* ================================
+   UNIQUE THEME ANIMATIONS
+   (Duplicates removed - see animations.css)
+   ================================ */
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Utility Classes */
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Glass Morphism */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 246, 255, 0.2);
+}
+
+/* Holographic Border */
+.holo-border {
+  position: relative;
+  border: 1px solid rgba(0, 246, 255, 0.4);
+  box-shadow: 0 0 10px rgba(0, 246, 255, 0.3);
+}
+
+.holo-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, #00f6ff, #ff00ff, #00f6ff);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.3;
+}

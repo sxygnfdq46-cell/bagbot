@@ -1,0 +1,579 @@
+/**
+ * 🧠 META-AWARENESS VISUAL SYSTEM
+ * 
+ * Visual styles for the Meta-Awareness Engine display:
+ * • System health indicators with status colors
+ * • Layer performance cards with health animations
+ * • Diagnostic alerts with severity-based styling
+ * • Self-awareness metrics visualization
+ * • Meta-pulse effects for consciousness indication
+ * • Coherence visualization
+ * • Calibration adjustment displays
+ */
+
+/* ============================================
+   META-AWARENESS PANEL
+   ============================================ */
+
+.meta-awareness-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1.5rem;
+  color: var(--text-primary);
+}
+
+/* ============================================
+   HEALTH OVERVIEW
+   ============================================ */
+
+.health-overview {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+}
+
+.health-status-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  background: rgba(30, 41, 59, 0.4);
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.health-status-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--status-color), transparent);
+  animation: meta-pulse-sweep 2s infinite;
+}
+
+.health-status-card[data-status="optimal"] {
+  --status-color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.health-status-card[data-status="good"] {
+  --status-color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+.health-status-card[data-status="degraded"] {
+  --status-color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.health-status-card[data-status="critical"] {
+  --status-color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.3);
+}
+
+@keyframes meta-pulse-sweep {
+  0%, 100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.status-pulse {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--status-color);
+  box-shadow: 0 0 20px var(--status-color);
+  animation: meta-status-pulse 2s infinite;
+}
+
+@keyframes meta-status-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.7;
+  }
+}
+
+.status-label {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--status-color);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.health-score {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--status-color);
+  line-height: 1;
+  text-shadow: 0 0 20px var(--status-color);
+}
+
+.score-unit {
+  font-size: 1.5rem;
+  opacity: 0.6;
+}
+
+.health-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.metric {
+  padding: 1rem;
+  background: rgba(30, 41, 59, 0.3);
+  border-radius: 6px;
+}
+
+.metric-label {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin-bottom: 0.5rem;
+}
+
+.metric-bar {
+  height: 8px;
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 0.5rem 0;
+}
+
+.metric-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #60a5fa, #3b82f6);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+  position: relative;
+}
+
+.metric-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: metric-shimmer 2s infinite;
+}
+
+.metric-fill.coherence {
+  background: linear-gradient(90deg, #a78bfa, #8b5cf6);
+}
+
+@keyframes metric-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.metric-value {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+.metric-value-only {
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: var(--text-primary);
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+/* ============================================
+   LAYER PERFORMANCE
+   ============================================ */
+
+.layer-performance {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+}
+
+.layer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.layer-card {
+  padding: 1rem;
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.layer-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(148, 163, 184, 0.4);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.layer-card[data-health="optimal"] {
+  border-left: 3px solid #4ade80;
+}
+
+.layer-card[data-health="good"] {
+  border-left: 3px solid #60a5fa;
+}
+
+.layer-card[data-health="degraded"] {
+  border-left: 3px solid #fbbf24;
+}
+
+.layer-card[data-health="critical"] {
+  border-left: 3px solid #f87171;
+  animation: layer-warning-pulse 2s infinite;
+}
+
+@keyframes layer-warning-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 20px 10px rgba(248, 113, 113, 0);
+  }
+}
+
+.layer-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  text-transform: capitalize;
+}
+
+.layer-health-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  margin: 0.5rem 0;
+}
+
+.layer-card[data-health="optimal"] .layer-health-dot {
+  color: #4ade80;
+  box-shadow: 0 0 8px #4ade80;
+}
+
+.layer-card[data-health="good"] .layer-health-dot {
+  color: #60a5fa;
+  box-shadow: 0 0 8px #60a5fa;
+}
+
+.layer-card[data-health="degraded"] .layer-health-dot {
+  color: #fbbf24;
+  box-shadow: 0 0 8px #fbbf24;
+}
+
+.layer-card[data-health="critical"] .layer-health-dot {
+  color: #f87171;
+  box-shadow: 0 0 8px #f87171;
+  animation: layer-dot-blink 1s infinite;
+}
+
+@keyframes layer-dot-blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.layer-metrics {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+}
+
+.layer-metric {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.metric-icon {
+  font-size: 0.9rem;
+}
+
+/* ============================================
+   ALERTS
+   ============================================ */
+
+.alerts-section {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+}
+
+.alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.alert-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(30, 41, 59, 0.4);
+  border-left: 3px solid var(--alert-color);
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.alert-card:hover {
+  background: rgba(30, 41, 59, 0.6);
+}
+
+.alert-card[data-severity="critical"] {
+  --alert-color: #f87171;
+  animation: alert-critical-pulse 2s infinite;
+}
+
+.alert-card[data-severity="error"] {
+  --alert-color: #fb923c;
+}
+
+.alert-card[data-severity="warning"] {
+  --alert-color: #fbbf24;
+}
+
+.alert-card[data-severity="info"] {
+  --alert-color: #60a5fa;
+}
+
+@keyframes alert-critical-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px 5px rgba(248, 113, 113, 0);
+  }
+}
+
+.alert-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.alert-content {
+  flex: 1;
+}
+
+.alert-title {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: var(--text-primary);
+}
+
+.alert-description {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+.alert-layer {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================
+   SELF-AWARENESS METRICS
+   ============================================ */
+
+.self-awareness-metrics {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+}
+
+.awareness-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.5rem;
+}
+
+.awareness-metric {
+  text-align: center;
+  padding: 1.5rem;
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.awareness-metric::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, rgba(139, 92, 246, 0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.awareness-metric:hover::before {
+  opacity: 1;
+}
+
+.awareness-metric:hover {
+  transform: translateY(-4px);
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2);
+}
+
+.metric-icon-large {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  animation: awareness-float 3s ease-in-out infinite;
+}
+
+@keyframes awareness-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.awareness-metric .metric-label {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin: 0.5rem 0;
+}
+
+.awareness-metric .metric-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+}
+
+/* ============================================
+   SECTION TITLES
+   ============================================ */
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  position: relative;
+  padding-left: 1rem;
+}
+
+.section-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 16px;
+  background: linear-gradient(180deg, #a78bfa, #8b5cf6);
+  border-radius: 2px;
+}
+
+/* ============================================
+   META CONSCIOUSNESS EFFECTS
+   ============================================ */
+
+@keyframes meta-consciousness-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(139, 92, 246, 0.6);
+  }
+}
+
+.meta-awareness-panel {
+  animation: meta-consciousness-glow 4s ease-in-out infinite;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 768px) {
+  .health-metrics {
+    grid-template-columns: 1fr;
+  }
+  
+  .layer-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .awareness-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .health-score {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .awareness-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .health-status-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .status-indicator {
+    justify-content: center;
+  }
+}

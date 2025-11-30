@@ -1,0 +1,630 @@
+/**
+ * ═══════════════════════════════════════════════════════════════════
+ * DIAGNOSTICS PANEL — Level 17.5 CSS
+ * ═══════════════════════════════════════════════════════════════════
+ * Holographic purple techwave styling for system diagnostics
+ * 
+ * Features:
+ * - Holographic scan waves
+ * - Neon purple + arc highlights
+ * - Console flicker effect
+ * - Log-entry slide-in transitions
+ * - Pulse rings on severe events
+ * - FPS meter animations
+ * - Health bar gradients
+ * 
+ * Theme: Purple Techwave (matching 17.3 + 17.4)
+ * ═══════════════════════════════════════════════════════════════════
+ */
+
+/* ─────────────────────────────────────────────────────────────────
+   DIAGNOSTICS CONTAINER
+   ───────────────────────────────────────────────────────────────── */
+
+.diagnostics-container {
+  position: relative;
+  width: 100%;
+  min-height: 600px;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(17, 17, 37, 0.95), rgba(27, 17, 47, 0.95));
+  border-radius: 12px;
+  border: 1px solid rgba(168, 139, 250, 0.3);
+  overflow: hidden;
+}
+
+.diagnostics-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(168, 139, 250, 0.8), 
+    transparent
+  );
+  animation: diagnostics-scan-line 3s ease-in-out infinite;
+}
+
+@keyframes diagnostics-scan-line {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(600px);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   DIAGNOSTICS PANEL (Enhanced blur-panel)
+   ───────────────────────────────────────────────────────────────── */
+
+.diagnostics-panel {
+  position: relative;
+  background: rgba(17, 17, 37, 0.7);
+  backdrop-filter: blur(12px) saturate(1.3);
+  border-radius: 10px;
+  border: 1px solid rgba(168, 139, 250, 0.25);
+  padding: 1rem;
+  transition: all 240ms ease;
+  overflow: hidden;
+}
+
+.diagnostics-panel:hover {
+  border-color: rgba(168, 139, 250, 0.5);
+  box-shadow: 0 0 20px rgba(168, 139, 250, 0.2);
+}
+
+.diagnostics-panel::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(168, 139, 250, 0.1), 
+    transparent
+  );
+  animation: diagnostics-shimmer 4s infinite;
+}
+
+@keyframes diagnostics-shimmer {
+  0% {
+    left: -100%;
+  }
+  50%, 100% {
+    left: 100%;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   LOG STREAM CONTAINER
+   ───────────────────────────────────────────────────────────────── */
+
+.log-stream-container {
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 0.5rem;
+  margin-top: 0.75rem;
+  scroll-behavior: smooth;
+}
+
+.log-stream-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.log-stream-container::-webkit-scrollbar-track {
+  background: rgba(17, 17, 37, 0.5);
+  border-radius: 3px;
+}
+
+.log-stream-container::-webkit-scrollbar-thumb {
+  background: rgba(168, 139, 250, 0.4);
+  border-radius: 3px;
+  transition: background 240ms ease;
+}
+
+.log-stream-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 139, 250, 0.7);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   LOG ENTRY
+   ───────────────────────────────────────────────────────────────── */
+
+.log-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  background: rgba(17, 17, 37, 0.4);
+  border-left: 2px solid rgba(168, 139, 250, 0.3);
+  border-radius: 4px;
+  opacity: 0;
+  transform: translateX(-20px);
+  animation: log-entry-slide-in 240ms ease forwards;
+  position: relative;
+  overflow: hidden;
+}
+
+.log-entry:hover {
+  background: rgba(27, 17, 47, 0.5);
+  border-left-color: rgba(168, 139, 250, 0.6);
+}
+
+@keyframes log-entry-slide-in {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Console flicker effect for recent entries */
+.log-entry:nth-child(-n+3) {
+  animation: log-entry-slide-in 240ms ease forwards, 
+             console-flicker 1.5s ease-in-out;
+}
+
+@keyframes console-flicker {
+  0%, 100% { opacity: 1; }
+  10% { opacity: 0.8; }
+  20% { opacity: 1; }
+  30% { opacity: 0.9; }
+  40% { opacity: 1; }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   LOG COMPONENTS
+   ───────────────────────────────────────────────────────────────── */
+
+.log-timestamp {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: rgba(168, 139, 250, 0.6);
+  font-family: 'Courier New', monospace;
+  font-weight: 500;
+}
+
+.log-severity-badge {
+  flex-shrink: 0;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-radius: 9999px;
+  letter-spacing: 0.5px;
+}
+
+.log-severity-debug {
+  background: rgba(34, 211, 238, 0.15);
+  color: #22d3ee;
+  border: 1px solid rgba(34, 211, 238, 0.3);
+}
+
+.log-severity-info {
+  background: rgba(168, 139, 250, 0.15);
+  color: #a78bfa;
+  border: 1px solid rgba(168, 139, 250, 0.3);
+}
+
+.log-severity-warning {
+  background: rgba(251, 146, 60, 0.15);
+  color: #fb923c;
+  border: 1px solid rgba(251, 146, 60, 0.3);
+  animation: severity-pulse-warning 2s ease-in-out infinite;
+}
+
+.log-severity-error {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  animation: severity-pulse-error 1.5s ease-in-out infinite;
+}
+
+@keyframes severity-pulse-warning {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(251, 146, 60, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 10px 2px rgba(251, 146, 60, 0.3);
+  }
+}
+
+@keyframes severity-pulse-error {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 15px 3px rgba(248, 113, 113, 0.4);
+  }
+}
+
+.log-subsystem {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: rgba(168, 139, 250, 0.8);
+  font-weight: 500;
+  min-width: 100px;
+}
+
+.log-message {
+  flex: 1;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.4;
+}
+
+.log-stack-trace {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.75rem;
+  color: rgba(248, 113, 113, 0.8);
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   FPS METRIC CARD
+   ───────────────────────────────────────────────────────────────── */
+
+.fps-metric-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, rgba(17, 17, 37, 0.6), rgba(27, 17, 47, 0.6));
+  border: 1px solid rgba(168, 139, 250, 0.25);
+  border-radius: 8px;
+  transition: all 240ms ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.fps-metric-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(168, 139, 250, 0.5);
+  box-shadow: 0 4px 12px rgba(168, 139, 250, 0.2);
+}
+
+.fps-metric-card::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(168, 139, 250, 0.8), 
+    transparent
+  );
+  animation: fps-meter-scan 2s linear infinite;
+}
+
+@keyframes fps-meter-scan {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.fps-metric-label {
+  font-size: 0.75rem;
+  color: rgba(168, 139, 250, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+}
+
+.fps-metric-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #a78bfa;
+  text-shadow: 0 0 10px rgba(168, 139, 250, 0.5);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   SUBSYSTEM CARD
+   ───────────────────────────────────────────────────────────────── */
+
+.subsystem-card {
+  padding: 0.75rem;
+  background: linear-gradient(135deg, rgba(17, 17, 37, 0.5), rgba(27, 17, 47, 0.5));
+  border: 1px solid rgba(168, 139, 250, 0.2);
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  transition: all 240ms ease;
+  position: relative;
+}
+
+.subsystem-card:hover {
+  border-color: rgba(168, 139, 250, 0.4);
+  transform: translateX(2px);
+}
+
+.subsystem-card.status-critical {
+  border-left: 3px solid #f87171;
+  animation: subsystem-critical-pulse 1.5s ease-in-out infinite;
+}
+
+.subsystem-card.status-degraded {
+  border-left: 3px solid #fb923c;
+}
+
+.subsystem-card.status-healthy {
+  border-left: 3px solid #34d399;
+}
+
+@keyframes subsystem-critical-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 20px 4px rgba(248, 113, 113, 0.3);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   HEALTH BAR
+   ───────────────────────────────────────────────────────────────── */
+
+.health-bar-container {
+  width: 100%;
+  height: 6px;
+  background: rgba(17, 17, 37, 0.8);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+  position: relative;
+}
+
+.health-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 500ms ease, background 500ms ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.health-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.3), 
+    transparent
+  );
+  animation: health-bar-shimmer 2s infinite;
+}
+
+@keyframes health-bar-shimmer {
+  0% {
+    left: -50%;
+  }
+  100% {
+    left: 150%;
+  }
+}
+
+/* Health bar color variants */
+.health-bar-high {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.health-bar-medium {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.health-bar-low {
+  background: linear-gradient(90deg, #fb923c, #fdba74);
+}
+
+.health-bar-critical {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  animation: health-bar-critical 1s ease-in-out infinite;
+}
+
+@keyframes health-bar-critical {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   SCAN RESULTS
+   ───────────────────────────────────────────────────────────────── */
+
+.scan-results-container {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.scan-result-entry {
+  padding: 0.5rem;
+  background: rgba(17, 17, 37, 0.4);
+  border: 1px solid rgba(168, 139, 250, 0.2);
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  transition: all 240ms ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.scan-result-entry:hover {
+  background: rgba(27, 17, 47, 0.5);
+  border-color: rgba(168, 139, 250, 0.4);
+  transform: translateX(2px);
+}
+
+.scan-result-entry.scan-result-high-confidence {
+  border-left: 3px solid #34d399;
+}
+
+.scan-result-entry.scan-result-medium-confidence {
+  border-left: 3px solid #fbbf24;
+}
+
+.scan-result-entry.scan-result-low-confidence {
+  border-left: 3px solid #f87171;
+  animation: scan-result-warning-pulse 2s ease-in-out infinite;
+}
+
+@keyframes scan-result-warning-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 15px 3px rgba(248, 113, 113, 0.3);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   HOLOGRAPHIC SCAN WAVE
+   ───────────────────────────────────────────────────────────────── */
+
+.scan-wave-active {
+  position: relative;
+}
+
+.scan-wave-active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent,
+    rgba(168, 139, 250, 0.3),
+    rgba(147, 51, 234, 0.3),
+    transparent
+  );
+  animation: scan-wave-sweep 1.5s ease-out forwards;
+  pointer-events: none;
+  z-index: 10;
+}
+
+@keyframes scan-wave-sweep {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   STATUS PULSE INDICATORS
+   ───────────────────────────────────────────────────────────────── */
+
+.status-pulse {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  position: relative;
+  margin-right: 0.5rem;
+}
+
+.status-pulse::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  animation: status-pulse-ring 2s ease-out infinite;
+}
+
+.status-pulse-healthy {
+  background: #34d399;
+}
+
+.status-pulse-healthy::before {
+  border: 2px solid #34d399;
+}
+
+.status-pulse-warning {
+  background: #fb923c;
+}
+
+.status-pulse-warning::before {
+  border: 2px solid #fb923c;
+}
+
+.status-pulse-critical {
+  background: #f87171;
+}
+
+.status-pulse-critical::before {
+  border: 2px solid #f87171;
+}
+
+@keyframes status-pulse-ring {
+  0% {
+    width: 100%;
+    height: 100%;
+    opacity: 1;
+  }
+  100% {
+    width: 200%;
+    height: 200%;
+    opacity: 0;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   RESPONSIVE ADJUSTMENTS
+   ───────────────────────────────────────────────────────────────── */
+
+@media (max-width: 1024px) {
+  .diagnostics-container {
+    padding: 1rem;
+  }
+
+  .log-stream-container {
+    max-height: 300px;
+  }
+
+  .fps-metric-value {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .log-entry {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .log-subsystem {
+    min-width: auto;
+  }
+
+  .fps-metric-card {
+    padding: 0.5rem;
+  }
+}

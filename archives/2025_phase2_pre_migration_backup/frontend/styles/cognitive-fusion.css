@@ -1,0 +1,203 @@
+/**
+ * LEVEL 6.2 — COGNITIVE FUSION STYLES
+ * CSS for predictive UI reactions and emotional-visual bindings
+ */
+
+/* ========================================
+   PREDICTIVE WARNING BANNER
+   ======================================== */
+
+.cognitive-warning-banner {
+  animation: cognitive-prewarm 0.5s ease-out;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+@keyframes cognitive-prewarm {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ========================================
+   EMOTIONAL-VISUAL BINDING CLASSES
+   ======================================== */
+
+/* Calm State - Soft, gentle */
+.cognitive-calm {
+  --particle-density: 20;
+  --quantum-warp: 15;
+  --holo-tension: 10;
+  --hyperspace-threads: 5;
+  --camera-drift: 10;
+  --neon-pulse: 15;
+}
+
+/* Focused State - Sharper, clearer */
+.cognitive-focused {
+  --particle-density: 40;
+  --quantum-warp: 30;
+  --holo-tension: 30;
+  --hyperspace-threads: 20;
+  --camera-drift: 25;
+  --neon-pulse: 35;
+}
+
+/* Alert State - Stronger, more active */
+.cognitive-alert {
+  --particle-density: 60;
+  --quantum-warp: 50;
+  --holo-tension: 60;
+  --hyperspace-threads: 45;
+  --camera-drift: 45;
+  --neon-pulse: 60;
+}
+
+/* Stressed State - Heavy, intense */
+.cognitive-stressed {
+  --particle-density: 75;
+  --quantum-warp: 70;
+  --holo-tension: 80;
+  --hyperspace-threads: 75;
+  --camera-drift: 60;
+  --neon-pulse: 75;
+}
+
+/* Overclocked State - Maximum intensity */
+.cognitive-overclocked {
+  --particle-density: 90;
+  --quantum-warp: 85;
+  --holo-tension: 95;
+  --hyperspace-threads: 95;
+  --camera-drift: 85;
+  --neon-pulse: 95;
+}
+
+/* ========================================
+   PREDICTIVE GLOW EFFECTS
+   ======================================== */
+
+.cognitive-prewarm-glow {
+  animation: prewarm-pulse 0.4s ease-in-out;
+}
+
+@keyframes prewarm-pulse {
+  0% {
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(0, 255, 255, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+  }
+}
+
+/* Charts pre-glow before spikes */
+.chart-prewarm {
+  filter: brightness(1.2) saturate(1.1);
+  transition: filter 0.3s ease-out;
+}
+
+/* Dashboard widgets warm before surges */
+.widget-prewarm {
+  border-color: rgba(0, 255, 255, 0.5) !important;
+  background: rgba(0, 255, 255, 0.05) !important;
+  transition: border-color 0.3s ease-out, background 0.3s ease-out;
+}
+
+/* Signals panel intensifies before rapid events */
+.signals-prewarm {
+  animation: signals-intensify 0.5s ease-out;
+}
+
+@keyframes signals-intensify {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 0.95;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ========================================
+   CROSS-PAGE SYNCHRONIZATION
+   ======================================== */
+
+/* Shared emotional state indicator */
+.cognitive-sync-indicator {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  font-size: 12px;
+  font-family: monospace;
+  color: rgba(0, 255, 255, 0.8);
+  z-index: 9999;
+  pointer-events: none;
+}
+
+/* Intensity multiplier visual feedback */
+.cognitive-multiplier-active {
+  filter: brightness(var(--glow-strength, 1));
+  transition: filter 0.2s ease-out;
+}
+
+/* ========================================
+   GPU-ACCELERATED PERFORMANCE
+   ======================================== */
+
+.cognitive-prewarm-glow,
+.chart-prewarm,
+.widget-prewarm,
+.signals-prewarm,
+.cognitive-multiplier-active {
+  will-change: transform, filter, box-shadow;
+  transform: translateZ(0);
+}
+
+/* ========================================
+   RESPONSIVE ADJUSTMENTS
+   ======================================== */
+
+@media (max-width: 768px) {
+  .cognitive-warning-banner {
+    font-size: 14px;
+    padding: 12px;
+  }
+  
+  .cognitive-sync-indicator {
+    top: 10px;
+    right: 10px;
+    font-size: 10px;
+    padding: 6px 12px;
+  }
+}
+
+/* ========================================
+   DARK MODE ADJUSTMENTS
+   ======================================== */
+
+@media (prefers-color-scheme: dark) {
+  .cognitive-warning-banner {
+    background: rgba(255, 215, 0, 0.1);
+  }
+  
+  .cognitive-prewarm-glow {
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+  }
+}

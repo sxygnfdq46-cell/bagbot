@@ -1,0 +1,551 @@
+/**
+ * ═══════════════════════════════════════════════════════════════════
+ * PURPLE TECHWAVE THEME — LEVEL 17.3
+ * ═══════════════════════════════════════════════════════════════════
+ * Advanced GPU-accelerated styling for User Intelligence Board
+ * 
+ * Features:
+ * - Neon purple gradients (#7b2bff → #d86bff)
+ * - Dual-wave shimmer lines
+ * - GPU glow engine with 120fps optimization
+ * - Anti-flicker transitions
+ * - Soft shadow breathing effects
+ * - Density-reactive pulse edges
+ * - Hover-lift animations
+ * 
+ * Performance:
+ * - Uses transform3d for GPU acceleration
+ * - Will-change properties for smooth animations
+ * - Reduced motion support
+ * - 60-120fps target frame rate
+ * ═══════════════════════════════════════════════════════════════════
+ */
+
+/* ─────────────────────────────────────────────────────────────────
+   BASE WIDGET STYLING
+   ───────────────────────────────────────────────────────────────── */
+
+.purple-techwave-widget {
+  position: relative;
+  background: linear-gradient(
+    135deg,
+    rgba(15, 5, 30, 0.95) 0%,
+    rgba(30, 10, 50, 0.90) 50%,
+    rgba(15, 5, 30, 0.95) 100%
+  );
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(123, 43, 255, 0.3);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, box-shadow, border-color;
+  transform: translateZ(0);
+  box-shadow: 
+    0 4px 20px rgba(123, 43, 255, 0.15),
+    inset 0 1px 0 rgba(216, 107, 255, 0.1);
+}
+
+.purple-techwave-widget::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(
+    135deg,
+    rgba(123, 43, 255, 0.4) 0%,
+    rgba(216, 107, 255, 0.4) 50%,
+    rgba(123, 43, 255, 0.4) 100%
+  );
+  border-radius: 1rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+  filter: blur(10px);
+}
+
+.purple-techwave-widget:hover {
+  transform: translateY(-4px) translateZ(0);
+  border-color: rgba(123, 43, 255, 0.6);
+  box-shadow: 
+    0 8px 30px rgba(123, 43, 255, 0.3),
+    0 0 40px rgba(216, 107, 255, 0.2),
+    inset 0 1px 0 rgba(216, 107, 255, 0.2);
+}
+
+.purple-techwave-widget:hover::before {
+  opacity: 1;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   NEON GLOW ENGINE
+   ───────────────────────────────────────────────────────────────── */
+
+@keyframes purple-glow-pulse {
+  0%, 100% {
+    filter: 
+      drop-shadow(0 0 5px rgba(123, 43, 255, 0.5))
+      drop-shadow(0 0 15px rgba(216, 107, 255, 0.3));
+  }
+  50% {
+    filter: 
+      drop-shadow(0 0 10px rgba(123, 43, 255, 0.7))
+      drop-shadow(0 0 25px rgba(216, 107, 255, 0.5));
+  }
+}
+
+.purple-glow {
+  animation: purple-glow-pulse 3s ease-in-out infinite;
+  will-change: filter;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   DUAL-WAVE SHIMMER
+   ───────────────────────────────────────────────────────────────── */
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) translateZ(0);
+  }
+  100% {
+    transform: translateX(100%) translateZ(0);
+  }
+}
+
+@keyframes shimmer-slow {
+  0% {
+    transform: translateX(-100%) translateZ(0);
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(100%) translateZ(0);
+    opacity: 0.3;
+  }
+}
+
+.shimmer-animation {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-animation::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(216, 107, 255, 0.4) 50%,
+    transparent 100%
+  );
+  animation: shimmer 2s infinite;
+  will-change: transform;
+}
+
+.animate-shimmer {
+  animation: shimmer-slow 3s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   PULSE ANIMATIONS
+   ───────────────────────────────────────────────────────────────── */
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1) translateZ(0);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05) translateZ(0);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1) translateZ(0);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1) translateZ(0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.2) translateZ(0);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-edge {
+  0%, 100% {
+    box-shadow: 
+      0 0 10px rgba(123, 43, 255, 0.3),
+      inset 0 0 10px rgba(123, 43, 255, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 0 20px rgba(123, 43, 255, 0.6),
+      inset 0 0 20px rgba(123, 43, 255, 0.2);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  will-change: transform, opacity;
+}
+
+.animate-pulse-edge {
+  animation: pulse-edge 2s ease-in-out infinite;
+  will-change: box-shadow;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   BREATHING SHADOWS
+   ───────────────────────────────────────────────────────────────── */
+
+@keyframes shadow-breathe {
+  0%, 100% {
+    box-shadow: 
+      0 4px 20px rgba(123, 43, 255, 0.15),
+      0 0 40px rgba(216, 107, 255, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 8px 30px rgba(123, 43, 255, 0.25),
+      0 0 60px rgba(216, 107, 255, 0.2);
+  }
+}
+
+.shadow-breathe {
+  animation: shadow-breathe 4s ease-in-out infinite;
+  will-change: box-shadow;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   FADE IN ANIMATIONS
+   ───────────────────────────────────────────────────────────────── */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateZ(0);
+  }
+}
+
+@keyframes fade-in-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateZ(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out forwards;
+  will-change: opacity, transform;
+}
+
+.animate-fade-in-scale {
+  animation: fade-in-scale 0.5s ease-out forwards;
+  will-change: opacity, transform;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   HOVER LIFT EFFECTS
+   ───────────────────────────────────────────────────────────────── */
+
+.hover-lift {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.hover-lift:hover {
+  transform: translateY(-8px) translateZ(0);
+}
+
+.hover-lift-subtle {
+  transition: transform 0.2s ease;
+  will-change: transform;
+}
+
+.hover-lift-subtle:hover {
+  transform: translateY(-2px) translateZ(0);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   GRADIENT BACKGROUNDS
+   ───────────────────────────────────────────────────────────────── */
+
+.purple-gradient-bg {
+  background: linear-gradient(
+    135deg,
+    rgba(123, 43, 255, 0.1) 0%,
+    rgba(216, 107, 255, 0.05) 50%,
+    rgba(123, 43, 255, 0.1) 100%
+  );
+}
+
+.purple-gradient-text {
+  background: linear-gradient(
+    135deg,
+    #7b2bff 0%,
+    #d86bff 50%,
+    #7b2bff 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   BORDER ANIMATIONS
+   ───────────────────────────────────────────────────────────────── */
+
+@keyframes border-pulse {
+  0%, 100% {
+    border-color: rgba(123, 43, 255, 0.3);
+  }
+  50% {
+    border-color: rgba(216, 107, 255, 0.6);
+  }
+}
+
+.border-pulse {
+  animation: border-pulse 2s ease-in-out infinite;
+  will-change: border-color;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   GLOW ACCENTS
+   ───────────────────────────────────────────────────────────────── */
+
+.purple-glow-accent {
+  position: relative;
+}
+
+.purple-glow-accent::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(
+    135deg,
+    rgba(123, 43, 255, 0.5),
+    rgba(216, 107, 255, 0.5)
+  );
+  border-radius: inherit;
+  filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.purple-glow-accent:hover::before {
+  opacity: 1;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   DENSITY REACTIVE EFFECTS
+   ───────────────────────────────────────────────────────────────── */
+
+@keyframes density-pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1) translateZ(0);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.02) translateZ(0);
+  }
+}
+
+.density-reactive {
+  position: relative;
+}
+
+.density-reactive::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(123, 43, 255, 0.2) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  animation: density-pulse 3s ease-in-out infinite;
+}
+
+.density-reactive:hover::after {
+  opacity: 1;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   CHROMATIC SHIMMER
+   ───────────────────────────────────────────────────────────────── */
+
+@keyframes chromatic-shimmer {
+  0% {
+    filter: hue-rotate(0deg) brightness(1);
+  }
+  50% {
+    filter: hue-rotate(10deg) brightness(1.1);
+  }
+  100% {
+    filter: hue-rotate(0deg) brightness(1);
+  }
+}
+
+.chromatic-shimmer {
+  animation: chromatic-shimmer 4s ease-in-out infinite;
+  will-change: filter;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   ANTI-FLICKER OPTIMIZATION
+   ───────────────────────────────────────────────────────────────── */
+
+.purple-techwave-widget,
+.purple-techwave-widget * {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Force GPU acceleration */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   RESPONSIVE ADJUSTMENTS
+   ───────────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .purple-techwave-widget {
+    padding: 1rem;
+  }
+
+  .purple-techwave-widget:hover {
+    transform: translateY(-2px) translateZ(0);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   REDUCED MOTION SUPPORT
+   ───────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .purple-techwave-widget,
+  .animate-pulse-slow,
+  .animate-pulse-ring,
+  .animate-shimmer,
+  .shimmer-animation,
+  .shadow-breathe,
+  .chromatic-shimmer,
+  .density-reactive::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .purple-techwave-widget:hover {
+    transform: none;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   ACCESSIBILITY
+   ───────────────────────────────────────────────────────────────── */
+
+.purple-techwave-widget:focus-visible {
+  outline: 2px solid rgba(123, 43, 255, 0.8);
+  outline-offset: 4px;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   UTILITY CLASSES
+   ───────────────────────────────────────────────────────────────── */
+
+.purple-border {
+  border: 1px solid rgba(123, 43, 255, 0.3);
+}
+
+.purple-border-bright {
+  border: 1px solid rgba(216, 107, 255, 0.5);
+}
+
+.purple-bg-dark {
+  background: rgba(15, 5, 30, 0.8);
+}
+
+.purple-bg-medium {
+  background: rgba(30, 10, 50, 0.6);
+}
+
+.purple-shadow {
+  box-shadow: 0 4px 20px rgba(123, 43, 255, 0.2);
+}
+
+.purple-shadow-intense {
+  box-shadow: 
+    0 8px 30px rgba(123, 43, 255, 0.3),
+    0 0 40px rgba(216, 107, 255, 0.2);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   HIGH REFRESH RATE OPTIMIZATION (120fps)
+   ───────────────────────────────────────────────────────────────── */
+
+@media (min-resolution: 120dpi) {
+  .purple-techwave-widget,
+  .animate-pulse-slow,
+  .animate-shimmer {
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   DARK MODE ENHANCEMENT
+   ───────────────────────────────────────────────────────────────── */
+
+@media (prefers-color-scheme: dark) {
+  .purple-techwave-widget {
+    background: linear-gradient(
+      135deg,
+      rgba(10, 3, 20, 0.98) 0%,
+      rgba(20, 7, 35, 0.95) 50%,
+      rgba(10, 3, 20, 0.98) 100%
+    );
+  }
+}

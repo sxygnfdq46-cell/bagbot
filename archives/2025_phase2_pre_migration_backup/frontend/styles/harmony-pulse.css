@@ -1,0 +1,651 @@
+/**
+ * LEVEL 12.2 — HARMONY PULSE LAYER
+ * 
+ * GPU-accelerated harmony effects, emotional pulse visualization,
+ * sovereignty indicators, presence rhythm animations.
+ * 
+ * Features:
+ * - Global sovereign-pulse renderer
+ * - Stability waves with 3 intensity variants
+ * - Antichaos gradient fields
+ * - Pulse-sync modes (passive/reactive/active)
+ * - GPU-accelerated harmonic loops
+ * - Emotional oscillation dampening visuals
+ * - Presence rhythm lock indicators
+ * - Multi-layer coherence visualization
+ */
+
+/* ================================ */
+/* CSS CUSTOM PROPERTIES            */
+/* ================================ */
+
+:root {
+  /* Sovereignty harmonic properties */
+  --sovereign-harmonic: 0.5;
+  /* 0-1 harmonic frequency */
+  --sovereign-phase: 0deg;
+  /* 0-360deg */
+  --sovereign-amplitude: 0.7;
+  /* 0-1 */
+  
+  /* Emotional field properties */
+  --emotional-intensity: 50;
+  /* 0-100 */
+  --emotional-stability: 100;
+  /* 0-100 */
+  --emotional-smoothness: 100;
+  /* 0-100 */
+  --bandwidth-utilization: 0;
+  /* 0-100 */
+  
+  /* Balance properties */
+  --tone-deviation: 0;
+  /* 0-100 */
+  --displacement-amount: 0;
+  /* -100 to 100 */
+  --recentering-active: 0;
+  /* 0 or 1 */
+  
+  /* Rhythm properties */
+  --oscillation-frequency: 0;
+  /* 0-10 Hz */
+  --chaos-level: 0;
+  /* 0-100 */
+  --rhythm-lock-active: 0;
+  /* 0 or 1 */
+  
+  /* Coherence properties */
+  --layer-coherence: 100;
+  /* 0-100 */
+  --sovereignty-strength: 0;
+  /* 0-100 */
+  --stability-mode: 'passive';
+  /* passive/reactive/active/emergency */
+  
+  /* Derived colors */
+  --harmony-color-stable: rgba(52, 211, 153, calc(var(--sovereign-amplitude) * 0.6));
+  --harmony-color-active: rgba(139, 92, 246, calc(var(--sovereign-amplitude) * 0.7));
+  --harmony-color-warning: rgba(251, 191, 36, calc(var(--sovereign-amplitude) * 0.7));
+  --harmony-color-critical: rgba(239, 68, 68, calc(var(--sovereign-amplitude) * 0.8));
+}
+
+/* ================================ */
+/* BASE SOVEREIGNTY ROOT            */
+/* ================================ */
+
+.adaptive-sovereignty-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Sovereignty active indicator */
+.adaptive-sovereignty-root[data-sovereignty-active='true']::before {
+  content: '';
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--harmony-color-active);
+  box-shadow: 0 0 calc(15px + var(--sovereignty-strength) * 0.15px) var(--harmony-color-active);
+  z-index: 10000;
+  animation: sovereignPulse 2s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+
+@keyframes sovereignPulse {
+  0%,
+  100% {
+    opacity: calc(0.6 + var(--sovereignty-strength) * 0.004);
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(calc(1 + var(--sovereignty-strength) * 0.003));
+  }
+}
+
+/* ================================ */
+/* GLOBAL SOVEREIGN PULSE RENDERER  */
+/* ================================ */
+
+.harmony-pulse-field {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: calc(70% + var(--sovereign-harmonic) * 30%);
+  height: calc(70% + var(--sovereign-harmonic) * 30%);
+  transform: translate(-50%, -50%) rotate(var(--sovereign-phase));
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    transparent 30%,
+    var(--harmony-color-active) calc(45% - var(--chaos-level) * 0.15%),
+    transparent 65%
+  );
+  filter: blur(calc(70px - var(--chaos-level) * 0.3px));
+  mix-blend-mode: screen;
+  opacity: calc(0.2 + var(--sovereign-amplitude) * 0.4);
+  pointer-events: none;
+  z-index: 1;
+  animation: harmonyRotate calc(25s / (var(--sovereign-harmonic) + 0.1)) linear infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes harmonyRotate {
+  0% {
+    transform: translate(-50%, -50%) rotate(var(--sovereign-phase));
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(calc(var(--sovereign-phase) + 360deg));
+  }
+}
+
+/* ================================ */
+/* STABILITY WAVES (3 VARIANTS)     */
+/* ================================ */
+
+.stability-wave {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: calc(50% + var(--emotional-stability) * 0.3%);
+  height: calc(50% + var(--emotional-stability) * 0.3%);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: calc(1px + var(--sovereignty-strength) * 0.02px) solid var(--harmony-color-stable);
+  opacity: calc(0.3 + var(--emotional-stability) * 0.005);
+  pointer-events: none;
+  z-index: 2;
+  filter: blur(3px);
+  mix-blend-mode: screen;
+  animation: stabilityPulse calc(4s - var(--sovereignty-strength) * 0.02s) ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes stabilityPulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: calc(0.3 + var(--emotional-stability) * 0.005);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(calc(1 + var(--sovereignty-strength) * 0.001));
+    opacity: calc(0.5 + var(--emotional-stability) * 0.007);
+  }
+}
+
+/* Variant 1: Inner wave */
+.stability-wave:nth-child(1) {
+  width: calc(40% + var(--emotional-stability) * 0.2%);
+  height: calc(40% + var(--emotional-stability) * 0.2%);
+  animation-delay: 0s;
+}
+
+/* Variant 2: Middle wave */
+.stability-wave:nth-child(2) {
+  width: calc(55% + var(--emotional-stability) * 0.25%);
+  height: calc(55% + var(--emotional-stability) * 0.25%);
+  animation-delay: 1.3s;
+}
+
+/* Variant 3: Outer wave */
+.stability-wave:nth-child(3) {
+  width: calc(70% + var(--emotional-stability) * 0.3%);
+  height: calc(70% + var(--emotional-stability) * 0.3%);
+  animation-delay: 2.6s;
+}
+
+/* ================================ */
+/* ANTICHAOS GRADIENT FIELDS        */
+/* ================================ */
+
+.antichaos-field {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    calc(var(--sovereign-phase) + 135deg),
+    rgba(139, 92, 246, calc(var(--chaos-level) * 0.003)) 0%,
+    transparent 40%,
+    rgba(139, 92, 246, calc(var(--chaos-level) * 0.003)) 100%
+  );
+  opacity: calc(var(--chaos-level) * 0.01);
+  pointer-events: none;
+  z-index: 3;
+  mix-blend-mode: screen;
+  animation: antichaosShift 20s ease-in-out infinite;
+  will-change: background, opacity;
+}
+
+@keyframes antichaosShift {
+  0%,
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+  25% {
+    transform: translateX(3%) translateY(2%);
+  }
+  50% {
+    transform: translateX(0) translateY(3%);
+  }
+  75% {
+    transform: translateX(-3%) translateY(2%);
+  }
+}
+
+/* High chaos: intensify field */
+.adaptive-sovereignty-root[data-chaos-high='true'] .antichaos-field {
+  background: linear-gradient(
+    calc(var(--sovereign-phase) + 135deg),
+    rgba(251, 191, 36, 0.2) 0%,
+    transparent 30%,
+    rgba(251, 191, 36, 0.2) 100%
+  );
+  animation-duration: 10s;
+}
+
+/* ================================ */
+/* PULSE-SYNC MODES                 */
+/* ================================ */
+
+/* Mode: Passive */
+.adaptive-sovereignty-root[data-stability-mode='passive'] .harmony-pulse-field {
+  filter: blur(80px);
+  opacity: calc(0.15 + var(--sovereign-amplitude) * 0.2);
+}
+
+/* Mode: Reactive */
+.adaptive-sovereignty-root[data-stability-mode='reactive'] .harmony-pulse-field {
+  filter: blur(70px);
+  opacity: calc(0.25 + var(--sovereign-amplitude) * 0.3);
+  animation-duration: calc(20s / (var(--sovereign-harmonic) + 0.1));
+}
+
+/* Mode: Active */
+.adaptive-sovereignty-root[data-stability-mode='active'] .harmony-pulse-field {
+  filter: blur(60px);
+  opacity: calc(0.35 + var(--sovereign-amplitude) * 0.4);
+  animation-duration: calc(15s / (var(--sovereign-harmonic) + 0.1));
+}
+
+/* Mode: Emergency */
+.adaptive-sovereignty-root[data-stability-mode='emergency'] .harmony-pulse-field {
+  filter: blur(50px);
+  opacity: calc(0.5 + var(--sovereign-amplitude) * 0.5);
+  animation-duration: calc(10s / (var(--sovereign-harmonic) + 0.1));
+  background: radial-gradient(
+    circle at center,
+    transparent 30%,
+    var(--harmony-color-critical) 45%,
+    transparent 65%
+  );
+}
+
+/* ================================ */
+/* EMOTIONAL OSCILLATION DAMPENING  */
+/* ================================ */
+
+.oscillation-dampener {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    rgba(52, 211, 153, calc(var(--oscillation-frequency) * 0.03)) 0%,
+    transparent 50%,
+    rgba(52, 211, 153, calc(var(--oscillation-frequency) * 0.03)) 100%
+  );
+  opacity: calc(var(--oscillation-frequency) * 0.1);
+  pointer-events: none;
+  z-index: 2;
+  transition: opacity 0.5s ease;
+  will-change: opacity;
+}
+
+/* Active dampening pulse */
+.adaptive-sovereignty-root[data-moderation-active='true'] .oscillation-dampener {
+  animation: dampenPulse 2s ease-in-out infinite;
+}
+
+@keyframes dampenPulse {
+  0%,
+  100% {
+    opacity: calc(var(--oscillation-frequency) * 0.1);
+  }
+  50% {
+    opacity: calc(var(--oscillation-frequency) * 0.15);
+  }
+}
+
+/* ================================ */
+/* PRESENCE RHYTHM LOCK INDICATORS  */
+/* ================================ */
+
+.rhythm-lock-indicator {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid var(--harmony-color-active);
+  opacity: calc(var(--rhythm-lock-active) * 0.7);
+  pointer-events: none;
+  z-index: 10000;
+  transition: opacity 0.3s ease;
+  will-change: opacity, transform;
+}
+
+.rhythm-lock-indicator::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40%;
+  height: 40%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--harmony-color-active);
+  animation: rhythmPulse 1s ease-in-out infinite;
+}
+
+@keyframes rhythmPulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* ================================ */
+/* BANDWIDTH UTILIZATION BARS       */
+/* ================================ */
+
+.bandwidth-indicator {
+  position: fixed;
+  top: 30px;
+  left: 30px;
+  width: 4px;
+  height: 100px;
+  background: linear-gradient(
+    to top,
+    var(--harmony-color-stable) 0%,
+    var(--harmony-color-stable) calc(var(--bandwidth-utilization) * 1%),
+    rgba(255, 255, 255, 0.1) calc(var(--bandwidth-utilization) * 1%),
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  border-radius: 2px;
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 10000;
+  transition: background 0.3s ease;
+  will-change: background;
+}
+
+/* High bandwidth: warning color */
+.adaptive-sovereignty-root[data-bandwidth-high='true'] .bandwidth-indicator {
+  background: linear-gradient(
+    to top,
+    var(--harmony-color-warning) 0%,
+    var(--harmony-color-warning) calc(var(--bandwidth-utilization) * 1%),
+    rgba(255, 255, 255, 0.1) calc(var(--bandwidth-utilization) * 1%),
+    rgba(255, 255, 255, 0.1) 100%
+  );
+}
+
+/* ================================ */
+/* TONE DEVIATION SHIMMER           */
+/* ================================ */
+
+.tone-deviation-shimmer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    calc(var(--sovereign-phase) + 90deg),
+    transparent 0%,
+    rgba(251, 191, 36, calc(var(--tone-deviation) * 0.002)) 50%,
+    transparent 100%
+  );
+  opacity: calc(var(--tone-deviation) * 0.01);
+  pointer-events: none;
+  z-index: 2;
+  mix-blend-mode: screen;
+  animation: toneShimmer 12s ease-in-out infinite;
+  will-change: background, opacity;
+}
+
+@keyframes toneShimmer {
+  0%,
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+  25% {
+    transform: translateX(1%) translateY(0.5%);
+  }
+  50% {
+    transform: translateX(0) translateY(1%);
+  }
+  75% {
+    transform: translateX(-1%) translateY(0.5%);
+  }
+}
+
+/* ================================ */
+/* DISPLACEMENT BALANCE INDICATOR   */
+/* ================================ */
+
+.displacement-indicator {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(
+    to right,
+    var(--harmony-color-warning) 0%,
+    var(--harmony-color-stable) 50%,
+    var(--harmony-color-warning) 100%
+  );
+  border-radius: 2px;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 10000;
+  will-change: transform;
+}
+
+.displacement-indicator::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: calc(50% + var(--displacement-amount) * 0.4%);
+  width: 8px;
+  height: 8px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+/* ================================ */
+/* MULTI-LAYER COHERENCE GRID       */
+/* ================================ */
+
+.coherence-grid {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: repeating-linear-gradient(
+      0deg,
+      rgba(139, 92, 246, calc(var(--layer-coherence) * 0.0005)) 0px,
+      transparent 1px,
+      transparent calc(60px * (var(--layer-coherence) / 100)),
+      rgba(139, 92, 246, calc(var(--layer-coherence) * 0.0005)) calc(61px * (var(--layer-coherence) / 100))
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(139, 92, 246, calc(var(--layer-coherence) * 0.0005)) 0px,
+      transparent 1px,
+      transparent calc(60px * (var(--layer-coherence) / 100)),
+      rgba(139, 92, 246, calc(var(--layer-coherence) * 0.0005)) calc(61px * (var(--layer-coherence) / 100))
+    );
+  opacity: calc(0.2 + var(--layer-coherence) * 0.003);
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: screen;
+  will-change: opacity;
+}
+
+/* Low coherence: red grid */
+.adaptive-sovereignty-root[data-coherence-low='true'] .coherence-grid {
+  background-image: repeating-linear-gradient(
+      0deg,
+      rgba(239, 68, 68, 0.05) 0px,
+      transparent 1px,
+      transparent 60px,
+      rgba(239, 68, 68, 0.05) 61px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(239, 68, 68, 0.05) 0px,
+      transparent 1px,
+      transparent 60px,
+      rgba(239, 68, 68, 0.05) 61px
+    );
+}
+
+/* ================================ */
+/* RECENTERING PROGRESS RING        */
+/* ================================ */
+
+.recentering-ring {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  height: 200px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 3px solid transparent;
+  border-top-color: var(--harmony-color-active);
+  opacity: var(--recentering-active);
+  pointer-events: none;
+  z-index: 5;
+  animation: recenterSpin 2s linear infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes recenterSpin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* ================================ */
+/* SMOOTHNESS QUALITY OVERLAY       */
+/* ================================ */
+
+.smoothness-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at center,
+    transparent 40%,
+    rgba(52, 211, 153, calc((100 - var(--emotional-smoothness)) * 0.002)) 70%,
+    transparent 100%
+  );
+  opacity: calc((100 - var(--emotional-smoothness)) * 0.005);
+  pointer-events: none;
+  z-index: 2;
+  mix-blend-mode: screen;
+  will-change: opacity;
+}
+
+/* ================================ */
+/* PERFORMANCE OPTIMIZATIONS        */
+/* ================================ */
+
+.harmony-pulse-field,
+.stability-wave,
+.antichaos-field,
+.oscillation-dampener,
+.rhythm-lock-indicator,
+.bandwidth-indicator,
+.tone-deviation-shimmer,
+.displacement-indicator,
+.coherence-grid,
+.recentering-ring,
+.smoothness-overlay {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .harmony-pulse-field,
+  .stability-wave,
+  .antichaos-field,
+  .oscillation-dampener,
+  .rhythm-lock-indicator,
+  .recentering-ring,
+  .tone-deviation-shimmer {
+    animation: none !important;
+  }
+  
+  .adaptive-sovereignty-root::before {
+    animation: none !important;
+  }
+}
+
+/* ================================ */
+/* BLEND MODE VARIATIONS            */
+/* ================================ */
+
+.blend-soft .harmony-pulse-field,
+.blend-soft .stability-wave {
+  mix-blend-mode: soft-light;
+}
+
+.blend-overlay .harmony-pulse-field,
+.blend-overlay .stability-wave {
+  mix-blend-mode: overlay;
+}
+
+/* ================================ */
+/* INTENSITY MODIFIERS              */
+/* ================================ */
+
+.intensity-subtle {
+  --sovereignty-strength: 30;
+}
+
+.intensity-normal {
+  --sovereignty-strength: 60;
+}
+
+.intensity-strong {
+  --sovereignty-strength: 100;
+}

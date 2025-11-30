@@ -1,0 +1,391 @@
+/**
+ * LEVEL 7.3: ENTITY DRIFT EVOLUTION
+ * 
+ * Introduces slow, long-term changes to visual properties based on accumulated memory.
+ * Each change depends on user's historical energy and patterns.
+ * 
+ * Properties that drift:
+ * - Glow hue
+ * - Drift speed (camera/parallax)
+ * - Micro-particles
+ * - Shadow density
+ * - Pulse BPM baseline
+ * - Attention bias
+ */
+
+/* ============================================
+   GLOW HUE DRIFT
+   ============================================ */
+
+.entity-drift-glow-warm {
+  --drift-hue-shift: 15deg;
+  filter: hue-rotate(var(--drift-hue-shift));
+  transition: filter 30s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.entity-drift-glow-cool {
+  --drift-hue-shift: -15deg;
+  filter: hue-rotate(var(--drift-hue-shift));
+  transition: filter 30s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.entity-drift-glow-intense {
+  --drift-brightness: 1.2;
+  --drift-saturation: 1.3;
+  filter: brightness(var(--drift-brightness)) saturate(var(--drift-saturation));
+  transition: filter 30s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.entity-drift-glow-subtle {
+  --drift-brightness: 0.85;
+  --drift-saturation: 0.8;
+  filter: brightness(var(--drift-brightness)) saturate(var(--drift-saturation));
+  transition: filter 30s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================
+   DRIFT SPEED (Camera/Parallax)
+   ============================================ */
+
+.entity-drift-speed-slow {
+  --drift-animation-duration: 20s;
+}
+
+.entity-drift-speed-moderate {
+  --drift-animation-duration: 12s;
+}
+
+.entity-drift-speed-fast {
+  --drift-animation-duration: 6s;
+}
+
+.entity-drift-speed-rapid {
+  --drift-animation-duration: 3s;
+}
+
+/* Apply drift speed to camera drift elements */
+.entity-drift-speed-slow [class*="camera-drift"],
+.entity-drift-speed-slow [class*="parallax"] {
+  animation-duration: var(--drift-animation-duration) !important;
+}
+
+.entity-drift-speed-moderate [class*="camera-drift"],
+.entity-drift-speed-moderate [class*="parallax"] {
+  animation-duration: var(--drift-animation-duration) !important;
+}
+
+.entity-drift-speed-fast [class*="camera-drift"],
+.entity-drift-speed-fast [class*="parallax"] {
+  animation-duration: var(--drift-animation-duration) !important;
+}
+
+.entity-drift-speed-rapid [class*="camera-drift"],
+.entity-drift-speed-rapid [class*="parallax"] {
+  animation-duration: var(--drift-animation-duration) !important;
+}
+
+/* ============================================
+   MICRO-PARTICLES DENSITY
+   ============================================ */
+
+.entity-drift-particles-sparse::before {
+  opacity: 0.3;
+  transition: opacity 25s ease-in-out;
+}
+
+.entity-drift-particles-moderate::before {
+  opacity: 0.6;
+  transition: opacity 25s ease-in-out;
+}
+
+.entity-drift-particles-dense::before {
+  opacity: 0.9;
+  transition: opacity 25s ease-in-out;
+}
+
+.entity-drift-particles-swarming::before {
+  opacity: 1;
+  animation: particle-swarm 8s ease-in-out infinite;
+}
+
+@keyframes particle-swarm {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3) translateY(-10px);
+    opacity: 0.8;
+  }
+}
+
+/* ============================================
+   SHADOW DENSITY DRIFT
+   ============================================ */
+
+.entity-drift-shadow-light {
+  --drift-shadow-opacity: 0.2;
+  --drift-shadow-blur: 30px;
+}
+
+.entity-drift-shadow-medium {
+  --drift-shadow-opacity: 0.5;
+  --drift-shadow-blur: 20px;
+}
+
+.entity-drift-shadow-heavy {
+  --drift-shadow-opacity: 0.8;
+  --drift-shadow-blur: 15px;
+}
+
+.entity-drift-shadow-dense {
+  --drift-shadow-opacity: 1;
+  --drift-shadow-blur: 10px;
+}
+
+/* Apply shadow drift to shadow elements */
+.entity-drift-shadow-light .entity-shadow-v2,
+.entity-drift-shadow-light [class*="shadow"] {
+  box-shadow: 0 0 var(--drift-shadow-blur) rgba(0, 255, 255, var(--drift-shadow-opacity)) !important;
+  transition: box-shadow 20s ease-in-out;
+}
+
+.entity-drift-shadow-medium .entity-shadow-v2,
+.entity-drift-shadow-medium [class*="shadow"] {
+  box-shadow: 0 0 var(--drift-shadow-blur) rgba(0, 255, 255, var(--drift-shadow-opacity)) !important;
+  transition: box-shadow 20s ease-in-out;
+}
+
+.entity-drift-shadow-heavy .entity-shadow-v2,
+.entity-drift-shadow-heavy [class*="shadow"] {
+  box-shadow: 0 0 var(--drift-shadow-blur) rgba(0, 255, 255, var(--drift-shadow-opacity)) !important;
+  transition: box-shadow 20s ease-in-out;
+}
+
+.entity-drift-shadow-dense .entity-shadow-v2,
+.entity-drift-shadow-dense [class*="shadow"] {
+  box-shadow: 0 0 var(--drift-shadow-blur) rgba(0, 255, 255, var(--drift-shadow-opacity)) !important;
+  transition: box-shadow 20s ease-in-out;
+}
+
+/* ============================================
+   PULSE BPM BASELINE DRIFT
+   ============================================ */
+
+.entity-drift-pulse-calm {
+  --drift-pulse-duration: 3s;
+}
+
+.entity-drift-pulse-steady {
+  --drift-pulse-duration: 2s;
+}
+
+.entity-drift-pulse-active {
+  --drift-pulse-duration: 1.2s;
+}
+
+.entity-drift-pulse-intense {
+  --drift-pulse-duration: 0.8s;
+}
+
+/* Apply pulse drift to pulsing elements */
+.entity-drift-pulse-calm [class*="pulse"],
+.entity-drift-pulse-calm [class*="breathe"] {
+  animation-duration: var(--drift-pulse-duration) !important;
+  transition: animation-duration 15s ease-in-out;
+}
+
+.entity-drift-pulse-steady [class*="pulse"],
+.entity-drift-pulse-steady [class*="breathe"] {
+  animation-duration: var(--drift-pulse-duration) !important;
+  transition: animation-duration 15s ease-in-out;
+}
+
+.entity-drift-pulse-active [class*="pulse"],
+.entity-drift-pulse-active [class*="breathe"] {
+  animation-duration: var(--drift-pulse-duration) !important;
+  transition: animation-duration 15s ease-in-out;
+}
+
+.entity-drift-pulse-intense [class*="pulse"],
+.entity-drift-pulse-intense [class*="breathe"] {
+  animation-duration: var(--drift-pulse-duration) !important;
+  transition: animation-duration 15s ease-in-out;
+}
+
+/* ============================================
+   ATTENTION BIAS DRIFT
+   ============================================ */
+
+.entity-drift-attention-gentle {
+  --drift-hover-scale: 1.02;
+  --drift-hover-glow: 0 0 15px rgba(0, 255, 255, 0.3);
+}
+
+.entity-drift-attention-noticeable {
+  --drift-hover-scale: 1.05;
+  --drift-hover-glow: 0 0 20px rgba(0, 255, 255, 0.5);
+}
+
+.entity-drift-attention-prominent {
+  --drift-hover-scale: 1.08;
+  --drift-hover-glow: 0 0 25px rgba(0, 255, 255, 0.7);
+}
+
+.entity-drift-attention-strong {
+  --drift-hover-scale: 1.12;
+  --drift-hover-glow: 0 0 30px rgba(0, 255, 255, 1);
+}
+
+/* Apply attention drift to interactive elements */
+.entity-drift-attention-gentle [class*="hover"],
+.entity-drift-attention-gentle button:hover,
+.entity-drift-attention-gentle a:hover {
+  transform: scale(var(--drift-hover-scale));
+  box-shadow: var(--drift-hover-glow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.entity-drift-attention-noticeable [class*="hover"],
+.entity-drift-attention-noticeable button:hover,
+.entity-drift-attention-noticeable a:hover {
+  transform: scale(var(--drift-hover-scale));
+  box-shadow: var(--drift-hover-glow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.entity-drift-attention-prominent [class*="hover"],
+.entity-drift-attention-prominent button:hover,
+.entity-drift-attention-prominent a:hover {
+  transform: scale(var(--drift-hover-scale));
+  box-shadow: var(--drift-hover-glow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.entity-drift-attention-strong [class*="hover"],
+.entity-drift-attention-strong button:hover,
+.entity-drift-attention-strong a:hover {
+  transform: scale(var(--drift-hover-scale));
+  box-shadow: var(--drift-hover-glow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* ============================================
+   COMPOSITE DRIFT CLASSES
+   ============================================ */
+
+/* Calm User Profile: Warm glow, slow drift, sparse particles, light shadows, calm pulse */
+.entity-drift-profile-calm {
+  composes: entity-drift-glow-warm 
+            entity-drift-speed-slow 
+            entity-drift-particles-sparse 
+            entity-drift-shadow-light 
+            entity-drift-pulse-calm
+            entity-drift-attention-gentle;
+}
+
+/* Focused User Profile: Cool glow, moderate drift, moderate particles, medium shadows, steady pulse */
+.entity-drift-profile-focused {
+  composes: entity-drift-glow-cool
+            entity-drift-speed-moderate
+            entity-drift-particles-moderate
+            entity-drift-shadow-medium
+            entity-drift-pulse-steady
+            entity-drift-attention-noticeable;
+}
+
+/* Active User Profile: Intense glow, fast drift, dense particles, heavy shadows, active pulse */
+.entity-drift-profile-active {
+  composes: entity-drift-glow-intense
+            entity-drift-speed-fast
+            entity-drift-particles-dense
+            entity-drift-shadow-heavy
+            entity-drift-pulse-active
+            entity-drift-attention-prominent;
+}
+
+/* Intense User Profile: Maximum intensity across all properties */
+.entity-drift-profile-intense {
+  composes: entity-drift-glow-intense
+            entity-drift-speed-rapid
+            entity-drift-particles-swarming
+            entity-drift-shadow-dense
+            entity-drift-pulse-intense
+            entity-drift-attention-strong;
+}
+
+/* ============================================
+   DRIFT TRANSITIONS
+   ============================================ */
+
+/* Smooth drift between profiles (takes 20-30 seconds) */
+[class*="entity-drift-"] {
+  transition-property: filter, opacity, transform, box-shadow, animation-duration;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Drift indicator (subtle visual cue that drift is occurring) */
+.entity-drift-active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 255, 255, 0.02) 50%,
+    transparent 100%
+  );
+  animation: drift-indicator 40s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes drift-indicator {
+  0%, 100% {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(100%);
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  [class*="entity-drift-"] {
+    transition-duration: 0.1s !important;
+    animation: none !important;
+  }
+  
+  .entity-drift-active::after {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+}
+
+/* ============================================
+   PERFORMANCE OPTIMIZATIONS
+   ============================================ */
+
+/* GPU acceleration for drift animations */
+[class*="entity-drift-"] {
+  will-change: filter, opacity, transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* Reduce drift intensity on low-power devices */
+@media (prefers-reduced-data: reduce) {
+  [class*="entity-drift-"] {
+    transition-duration: 5s !important;
+    filter: none !important;
+  }
+}

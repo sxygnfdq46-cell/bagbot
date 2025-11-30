@@ -1,0 +1,664 @@
+/* ================================
+   PHASE 4 - ANIMATION ENGINE
+   GPU-Accelerated | 120hz Smooth
+   ================================ */
+
+/* ========================================
+   GOD-MODE INTRO ANIMATIONS
+   ======================================== */
+
+@keyframes fade-in-hero {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes hologram-assemble {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) rotateY(180deg);
+    filter: blur(20px);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1) rotateY(360deg);
+    filter: blur(5px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotateY(360deg);
+    filter: blur(0);
+  }
+}
+
+@keyframes particle-burst {
+  0% {
+    opacity: 0;
+    transform: scale(0) translate(0, 0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) translate(var(--burst-x, 100px), var(--burst-y, 100px));
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.5) translate(var(--burst-x, 100px), var(--burst-y, 100px));
+  }
+}
+
+@keyframes neon-ripple {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes arc-flare {
+  0% {
+    opacity: 0;
+    transform: scaleY(0);
+    filter: blur(10px);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleY(0.5);
+    filter: blur(10px);
+  }
+}
+
+@keyframes grid-pan {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 100% 100%;
+  }
+}
+
+@keyframes depth-parallax {
+  0% {
+    transform: translateZ(0) translateY(0);
+  }
+  100% {
+    transform: translateZ(-100px) translateY(-50px);
+  }
+}
+
+@keyframes rain-fall {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(200%);
+    opacity: 0;
+  }
+}
+
+@keyframes neural-connect {
+  0% {
+    stroke-dashoffset: 1000;
+    opacity: 0;
+  }
+  50% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: -1000;
+    opacity: 0;
+  }
+}
+
+@keyframes reactor-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+    filter: blur(60px);
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+    filter: blur(80px);
+  }
+}
+
+@keyframes cosmic-fade-out {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+}
+
+/* God-Mode Intro Classes */
+.god-mode-intro {
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(0, 0, 0, 0.95) 0%,
+    rgba(0, 0, 0, 1) 100%
+  );
+}
+
+.starfield-layer {
+  will-change: transform;
+}
+
+.parallax-grid-container {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+.grid-layer {
+  animation: grid-pan 20s linear infinite;
+  will-change: transform, opacity;
+}
+
+.digital-rain {
+  will-change: transform;
+}
+
+.energy-orb {
+  animation: reactor-pulse 3s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.holo-ring {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.scan-sweep {
+  will-change: transform, opacity;
+}
+
+/* GPU Layer Promotion */
+.gpu-accelerated {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* ================================
+   CORE TRANSITIONS
+   ================================ */
+
+/* Smooth Transitions - 120hz optimized */
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-fast {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-slow {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Transform Transitions */
+.transition-transform {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-opacity {
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ================================
+   GLOW PULSE ANIMATIONS
+   ================================ */
+
+@keyframes pulse-glow-cyan {
+  0%, 100% {
+    box-shadow: 
+      0 0 10px rgba(0, 246, 255, 0.4),
+      0 0 20px rgba(0, 246, 255, 0.3),
+      0 0 30px rgba(0, 246, 255, 0.2),
+      inset 0 0 15px rgba(0, 246, 255, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 0 20px rgba(0, 246, 255, 0.6),
+      0 0 40px rgba(0, 246, 255, 0.5),
+      0 0 60px rgba(0, 246, 255, 0.3),
+      inset 0 0 25px rgba(0, 246, 255, 0.2);
+  }
+}
+
+@keyframes pulse-glow-magenta {
+  0%, 100% {
+    box-shadow: 
+      0 0 10px rgba(255, 0, 255, 0.4),
+      0 0 20px rgba(255, 0, 255, 0.3),
+      0 0 30px rgba(255, 0, 255, 0.2),
+      inset 0 0 15px rgba(255, 0, 255, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 0 20px rgba(255, 0, 255, 0.6),
+      0 0 40px rgba(255, 0, 255, 0.5),
+      0 0 60px rgba(255, 0, 255, 0.3),
+      inset 0 0 25px rgba(255, 0, 255, 0.2);
+  }
+}
+
+@keyframes pulse-glow-green {
+  0%, 100% {
+    box-shadow: 
+      0 0 10px rgba(0, 255, 170, 0.4),
+      0 0 20px rgba(0, 255, 170, 0.3),
+      0 0 30px rgba(0, 255, 170, 0.2);
+  }
+  50% {
+    box-shadow: 
+      0 0 20px rgba(0, 255, 170, 0.6),
+      0 0 40px rgba(0, 255, 170, 0.5),
+      0 0 60px rgba(0, 255, 170, 0.3);
+  }
+}
+
+.pulse-glow-cyan {
+  animation: pulse-glow-cyan 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.pulse-glow-magenta {
+  animation: pulse-glow-magenta 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.pulse-glow-green {
+  animation: pulse-glow-green 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ================================
+   TEXT GLOW BREATHING
+   ================================ */
+
+@keyframes breathe-text-cyan {
+  0%, 100% {
+    text-shadow: 
+      0 0 10px rgba(0, 246, 255, 0.8),
+      0 0 20px rgba(0, 246, 255, 0.6),
+      0 0 30px rgba(0, 246, 255, 0.4);
+  }
+  50% {
+    text-shadow: 
+      0 0 20px rgba(0, 246, 255, 1),
+      0 0 40px rgba(0, 246, 255, 0.8),
+      0 0 60px rgba(0, 246, 255, 0.6),
+      0 0 80px rgba(0, 246, 255, 0.4);
+  }
+}
+
+@keyframes breathe-text-magenta {
+  0%, 100% {
+    text-shadow: 
+      0 0 10px rgba(255, 0, 255, 0.8),
+      0 0 20px rgba(255, 0, 255, 0.6),
+      0 0 30px rgba(255, 0, 255, 0.4);
+  }
+  50% {
+    text-shadow: 
+      0 0 20px rgba(255, 0, 255, 1),
+      0 0 40px rgba(255, 0, 255, 0.8),
+      0 0 60px rgba(255, 0, 255, 0.6),
+      0 0 80px rgba(255, 0, 255, 0.4);
+  }
+}
+
+.breathe-text-cyan {
+  animation: breathe-text-cyan 3s ease-in-out infinite;
+}
+
+.breathe-text-magenta {
+  animation: breathe-text-magenta 3s ease-in-out infinite;
+}
+
+/* ================================
+   HOLOGRAPHIC SHIMMER
+   ================================ */
+
+@keyframes hologram-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.hologram-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 246, 255, 0.1) 0%,
+    rgba(255, 0, 255, 0.1) 50%,
+    rgba(0, 246, 255, 0.1) 100%
+  );
+  background-size: 200% 100%;
+  animation: hologram-shimmer 3s ease-in-out infinite;
+}
+
+/* ================================
+   SPARK ANIMATIONS
+   ================================ */
+
+@keyframes spark-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+@keyframes spark-trail {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px) scale(0.5);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(20px) scale(0.3);
+  }
+}
+
+.spark-flash {
+  animation: spark-flash 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.spark-trail {
+  animation: spark-trail 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ================================
+   DATA UPDATE ANIMATIONS
+   ================================ */
+
+@keyframes data-update-pulse {
+  0% {
+    transform: scale(1);
+    background-color: rgba(0, 246, 255, 0.1);
+  }
+  50% {
+    transform: scale(1.05);
+    background-color: rgba(0, 246, 255, 0.3);
+  }
+  100% {
+    transform: scale(1);
+    background-color: rgba(0, 246, 255, 0.1);
+  }
+}
+
+.data-update {
+  animation: data-update-pulse 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ================================
+   PARALLAX LAYERS
+   ================================ */
+
+.parallax-layer-1 {
+  transform: translateZ(0);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.parallax-layer-2 {
+  transform: translateZ(50px);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.parallax-layer-3 {
+  transform: translateZ(100px);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Scroll-based parallax */
+@media (prefers-reduced-motion: no-preference) {
+  .parallax-scroll {
+    will-change: transform;
+  }
+}
+
+/* ================================
+   HOVER MICRO-INTERACTIONS
+   ================================ */
+
+.hover-lift {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+}
+
+.hover-scale {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-glow {
+  transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-glow:hover {
+  box-shadow: 
+    0 0 20px rgba(0, 246, 255, 0.6),
+    0 0 40px rgba(0, 246, 255, 0.4),
+    0 0 60px rgba(0, 246, 255, 0.2);
+}
+
+/* ================================
+   CLICK FEEDBACK
+   ================================ */
+
+@keyframes click-ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.click-feedback {
+  position: relative;
+  overflow: hidden;
+}
+
+.click-feedback::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100px;
+  height: 100px;
+  background: rgba(0, 246, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  pointer-events: none;
+}
+
+.click-feedback:active::after {
+  animation: click-ripple 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ================================
+   LOADING ANIMATIONS
+   ================================ */
+
+@keyframes spin-glow {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.spin-glow {
+  animation: spin-glow 2s linear infinite;
+}
+
+@keyframes pulse-scale {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.7;
+  }
+}
+
+.pulse-scale {
+  animation: pulse-scale 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ================================
+   FADE ANIMATIONS
+   ================================ */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fade-in 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fade-in-up {
+  animation: fade-in-up 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fade-in-down {
+  animation: fade-in-down 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ================================
+   SLIDE ANIMATIONS
+   ================================ */
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.slide-in-left {
+  animation: slide-in-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-in-right {
+  animation: slide-in-right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ================================
+   PERFORMANCE OPTIMIZATION
+   ================================ */
+
+/* Reduce motion for accessibility - God Mode Intro Support */
+@media (prefers-reduced-motion: reduce) {
+  .god-mode-intro *,
+  .god-mode-intro *::before,
+  .god-mode-intro *::after,
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Force GPU acceleration for animations */
+@media (prefers-reduced-motion: no-preference) {
+  .animate,
+  .god-mode-intro * {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+  }
+}

@@ -1,0 +1,203 @@
+/* ================================
+   GLOW REFINEMENT
+   Enhanced depth and intensity
+   ================================ */
+
+/* Refined Glow Presets */
+:root {
+  /* Soft Glows - Subtle ambient light */
+  --glow-soft-cyan: 0 0 10px rgba(0, 246, 255, 0.3),
+                    0 0 20px rgba(0, 246, 255, 0.2),
+                    0 0 30px rgba(0, 246, 255, 0.1);
+  
+  --glow-soft-magenta: 0 0 10px rgba(255, 0, 255, 0.3),
+                       0 0 20px rgba(255, 0, 255, 0.2),
+                       0 0 30px rgba(255, 0, 255, 0.1);
+  
+  --glow-soft-green: 0 0 10px rgba(0, 255, 170, 0.3),
+                     0 0 20px rgba(0, 255, 170, 0.2),
+                     0 0 30px rgba(0, 255, 170, 0.1);
+
+  /* Medium Glows - Standard UI elements */
+  --glow-medium-cyan: 0 0 15px rgba(0, 246, 255, 0.5),
+                      0 0 30px rgba(0, 246, 255, 0.3),
+                      0 0 45px rgba(0, 246, 255, 0.2),
+                      0 0 60px rgba(0, 246, 255, 0.1);
+  
+  --glow-medium-magenta: 0 0 15px rgba(255, 0, 255, 0.5),
+                         0 0 30px rgba(255, 0, 255, 0.3),
+                         0 0 45px rgba(255, 0, 255, 0.2),
+                         0 0 60px rgba(255, 0, 255, 0.1);
+  
+  --glow-medium-green: 0 0 15px rgba(0, 255, 170, 0.5),
+                       0 0 30px rgba(0, 255, 170, 0.3),
+                       0 0 45px rgba(0, 255, 170, 0.2),
+                       0 0 60px rgba(0, 255, 170, 0.1);
+
+  /* Strong Glows - Hero elements and focus states */
+  --glow-strong-cyan: 0 0 20px rgba(0, 246, 255, 0.8),
+                      0 0 40px rgba(0, 246, 255, 0.6),
+                      0 0 60px rgba(0, 246, 255, 0.4),
+                      0 0 80px rgba(0, 246, 255, 0.2);
+  
+  --glow-strong-magenta: 0 0 20px rgba(255, 0, 255, 0.8),
+                         0 0 40px rgba(255, 0, 255, 0.6),
+                         0 0 60px rgba(255, 0, 255, 0.4),
+                         0 0 80px rgba(255, 0, 255, 0.2);
+  
+  --glow-strong-green: 0 0 20px rgba(0, 255, 170, 0.8),
+                       0 0 40px rgba(0, 255, 170, 0.6),
+                       0 0 60px rgba(0, 255, 170, 0.4),
+                       0 0 80px rgba(0, 255, 170, 0.2);
+
+  /* Intense Glows - Critical alerts and primary actions */
+  --glow-intense-cyan: 0 0 25px rgba(0, 246, 255, 1),
+                       0 0 50px rgba(0, 246, 255, 0.8),
+                       0 0 75px rgba(0, 246, 255, 0.6),
+                       0 0 100px rgba(0, 246, 255, 0.4),
+                       0 0 125px rgba(0, 246, 255, 0.2);
+  
+  --glow-intense-magenta: 0 0 25px rgba(255, 0, 255, 1),
+                          0 0 50px rgba(255, 0, 255, 0.8),
+                          0 0 75px rgba(255, 0, 255, 0.6),
+                          0 0 100px rgba(255, 0, 255, 0.4),
+                          0 0 125px rgba(255, 0, 255, 0.2);
+  
+  --glow-intense-green: 0 0 25px rgba(0, 255, 170, 1),
+                        0 0 50px rgba(0, 255, 170, 0.8),
+                        0 0 75px rgba(0, 255, 170, 0.6),
+                        0 0 100px rgba(0, 255, 170, 0.4),
+                        0 0 125px rgba(0, 255, 170, 0.2);
+}
+
+/* Utility Classes */
+.glow-soft-cyan { box-shadow: var(--glow-soft-cyan); }
+.glow-soft-magenta { box-shadow: var(--glow-soft-magenta); }
+.glow-soft-green { box-shadow: var(--glow-soft-green); }
+
+.glow-medium-cyan { box-shadow: var(--glow-medium-cyan); }
+.glow-medium-magenta { box-shadow: var(--glow-medium-magenta); }
+.glow-medium-green { box-shadow: var(--glow-medium-green); }
+
+.glow-strong-cyan { box-shadow: var(--glow-strong-cyan); }
+.glow-strong-magenta { box-shadow: var(--glow-strong-magenta); }
+.glow-strong-green { box-shadow: var(--glow-strong-green); }
+
+.glow-intense-cyan { box-shadow: var(--glow-intense-cyan); }
+.glow-intense-magenta { box-shadow: var(--glow-intense-magenta); }
+.glow-intense-green { box-shadow: var(--glow-intense-green); }
+
+/* Text Glow Refinement */
+.text-glow-soft-cyan { text-shadow: var(--glow-soft-cyan); }
+.text-glow-soft-magenta { text-shadow: var(--glow-soft-magenta); }
+.text-glow-soft-green { text-shadow: var(--glow-soft-green); }
+
+.text-glow-medium-cyan { text-shadow: var(--glow-medium-cyan); }
+.text-glow-medium-magenta { text-shadow: var(--glow-medium-magenta); }
+.text-glow-medium-green { text-shadow: var(--glow-medium-green); }
+
+.text-glow-strong-cyan { text-shadow: var(--glow-strong-cyan); }
+.text-glow-strong-magenta { text-shadow: var(--glow-strong-magenta); }
+.text-glow-strong-green { text-shadow: var(--glow-strong-green); }
+
+/* Inset Glow - For depth perception */
+.inset-glow-cyan {
+  box-shadow: 
+    var(--glow-medium-cyan),
+    inset 0 0 30px rgba(0, 246, 255, 0.15);
+}
+
+.inset-glow-magenta {
+  box-shadow: 
+    var(--glow-medium-magenta),
+    inset 0 0 30px rgba(255, 0, 255, 0.15);
+}
+
+.inset-glow-green {
+  box-shadow: 
+    var(--glow-medium-green),
+    inset 0 0 30px rgba(0, 255, 170, 0.15);
+}
+
+/* Combined Glow + Border */
+.border-glow-cyan {
+  border: 1px solid rgba(0, 246, 255, 0.5);
+  box-shadow: 
+    0 0 15px rgba(0, 246, 255, 0.4),
+    0 0 30px rgba(0, 246, 255, 0.2),
+    inset 0 0 20px rgba(0, 246, 255, 0.1);
+}
+
+.border-glow-magenta {
+  border: 1px solid rgba(255, 0, 255, 0.5);
+  box-shadow: 
+    0 0 15px rgba(255, 0, 255, 0.4),
+    0 0 30px rgba(255, 0, 255, 0.2),
+    inset 0 0 20px rgba(255, 0, 255, 0.1);
+}
+
+.border-glow-green {
+  border: 1px solid rgba(0, 255, 170, 0.5);
+  box-shadow: 
+    0 0 15px rgba(0, 255, 170, 0.4),
+    0 0 30px rgba(0, 255, 170, 0.2),
+    inset 0 0 20px rgba(0, 255, 170, 0.1);
+}
+
+/* Hover State Enhancement */
+.hover-glow-enhance:hover {
+  transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-glow-enhance.glow-soft-cyan:hover { box-shadow: var(--glow-medium-cyan); }
+.hover-glow-enhance.glow-medium-cyan:hover { box-shadow: var(--glow-strong-cyan); }
+.hover-glow-enhance.glow-strong-cyan:hover { box-shadow: var(--glow-intense-cyan); }
+
+.hover-glow-enhance.glow-soft-magenta:hover { box-shadow: var(--glow-medium-magenta); }
+.hover-glow-enhance.glow-medium-magenta:hover { box-shadow: var(--glow-strong-magenta); }
+.hover-glow-enhance.glow-strong-magenta:hover { box-shadow: var(--glow-intense-magenta); }
+
+.hover-glow-enhance.glow-soft-green:hover { box-shadow: var(--glow-medium-green); }
+.hover-glow-enhance.glow-medium-green:hover { box-shadow: var(--glow-strong-green); }
+.hover-glow-enhance.glow-strong-green:hover { box-shadow: var(--glow-intense-green); }
+
+/* Focus State Glow */
+.focus-glow-cyan:focus {
+  outline: none;
+  box-shadow: var(--glow-strong-cyan);
+}
+
+.focus-glow-magenta:focus {
+  outline: none;
+  box-shadow: var(--glow-strong-magenta);
+}
+
+.focus-glow-green:focus {
+  outline: none;
+  box-shadow: var(--glow-strong-green);
+}
+
+/* Directional Glow - For depth perception */
+.glow-top-cyan {
+  box-shadow: 
+    0 -10px 30px rgba(0, 246, 255, 0.4),
+    0 -20px 60px rgba(0, 246, 255, 0.2);
+}
+
+.glow-bottom-cyan {
+  box-shadow: 
+    0 10px 30px rgba(0, 246, 255, 0.4),
+    0 20px 60px rgba(0, 246, 255, 0.2);
+}
+
+.glow-left-cyan {
+  box-shadow: 
+    -10px 0 30px rgba(0, 246, 255, 0.4),
+    -20px 0 60px rgba(0, 246, 255, 0.2);
+}
+
+.glow-right-cyan {
+  box-shadow: 
+    10px 0 30px rgba(0, 246, 255, 0.4),
+    20px 0 60px rgba(0, 246, 255, 0.2);
+}
