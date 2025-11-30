@@ -4,7 +4,7 @@ Demonstrates the Eternal Upgrade Engine interface
 """
 
 from typing import Dict, Any, Optional, List
-from ..core.EternalUpgradeEngine import UpgradeResult, ValidationResult
+from backend.core.EternalUpgradeEngine import UpgradeResult, ValidationResult
 
 
 class Level24SampleUpgrade:

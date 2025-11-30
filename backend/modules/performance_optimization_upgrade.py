@@ -5,7 +5,7 @@ Demonstrates self-optimization capabilities for the Autonomous Evolution Layer
 
 from typing import Dict, Any, Optional, List
 from datetime import datetime
-from ..core.EternalUpgradeEngine import UpgradeResult, ValidationResult
+from backend.core.EternalUpgradeEngine import UpgradeResult, ValidationResult
 
 
 class PerformanceOptimizationUpgrade:
