@@ -71,9 +71,9 @@ async function fetchWithAuth(
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   // Add auth token if available
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...fetchOptions.headers,
+    ...(fetchOptions.headers as Record<string, string>),
   };
 
   if (!skipAuth) {

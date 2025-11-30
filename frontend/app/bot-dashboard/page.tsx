@@ -23,7 +23,7 @@ export default function BotDashboardPage() {
   useEffect(() => {
     const token = apiClient.tokens.getToken();
     
-    botWebSocket.connect(token).catch(err => {
+    botWebSocket.connect(token || undefined).catch(err => {
       console.error('WebSocket connection failed:', err);
     });
 
