@@ -105,10 +105,10 @@ export default function StrategicUI(props: StrategicUIProps) {
       <div className="sf-header">Execution Paths</div>
       <div className="sf-paths">
         {forecast.paths.map((path, idx) => (
-          <div key={idx} className={`sf-path ${path.id === forecast.recommendedPath.id ? 'sf-recommended' : ''}`}>
+          <div key={idx} className={`sf-path ${path.id === forecast.recommended.id ? 'sf-recommended' : ''}`}>
             <div className="sf-path-header">
               <span className="sf-path-name">{formatPathName(path.id)}</span>
-              {path.id === forecast.recommendedPath.id && <span className="sf-badge">RECOMMENDED</span>}
+              {path.id === forecast.recommended.id && <span className="sf-badge">RECOMMENDED</span>}
             </div>
             <div className="sf-path-stats">
               <div className="sf-stat">
@@ -117,12 +117,12 @@ export default function StrategicUI(props: StrategicUIProps) {
               </div>
               <div className="sf-stat">
                 <span className="sf-stat-label">Success Rate</span>
-                <span className="sf-stat-value">{path.outcome.successProbability}%</span>
+                <span className="sf-stat-value">{path.successRate}%</span>
               </div>
               <div className="sf-stat">
                 <span className="sf-stat-label">Risk Score</span>
-                <span className={`sf-stat-value sf-risk-${getRiskClass(path.riskScore)}`}>
-                  {path.riskScore}
+                <span className={`sf-stat-value sf-risk-${getRiskClass(path.risks.length * 10)}`}>
+                  {path.risks.length * 10}
                 </span>
               </div>
             </div>
@@ -340,13 +340,13 @@ export default function StrategicUI(props: StrategicUIProps) {
               <div className="sqs-item">
                 <div className="sqs-label">Success Rate</div>
                 <div className="sqs-value">
-                  {forecast.recommendedPath.outcome.successProbability}%
+                  {forecast.recommended.successRate}%
                 </div>
               </div>
               <div className="sqs-item">
                 <div className="sqs-label">Duration</div>
                 <div className="sqs-value">
-                  ~{Math.round(forecast.recommendedPath.duration / 1000)}s
+                  ~{Math.round(forecast.recommended.duration / 1000)}s
                 </div>
               </div>
             </div>

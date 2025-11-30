@@ -1,0 +1,21 @@
+{
+  "sma_short": 11,
+  "sma_long": 55,
+  "ema_short": 18,
+  "ema_long": 35,
+  "rsi_period": 14,
+  "rsi_buy_threshold": 36.6,
+  "rsi_sell_threshold": 76.2,
+  "macd_fast": 8,
+  "macd_slow": 23,
+  "macd_signal": 11,
+  "atr_period": 12,
+  "risk_per_trade_pct": 0.736,
+  "max_position_pct": 2.93,
+  "volatility_threshold": 0.699,
+  "trailing_stop_atr_mul": 1.31,
+  "score": 1.376103833195345,
+  "sharpe": 1.3804126567247568,
+  "max_drawdown": 0.4308823529411765,
+  "penalty_factor": 0.01
+}

@@ -3,7 +3,7 @@
  * SAFE: Read-only log streaming and filtering
  */
 
-import { api } from '@/lib/api';
+import { api } from '../lib/api';
 
 export interface LogEntry {
   id: string;

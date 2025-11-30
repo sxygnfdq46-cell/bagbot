@@ -1,0 +1,702 @@
+/**
+ * 🌊 SYMBIOTIC ENVIRONMENT CSS
+ * 
+ * Visual systems for Level 9.4 Environmental-Symbiotic Fusion:
+ * • Dual Aura Glow (Market + You blending)
+ * • Resonance Wave (Holo threads shift with your presence)
+ * • Atmospheric Breathing Mesh (The screen breathes with both of you)
+ * • Emotional Weather Colors
+ * • Storm/Calm/Drift animations
+ * 
+ * The entire UI now feels like a living atmosphere around you.
+ */
+
+/* ================================================
+   DUAL AURA GLOW SYSTEM
+   Market + User blending in real-time
+   ================================================ */
+
+.symbiotic-dual-aura {
+  position: relative;
+  overflow: hidden;
+}
+
+.symbiotic-dual-aura::before,
+.symbiotic-dual-aura::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0;
+  pointer-events: none;
+  animation: dualAuraFade 4s ease-in-out infinite;
+}
+
+/* Market aura (left side) */
+.symbiotic-dual-aura::before {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, var(--market-aura-color, #3b82f6) 0%, transparent 70%);
+  transform: translate(-60%, -50%);
+  animation-delay: 0s;
+}
+
+/* User aura (right side) */
+.symbiotic-dual-aura::after {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, var(--user-aura-color, #10b981) 0%, transparent 70%);
+  transform: translate(-40%, -50%);
+  animation-delay: 2s;
+}
+
+@keyframes dualAuraFade {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.5; }
+}
+
+/* Aura blend intensity modifiers */
+.symbiotic-dual-aura[data-blend="low"]::before,
+.symbiotic-dual-aura[data-blend="low"]::after {
+  opacity: 0.15;
+  filter: blur(100px);
+}
+
+.symbiotic-dual-aura[data-blend="high"]::before,
+.symbiotic-dual-aura[data-blend="high"]::after {
+  opacity: 0.6;
+  filter: blur(60px);
+  animation-duration: 3s;
+}
+
+.symbiotic-dual-aura[data-blend="merge"]::before {
+  transform: translate(-50%, -50%);
+}
+
+.symbiotic-dual-aura[data-blend="merge"]::after {
+  transform: translate(-50%, -50%);
+  mix-blend-mode: screen;
+}
+
+/* ================================================
+   RESONANCE WAVE SYSTEM
+   Holo threads that shift with presence
+   ================================================ */
+
+.resonance-wave-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.resonance-wave {
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--resonance-color, rgba(99, 102, 241, 0.4)) 50%,
+    transparent 100%
+  );
+  transform-origin: center;
+  animation: resonanceShift 8s ease-in-out infinite;
+}
+
+@keyframes resonanceShift {
+  0%, 100% {
+    transform: translateY(0) scaleX(0.8);
+    opacity: 0.3;
+  }
+  25% {
+    transform: translateY(-20px) scaleX(1.2);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(0) scaleX(0.9);
+    opacity: 0.4;
+  }
+  75% {
+    transform: translateY(20px) scaleX(1.1);
+    opacity: 0.5;
+  }
+}
+
+/* Multiple wave layers */
+.resonance-wave:nth-child(1) { top: 20%; animation-delay: 0s; }
+.resonance-wave:nth-child(2) { top: 40%; animation-delay: 2s; }
+.resonance-wave:nth-child(3) { top: 60%; animation-delay: 4s; }
+.resonance-wave:nth-child(4) { top: 80%; animation-delay: 6s; }
+
+/* Speed modifiers based on user interaction */
+.resonance-wave-container[data-speed="slow"] .resonance-wave {
+  animation-duration: 12s;
+}
+
+.resonance-wave-container[data-speed="fast"] .resonance-wave {
+  animation-duration: 4s;
+}
+
+.resonance-wave-container[data-speed="flow"] .resonance-wave {
+  animation: resonanceFlow 6s linear infinite;
+}
+
+@keyframes resonanceFlow {
+  0% {
+    transform: translateY(0) scaleX(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(0) scaleX(1);
+    opacity: 0.7;
+  }
+}
+
+/* ================================================
+   ATMOSPHERIC BREATHING MESH
+   Screen breathes with both user and market
+   ================================================ */
+
+.atmospheric-breathing-mesh {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.15;
+}
+
+.breathing-mesh-layer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 50px,
+      var(--mesh-color, rgba(99, 102, 241, 0.1)) 50px,
+      var(--mesh-color, rgba(99, 102, 241, 0.1)) 51px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 50px,
+      var(--mesh-color, rgba(99, 102, 241, 0.1)) 50px,
+      var(--mesh-color, rgba(99, 102, 241, 0.1)) 51px
+    );
+  animation: meshBreathe 4s ease-in-out infinite;
+}
+
+@keyframes meshBreathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.15;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 0.25;
+  }
+}
+
+/* Breathing rate modifiers (BPM) */
+.atmospheric-breathing-mesh[data-bpm="slow"] .breathing-mesh-layer {
+  animation-duration: 6s; /* ~60 BPM */
+}
+
+.atmospheric-breathing-mesh[data-bpm="normal"] .breathing-mesh-layer {
+  animation-duration: 4s; /* ~75 BPM */
+}
+
+.atmospheric-breathing-mesh[data-bpm="fast"] .breathing-mesh-layer {
+  animation-duration: 3s; /* ~85 BPM */
+}
+
+/* Tension modifiers */
+.atmospheric-breathing-mesh[data-tension="low"] .breathing-mesh-layer {
+  opacity: 0.1;
+}
+
+.atmospheric-breathing-mesh[data-tension="high"] .breathing-mesh-layer {
+  opacity: 0.3;
+  animation: meshBreatheTense 3s ease-in-out infinite;
+}
+
+@keyframes meshBreatheTense {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.2;
+  }
+  50% {
+    transform: scale(1.03) rotate(0.5deg);
+    opacity: 0.4;
+  }
+}
+
+/* ================================================
+   EMOTIONAL WEATHER COLORS
+   Dynamic color shifts based on dual state
+   ================================================ */
+
+/* Calm states */
+.emotional-weather[data-state*="calm"] {
+  --primary-glow: #10b981;
+  --secondary-glow: #3b82f6;
+  --ambient-shadow: rgba(16, 185, 129, 0.2);
+}
+
+/* Focused states */
+.emotional-weather[data-state*="focused"] {
+  --primary-glow: #3b82f6;
+  --secondary-glow: #8b5cf6;
+  --ambient-shadow: rgba(59, 130, 246, 0.3);
+}
+
+/* Excited states */
+.emotional-weather[data-state*="excited"] {
+  --primary-glow: #f59e0b;
+  --secondary-glow: #f97316;
+  --ambient-shadow: rgba(245, 158, 11, 0.3);
+}
+
+/* Stressed states */
+.emotional-weather[data-state*="stressed"] {
+  --primary-glow: #ef4444;
+  --secondary-glow: #dc2626;
+  --ambient-shadow: rgba(239, 68, 68, 0.2);
+}
+
+/* Contemplative states */
+.emotional-weather[data-state*="contemplative"] {
+  --primary-glow: #8b5cf6;
+  --secondary-glow: #6366f1;
+  --ambient-shadow: rgba(139, 92, 246, 0.25);
+}
+
+/* Market modifiers */
+.emotional-weather[data-state*="stormy"] {
+  --turbulence-intensity: 0.8;
+  animation: weatherStorm 3s ease-in-out infinite;
+}
+
+.emotional-weather[data-state*="trending-up"] {
+  --flow-direction: 1;
+  animation: weatherRising 5s ease-in-out infinite;
+}
+
+.emotional-weather[data-state*="trending-down"] {
+  --flow-direction: -1;
+  animation: weatherFalling 5s ease-in-out infinite;
+}
+
+@keyframes weatherStorm {
+  0%, 100% { filter: brightness(1) contrast(1); }
+  25% { filter: brightness(1.1) contrast(1.1); }
+  50% { filter: brightness(0.95) contrast(1.05); }
+  75% { filter: brightness(1.05) contrast(1.08); }
+}
+
+@keyframes weatherRising {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+@keyframes weatherFalling {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(2px); }
+}
+
+/* ================================================
+   STORM VISUALIZATION
+   Turbulent market conditions
+   ================================================ */
+
+.symbiotic-storm {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.storm-particle {
+  position: absolute;
+  width: 2px;
+  height: 20px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    var(--storm-color, rgba(239, 68, 68, 0.6)) 50%,
+    transparent 100%
+  );
+  animation: stormFall 2s linear infinite;
+}
+
+@keyframes stormFall {
+  0% {
+    transform: translateY(-100px) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(calc(100vh + 100px)) translateX(30px);
+    opacity: 0;
+  }
+}
+
+/* Generate multiple storm particles */
+.storm-particle:nth-child(1) { left: 5%; animation-delay: 0.1s; }
+.storm-particle:nth-child(2) { left: 15%; animation-delay: 0.3s; animation-duration: 2.2s; }
+.storm-particle:nth-child(3) { left: 25%; animation-delay: 0.7s; animation-duration: 1.8s; }
+.storm-particle:nth-child(4) { left: 35%; animation-delay: 0.2s; animation-duration: 2.5s; }
+.storm-particle:nth-child(5) { left: 45%; animation-delay: 0.9s; }
+.storm-particle:nth-child(6) { left: 55%; animation-delay: 0.4s; animation-duration: 2.3s; }
+.storm-particle:nth-child(7) { left: 65%; animation-delay: 0.6s; animation-duration: 1.9s; }
+.storm-particle:nth-child(8) { left: 75%; animation-delay: 0.8s; }
+.storm-particle:nth-child(9) { left: 85%; animation-delay: 0.5s; animation-duration: 2.1s; }
+.storm-particle:nth-child(10) { left: 95%; animation-delay: 1.0s; animation-duration: 2.4s; }
+
+/* Storm intensity modifiers */
+.symbiotic-storm[data-intensity="low"] .storm-particle {
+  opacity: 0.3;
+  animation-duration: 3s;
+}
+
+.symbiotic-storm[data-intensity="high"] .storm-particle {
+  opacity: 0.8;
+  animation-duration: 1.5s;
+}
+
+/* ================================================
+   CALM DRIFT
+   Peaceful, floating ambient motion
+   ================================================ */
+
+.symbiotic-drift {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.drift-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    var(--drift-color, rgba(16, 185, 129, 0.6)) 0%,
+    transparent 70%
+  );
+  animation: driftFloat 15s ease-in-out infinite;
+}
+
+@keyframes driftFloat {
+  0%, 100% {
+    transform: translate(0, 0);
+    opacity: 0.3;
+  }
+  25% {
+    transform: translate(30px, -40px);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(-20px, -80px);
+    opacity: 0.4;
+  }
+  75% {
+    transform: translate(40px, -120px);
+    opacity: 0.5;
+  }
+}
+
+/* Multiple drift particles */
+.drift-particle:nth-child(1) { left: 10%; top: 80%; animation-delay: 0s; }
+.drift-particle:nth-child(2) { left: 30%; top: 70%; animation-delay: 3s; }
+.drift-particle:nth-child(3) { left: 50%; top: 85%; animation-delay: 6s; }
+.drift-particle:nth-child(4) { left: 70%; top: 75%; animation-delay: 9s; }
+.drift-particle:nth-child(5) { left: 90%; top: 80%; animation-delay: 12s; }
+
+/* ================================================
+   FLOW STATE VISUALIZATION
+   Perfect synchronization indicators
+   ================================================ */
+
+.flow-state-indicator {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.flow-state-indicator[data-active="true"] {
+  opacity: 1;
+  animation: flowPulse 2s ease-in-out infinite;
+}
+
+.flow-state-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid var(--flow-color, rgba(34, 211, 238, 0.6));
+  animation: flowRingExpand 2s ease-out infinite;
+}
+
+.flow-state-ring:nth-child(1) {
+  width: 20px;
+  height: 20px;
+  animation-delay: 0s;
+}
+
+.flow-state-ring:nth-child(2) {
+  width: 40px;
+  height: 40px;
+  animation-delay: 0.5s;
+}
+
+.flow-state-ring:nth-child(3) {
+  width: 60px;
+  height: 60px;
+  animation-delay: 1s;
+}
+
+@keyframes flowRingExpand {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes flowPulse {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.3);
+  }
+}
+
+/* ================================================
+   AUTHORITY INDICATORS
+   Show who has control (user/market/shared)
+   ================================================ */
+
+.authority-indicator {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: rgba(17, 24, 39, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.authority-bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(99, 102, 241, 0.2);
+  overflow: hidden;
+  position: relative;
+}
+
+.authority-bar-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--user-authority-color, #10b981) 0%,
+    var(--market-authority-color, #3b82f6) 100%
+  );
+  transition: width 0.5s ease;
+}
+
+/* Authority states */
+.authority-indicator[data-state="user-control"] .authority-bar-fill {
+  background: var(--user-authority-color, #10b981);
+}
+
+.authority-indicator[data-state="market-control"] .authority-bar-fill {
+  background: var(--market-authority-color, #3b82f6);
+}
+
+.authority-indicator[data-state="shared-control"] .authority-bar-fill {
+  background: linear-gradient(
+    90deg,
+    var(--user-authority-color, #10b981) 0%,
+    var(--market-authority-color, #3b82f6) 100%
+  );
+  animation: authorityShift 3s ease-in-out infinite;
+}
+
+@keyframes authorityShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* ================================================
+   COGNITIVE HEAT VISUALIZATION
+   Mental load indicator
+   ================================================ */
+
+.cognitive-heat-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 5;
+  opacity: 0;
+  background: radial-gradient(
+    circle at center,
+    transparent 0%,
+    var(--heat-color, rgba(239, 68, 68, 0.1)) 100%
+  );
+  transition: opacity 0.5s ease;
+}
+
+.cognitive-heat-overlay[data-level="low"] {
+  opacity: 0.1;
+}
+
+.cognitive-heat-overlay[data-level="medium"] {
+  opacity: 0.2;
+  animation: heatPulse 4s ease-in-out infinite;
+}
+
+.cognitive-heat-overlay[data-level="high"] {
+  opacity: 0.3;
+  animation: heatIntense 2s ease-in-out infinite;
+}
+
+@keyframes heatPulse {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes heatIntense {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.4; }
+}
+
+/* ================================================
+   PREDICTIVE GLOW
+   Anticipation visualization
+   ================================================ */
+
+.predictive-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.predictive-glow[data-active="true"] {
+  opacity: 1;
+  box-shadow: 
+    0 0 20px var(--predictive-color, rgba(34, 211, 238, 0.3)),
+    0 0 40px var(--predictive-color, rgba(34, 211, 238, 0.2)),
+    inset 0 0 20px var(--predictive-color, rgba(34, 211, 238, 0.1));
+  animation: predictiveShimmer 3s ease-in-out infinite;
+}
+
+@keyframes predictiveShimmer {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px var(--predictive-color, rgba(34, 211, 238, 0.3)),
+      0 0 40px var(--predictive-color, rgba(34, 211, 238, 0.2)),
+      inset 0 0 20px var(--predictive-color, rgba(34, 211, 238, 0.1));
+  }
+  50% {
+    box-shadow: 
+      0 0 30px var(--predictive-color, rgba(34, 211, 238, 0.4)),
+      0 0 60px var(--predictive-color, rgba(34, 211, 238, 0.3)),
+      inset 0 0 30px var(--predictive-color, rgba(34, 211, 238, 0.2));
+  }
+}
+
+/* ================================================
+   RESPONSIVE ADJUSTMENTS
+   ================================================ */
+
+@media (max-width: 768px) {
+  .symbiotic-dual-aura::before,
+  .symbiotic-dual-aura::after {
+    width: 200px;
+    height: 200px;
+    filter: blur(60px);
+  }
+  
+  .flow-state-indicator {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .atmospheric-breathing-mesh {
+    opacity: 0.1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .symbiotic-dual-aura::before,
+  .symbiotic-dual-aura::after,
+  .resonance-wave,
+  .breathing-mesh-layer,
+  .storm-particle,
+  .drift-particle {
+    animation: none;
+  }
+  
+  .flow-state-indicator[data-active="true"] {
+    animation: none;
+    opacity: 0.8;
+  }
+}

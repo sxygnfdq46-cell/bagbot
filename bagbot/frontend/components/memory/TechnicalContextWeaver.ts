@@ -260,7 +260,7 @@ export class TechnicalContextWeaver {
   }
 
   private findThreadForEntry(entryId: string): string | undefined {
-    for (const thread of this.threads.values()) {
+    for (const thread of Array.from(this.threads.values())) {
       if (thread.entries.includes(entryId)) {
         return thread.id;
       }
@@ -567,7 +567,7 @@ export class TechnicalContextWeaver {
   }
 
   recalculateAllConfidence(): void {
-    for (const thread of this.threads.values()) {
+    for (const thread of Array.from(this.threads.values())) {
       this.updateThreadConfidence(thread.id);
     }
   }
@@ -664,7 +664,7 @@ export class TechnicalContextWeaver {
     const now = Date.now();
     let purged = 0;
     
-    for (const [id, thread] of this.threads.entries()) {
+    for (const [id, thread] of Array.from(this.threads.entries())) {
       if (now - thread.lastUpdatedAt > maxAgeMs && thread.status !== 'active') {
         this.threads.delete(id);
         purged++;

@@ -165,8 +165,8 @@ export const REGIME_PROFILES: Record<string, RegimeProfile> = {
     liquidityLevel: [0, 40],
     optimalWeights: {
       shieldCompliance: 3.0,
-      overrideViolation: 4.0,
-      excessiveRisk: 3.5,
+      riskAdjustedReturn: 2.0,
+      fusionAlignment: 2.5,
     },
   },
 };

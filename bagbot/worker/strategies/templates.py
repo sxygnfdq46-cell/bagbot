@@ -1,4 +1,4 @@
-from bagbot.worker.strategies.base import StrategyBase
+from worker.strategies.base import StrategyBase
 
 class DummyStrategy(StrategyBase):
     def on_price_update(self, market_state):

@@ -637,7 +637,7 @@ export class ExecutionShield {
     const actionLower = command.action.toLowerCase();
     const paramsStr = JSON.stringify(command.parameters).toLowerCase();
 
-    for (const pattern of this.blocklist) {
+    for (const pattern of Array.from(this.blocklist)) {
       if (actionLower.includes(pattern) || paramsStr.includes(pattern)) {
         console.warn(`[ExecutionShield] Blocked pattern detected: ${pattern}`);
         return true;
@@ -697,7 +697,7 @@ export class ExecutionShield {
    */
   private assessRisk(command: Command): CommandRiskLevel {
     // Check rules
-    for (const rule of this.rules.values()) {
+    for (const rule of Array.from(this.rules.values())) {
       if (rule.category !== command.category) continue;
 
       let matches = false;
@@ -740,7 +740,7 @@ export class ExecutionShield {
   private checkConflicts(command: Command): string[] {
     const conflicts: string[] = [];
 
-    for (const rule of this.conflicts.values()) {
+    for (const rule of Array.from(this.conflicts.values())) {
       if (!rule.categories.includes(command.category)) continue;
 
       // Check if action matches
@@ -784,7 +784,7 @@ export class ExecutionShield {
     }
 
     // Check rule-specific requirements
-    for (const rule of this.rules.values()) {
+    for (const rule of Array.from(this.rules.values())) {
       if (rule.category === command.category && rule.requiresConfirmation) {
         if (typeof rule.pattern === 'string') {
           if (command.action.toLowerCase().includes(rule.pattern.toLowerCase())) {
@@ -947,7 +947,7 @@ export class ExecutionShield {
     const now = Date.now();
     let cleaned = 0;
 
-    for (const [id, pending] of this.pendingConfirmations.entries()) {
+    for (const [id, pending] of Array.from(this.pendingConfirmations.entries())) {
       if (now > pending.expiresAt) {
         this.pendingConfirmations.delete(id);
         cleaned++;

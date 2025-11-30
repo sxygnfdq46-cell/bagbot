@@ -17,8 +17,8 @@
  * 
  * Usage Example:
  * ```typescript
- * import { initNET, translateHIF, getLastTranslation } from '@/app/services/intelligence/netService';
- * import { getCurrentHIF } from '@/app/services/intelligence/snhlService';
+ * import { initNET, translateHIF, getLastTranslation } from '../../../app/services/intelligence/netService';
+ * import { getCurrentHIF } from '../../../app/services/intelligence/snhlService';
  * 
  * // Initialize NET
  * initNET();
@@ -37,9 +37,9 @@
 
 'use client';
 
-import { getNeuralExecutionTranslator } from '@/app/lib/net/NeuralExecutionTranslator';
-import type { HIF, ExecutionInstruction, ExecutionContext } from '@/app/lib/harmonizer/types';
-import type { NETConfig, NETStatistics } from '@/app/lib/net/types';
+import { getNeuralExecutionTranslator } from '../../../app/lib/net/NeuralExecutionTranslator';
+import type { HIF, ExecutionInstruction, ExecutionContext } from '../../../app/lib/harmonizer/types';
+import type { NETConfig, NETStatistics } from '../../../app/lib/net/types';
 
 // ============================================================================
 // SINGLETON TRANSLATOR INSTANCE
@@ -251,8 +251,8 @@ export function isNetInitialized(): boolean {
  * 
  * Usage:
  * ```typescript
- * import { startLoop } from '@/app/services/intelligence/snhlService';
- * import { autoTranslateFromSNHL } from '@/app/services/intelligence/netService';
+ * import { startLoop } from '../../../app/services/intelligence/snhlService';
+ * import { autoTranslateFromSNHL } from '../../../app/services/intelligence/netService';
  * 
  * startLoop(autoTranslateFromSNHL);
  * ```

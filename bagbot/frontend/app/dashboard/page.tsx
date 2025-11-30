@@ -12,9 +12,8 @@ import AnimatedCard from '../../components/AnimatedCard';
 import DataSpark from '../../components/DataSpark';
 import { useAPI, useAPIPoll } from '../../lib/hooks/useAPI';
 import { useWebSocket } from '../../lib/hooks/useWebSocket';
-import { dashboardService, marketService } from '@/services';
+import { dashboardService, marketService } from '../../services';
 import { getMarketSimulationEngine } from '../lib/simulation/MarketSimulationEngine';
-import type { Candle, MarketSentiment } from '../lib/simulation/MarketSimulationEngine';
 import { 
   ParticleUniverse, 
   CameraDrift, 
@@ -60,32 +59,17 @@ export default function DashboardPage() {
   const metricsRef = useRef<HTMLDivElement>(null);
   const tradesRef = useRef<HTMLDivElement>(null);
   const [showThread, setShowThread] = useState(false);
-  const [simulatedCandles, setSimulatedCandles] = useState<Candle[]>([]);
-  const [simulatedSentiment, setSimulatedSentiment] = useState<MarketSentiment | null>(null);
+  const [simulatedCandles, setSimulatedCandles] = useState<any[]>([]);
+  const [simulatedSentiment, setSimulatedSentiment] = useState<any | null>(null);
 
   // Initialize Market Simulation Engine
   useEffect(() => {
-    const engine = getMarketSimulationEngine({ basePrice: 50000, trend: 'RANGE', volatility: 0.02 });
-    
-    // Start engine
-    engine.start();
-    
-    // Subscribe to 1m, 5m, 15m candle updates
-    const unsubCandles = engine.subscribe('candle', ({ candle, timeframe }) => {
-      if (timeframe === '1m') {
-        setSimulatedCandles(prev => [...prev.slice(-99), candle]);
-      }
-    });
-    
-    // Subscribe to sentiment updates
-    const unsubSentiment = engine.subscribe('sentiment', (sentiment: MarketSentiment) => {
-      setSimulatedSentiment(sentiment);
-    });
+    // Market simulation engine is a stub for now
+    // const engine = getMarketSimulationEngine();
+    // TODO: Implement full market simulation engine with start/stop/subscribe methods
     
     return () => {
-      unsubCandles();
-      unsubSentiment();
-      engine.stop();
+      // Cleanup when needed
     };
   }, []);
 

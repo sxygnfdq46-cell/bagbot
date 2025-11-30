@@ -14,7 +14,7 @@ import type {
   VolatilityTrend,
   BehaviorPattern,
   VolatilityAnomaly,
-} from '@/app/lib/intelligence/volatilityTypes';
+} from '../../app/lib/intelligence/volatilityTypes';
 
 /**
  * Global DVBE state

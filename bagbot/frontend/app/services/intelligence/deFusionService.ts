@@ -5,7 +5,7 @@
  * Manages fusion lifecycle, state tracking, and event notifications.
  */
 
-import { getFusion, resetFusion } from '@/app/lib/fusion/DeepExecutionFusion';
+import { getFusion, resetFusion } from '../../../app/lib/fusion/DeepExecutionFusion';
 import type {
   FusionDecision,
   FusionContext,
@@ -16,7 +16,7 @@ import type {
   MarketSnapshot,
   HarmonyMetrics,
   FusionRuleResult,
-} from '@/app/lib/fusion/types';
+} from '../../../app/lib/fusion/types';
 
 import {
   addFusionDecision,
@@ -26,7 +26,7 @@ import {
   getPerformanceLogs,
   getErrors,
   clearHistory,
-} from '@/app/state/executionFusionState';
+} from '../../../app/state/executionFusionState';
 
 /**
  * Event listeners for fusion events
@@ -158,7 +158,7 @@ export function getFusionContext(): {
   history: FusionDecision[];
   performanceLogs: any[];
   errors: any[];
-  diagnostics: ReturnType<typeof getFusion>["getDiagnostics"];
+  diagnostics: ReturnType<ReturnType<typeof getFusion>["getDiagnostics"]>;
 } {
   const fusion = getFusion();
   const state = fusion.getFusionState();

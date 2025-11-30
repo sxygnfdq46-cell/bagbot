@@ -5,15 +5,15 @@
  * Manages training on closed trades and market shifts.
  */
 
-import { getReinforcementCore } from '@/app/lib/learning/ReinforcementCore';
+import { getReinforcementCore } from '../../../app/lib/learning/ReinforcementCore';
 import {
   TradeResult,
   RLUpdate,
   LearningSummary,
   EncodedState,
-} from '@/app/lib/learning/ReinforcementCore';
-import { StateMemory, StateSnapshot } from '@/app/lib/learning/stateMemory';
-import { LearningRules } from '@/app/lib/learning/learningRules';
+} from '../../../app/lib/learning/ReinforcementCore';
+import { StateMemory, StateSnapshot } from '../../../app/lib/learning/stateMemory';
+import { LearningRules } from '../../../app/lib/learning/learningRules';
 
 /**
  * Learning service state
@@ -167,7 +167,7 @@ export function applyReward(
   state: StateSnapshot,
   reason: string = 'Manual reward'
 ): RLUpdate {
-  if (!state.initialized) {
+  if (!isInitialized()) {
     console.warn('[Learning Service] Not initialized - initializing now');
     initLearning();
   }
@@ -178,15 +178,6 @@ export function applyReward(
   const encodedState = core.encodeState(state);
   
   const update = core.updateModel(encodedState, reward, 0);
-  
-  // Update service state
-  state.lastUpdate = update;
-  state.totalTrainingSessions++;
-  
-  // Trigger listener
-  if (state.listeners.onRewardApplied) {
-    state.listeners.onRewardApplied(reward);
-  }
   
   triggerTrainingListeners(update);
   

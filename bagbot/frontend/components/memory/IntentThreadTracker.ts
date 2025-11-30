@@ -530,7 +530,7 @@ export class IntentThreadTracker {
     const complementsOf: string[] = [];
     
     // Compare with all other active intents
-    for (const other of this.intents.values()) {
+    for (const other of Array.from(this.intents.values())) {
       if (other.id === intentId) continue;
       if (other.status === 'achieved' || other.status === 'abandoned') continue;
       
@@ -795,7 +795,7 @@ export class IntentThreadTracker {
     const now = Date.now();
     let purged = 0;
     
-    for (const [id, intent] of this.intents.entries()) {
+    for (const [id, intent] of Array.from(this.intents.entries())) {
       const age = now - intent.declaredAt;
       
       if (age > maxAgeMs && (intent.status === 'achieved' || intent.status === 'abandoned')) {

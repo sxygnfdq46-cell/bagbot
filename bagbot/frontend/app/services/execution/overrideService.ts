@@ -5,7 +5,7 @@
  * Manages pre-trade and mid-trade safety checks with event listeners.
  */
 
-import { getExecutionOverride } from '@/app/lib/execution/ExecutionOverride';
+import { getExecutionOverride } from '../../../app/lib/execution/ExecutionOverride';
 import {
   OverrideResult,
   TradeSnapshot,
@@ -13,8 +13,8 @@ import {
   ValidationResult,
   OverrideSummary,
   TradeModification,
-} from '@/app/lib/execution/ExecutionOverride';
-import { OverrideRules } from '@/app/lib/execution/overrideRules';
+} from '../../../app/lib/execution/ExecutionOverride';
+import { OverrideRules } from '../../../app/lib/execution/overrideRules';
 
 /**
  * Override service state

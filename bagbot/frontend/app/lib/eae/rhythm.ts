@@ -141,14 +141,15 @@ export function detectMicroCycles(candles: CandleData[]): MicroCycle[] {
     // Detect cycle start
     if (!cycleStart) {
       cycleStart = candle;
-      cycleDirection = candle.direction;
+      cycleDirection = candle.direction === 'BULLISH' ? 'UP' : candle.direction === 'BEARISH' ? 'DOWN' : 'NEUTRAL';
       continue;
     }
 
     // Detect direction change (cycle end)
+    const currentDirection = candle.direction === 'BULLISH' ? 'UP' : candle.direction === 'BEARISH' ? 'DOWN' : 'NEUTRAL';
     if (
       candle.direction !== 'NEUTRAL' &&
-      candle.direction !== cycleDirection &&
+      currentDirection !== cycleDirection &&
       i - candles.indexOf(cycleStart) >= 2
     ) {
       // Close current cycle
@@ -173,7 +174,7 @@ export function detectMicroCycles(candles: CandleData[]): MicroCycle[] {
 
       // Start new cycle
       cycleStart = candle;
-      cycleDirection = candle.direction;
+      cycleDirection = currentDirection;
       cycleHigh = candle.high;
       cycleLow = candle.low;
     }

@@ -16,11 +16,11 @@
  * • Quality assurance metrics
  */
 
-import type { EnvironmentalState } from '@/app/engine/environmental/EnvironmentalConsciousnessCore';
-import type { ParallelIntelligenceState } from '@/components/fusion/ParallelIntelligenceCore';
-import type { TriPhaseState } from '@/components/fusion/EnvTriPhaseAwareness';
-import type { ReflexEngineState } from '@/components/fusion/ReflexEngineV2';
-import type { HoloMeshState } from '@/components/fusion/HoloWorldMeshLayer';
+import type { EnvironmentalState } from '../../app/engine/environmental/EnvironmentalConsciousnessCore';
+import type { ParallelIntelligenceState } from '../../components/fusion/ParallelIntelligenceCore';
+import type { TriPhaseState } from '../../components/fusion/EnvTriPhaseAwareness';
+import type { ReflexEngineState } from '../../components/fusion/ReflexEngineV2';
+import type { HoloMeshState } from '../../components/fusion/HoloWorldMeshLayer';
 
 // ============================================
 // TYPES

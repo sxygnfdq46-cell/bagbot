@@ -341,28 +341,3 @@ export interface OrderbookLevel {
   price: number;
   volume: number;
 }
-
-// ============================================================================
-// EXPORTS
-// ============================================================================
-
-export type {
-  EAETiming as default,
-  EAEContext,
-  RhythmData,
-  MicroCycle,
-  VolatilityWave,
-  LiquidityPulse,
-  KillZoneInfo,
-  CandleData,
-  EAEDebug,
-  EAEConfig,
-  EAEStatistics,
-  TimingWindow,
-  ExecutionSizing,
-  SyncState,
-  EAESnapshot,
-  MarketHeartbeat,
-  OrderbookData,
-  OrderbookLevel,
-};

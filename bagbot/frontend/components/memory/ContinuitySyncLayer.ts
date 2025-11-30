@@ -10,7 +10,7 @@
  * ═══════════════════════════════════════════════════════════════════
  */
 
-import type { MemoryEntry } from './RollingMemoryCore';
+import type { MemoryEntry, MemoryPriority } from './RollingMemoryCore';
 
 // ─────────────────────────────────────────────────────────────────
 // TYPE DEFINITIONS
@@ -359,7 +359,7 @@ export class ContinuitySyncLayer {
       // Write to all available storage adapters
       const promises: Promise<void>[] = [];
       
-      for (const adapter of this.storageAdapters.values()) {
+      for (const adapter of Array.from(this.storageAdapters.values())) {
         if (adapter.available) {
           promises.push(adapter.write(key, entry));
         }
@@ -416,7 +416,7 @@ export class ContinuitySyncLayer {
     try {
       const promises: Promise<void>[] = [];
       
-      for (const adapter of this.storageAdapters.values()) {
+      for (const adapter of Array.from(this.storageAdapters.values())) {
         if (adapter.available) {
           promises.push(adapter.delete(key));
         }
@@ -448,7 +448,7 @@ export class ContinuitySyncLayer {
     const entries: Map<string, MemoryEntry> = new Map();
     
     // Collect from all adapters
-    for (const adapter of this.storageAdapters.values()) {
+    for (const adapter of Array.from(this.storageAdapters.values())) {
       if (!adapter.available) continue;
       
       try {
@@ -459,7 +459,7 @@ export class ContinuitySyncLayer {
           if (entry && entry.id) {
             // Handle conflicts (newest version wins by default)
             const existing = entries.get(entry.id);
-            if (!existing || entry.updatedAt > existing.updatedAt) {
+            if (!existing || entry.lastAccessedAt > existing.lastAccessedAt) {
               entries.set(entry.id, entry);
             }
           }
@@ -501,12 +501,12 @@ export class ContinuitySyncLayer {
 
   private isConflict(local: MemoryEntry, remote: MemoryEntry): boolean {
     // Same ID but different content
-    if (local.updatedAt === remote.updatedAt) {
+    if (local.lastAccessedAt === remote.lastAccessedAt) {
       return JSON.stringify(local.content) !== JSON.stringify(remote.content);
     }
     
     // Different versions at similar times (within 1 second = likely conflict)
-    const timeDiff = Math.abs(local.updatedAt - remote.updatedAt);
+    const timeDiff = Math.abs(local.lastAccessedAt - remote.lastAccessedAt);
     if (timeDiff < 1000) {
       return local.version !== remote.version;
     }
@@ -517,12 +517,12 @@ export class ContinuitySyncLayer {
   async resolveConflict(conflict: SyncConflict): Promise<MemoryEntry> {
     switch (conflict.resolution || this.config.conflictResolution) {
       case 'newest_wins':
-        return conflict.localVersion.updatedAt > conflict.remoteVersion.updatedAt
+        return conflict.localVersion.lastAccessedAt > conflict.remoteVersion.lastAccessedAt
           ? conflict.localVersion
           : conflict.remoteVersion;
       
       case 'highest_priority':
-        const priorities = { critical: 4, high: 3, medium: 2, low: 1 };
+        const priorities: Record<MemoryPriority, number> = { critical: 4, high: 3, medium: 2, low: 1, archived: 0 };
         return priorities[conflict.localVersion.priority] >= priorities[conflict.remoteVersion.priority]
           ? conflict.localVersion
           : conflict.remoteVersion;
@@ -549,10 +549,10 @@ export class ContinuitySyncLayer {
     };
     
     // Use newest metadata
-    const merged: MemoryEntry = local.updatedAt > remote.updatedAt ? { ...local } : { ...remote };
+    const merged: MemoryEntry = local.lastAccessedAt > remote.lastAccessedAt ? { ...local } : { ...remote };
     merged.content = mergedContent;
     merged.version = Math.max(local.version, remote.version) + 1;
-    merged.updatedAt = Date.now();
+    merged.lastAccessedAt = Date.now();
     
     return merged;
   }
@@ -587,7 +587,7 @@ export class ContinuitySyncLayer {
     const now = Date.now();
     const staleThreshold = 30000; // 30 seconds
     
-    for (const [tabId, info] of this.activeTabs.entries()) {
+    for (const [tabId, info] of Array.from(this.activeTabs.entries())) {
       if (now - info.lastPing > staleThreshold) {
         this.activeTabs.delete(tabId);
       }
@@ -638,7 +638,7 @@ export class ContinuitySyncLayer {
   async clearAllStorage(): Promise<void> {
     const promises: Promise<void>[] = [];
     
-    for (const adapter of this.storageAdapters.values()) {
+    for (const adapter of Array.from(this.storageAdapters.values())) {
       if (adapter.available) {
         promises.push(adapter.clear());
       }

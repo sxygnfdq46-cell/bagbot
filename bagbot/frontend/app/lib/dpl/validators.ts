@@ -409,7 +409,7 @@ export function calculateOverallScore(
   let totalWeight = 0;
 
   for (const result of results) {
-    const weight = weightsToUse[result.validatorName] || 0.1;
+    const weight = (weightsToUse as Record<string, number>)[result.validatorName] || 0.1;
     totalScore += result.score * weight;
     totalWeight += weight;
   }

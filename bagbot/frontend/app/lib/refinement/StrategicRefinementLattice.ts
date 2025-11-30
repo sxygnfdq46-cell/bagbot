@@ -560,8 +560,15 @@ export class StrategicRefinementLattice {
     simulation: SimulationResult
   ): number {
     // Base improvement from optimizations
+    const weightMap: Record<string, keyof typeof this.refinementWeights> = {
+      risk: 'riskCheck',
+      volatility: 'volatilityAdjustment',
+      timing: 'timingOffset',
+      size: 'sizeCalibration',
+    };
+    
     const optimizationScore = optimizations.reduce(
-      (sum, opt) => sum + opt.improvement * this.refinementWeights[opt.type],
+      (sum, opt) => sum + opt.improvement * (this.refinementWeights[weightMap[opt.type] || 'riskCheck'] || 0.25),
       0
     );
 

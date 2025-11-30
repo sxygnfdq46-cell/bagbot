@@ -20,9 +20,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useIntelligenceStream } from '@/hooks/useIntelligenceStream';
-import { getFusionEngine } from '@/src/engine/fusion/FusionEngine';
-import type { FusionOutput, StabilizedFusion } from '@/src/engine/fusion/FusionTypes';
+import { useIntelligenceStream } from '../../hooks/useIntelligenceStream';
+import { getFusionEngine } from '../../src/engine/fusion/FusionEngine';
+import type { FusionOutput, StabilizedFusion } from '../../src/engine/fusion/FusionTypes';
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // TYPES
@@ -94,8 +94,8 @@ export function NeuralStrategyBridge() {
       intelligenceScore: Math.max(0, 100 - risk),
       riskLevel: risk,
       threatCount: clusters.length,
-      cascadeRisk: snapshot.correlations.pairs.filter((p: any) => p.isDestabilizing).length / Math.max(1, snapshot.correlations.pairs.length),
-      predictions: snapshot.predictions.nearTerm
+      cascadeRisk: (snapshot.correlations?.pairs?.filter((p: any) => p.isDestabilizing).length || 0) / Math.max(1, snapshot.correlations?.pairs?.length || 1),
+      predictions: snapshot.predictions?.nearTerm || []
     };
 
     // Compute fusion (raw)

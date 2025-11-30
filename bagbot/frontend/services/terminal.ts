@@ -3,7 +3,7 @@
  * SAFE: Read-only command stream + safe command execution
  */
 
-import { api } from '@/lib/api';
+import { api } from '../lib/api';
 
 export interface Command {
   id: string;

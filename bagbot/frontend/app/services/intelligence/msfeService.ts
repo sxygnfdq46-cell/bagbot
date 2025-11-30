@@ -19,7 +19,7 @@
 
 'use client';
 
-import { getStrategyFusionEngine } from '@/app/lib/msfe/StrategyFusionEngine';
+import { getStrategyFusionEngine } from '../../../app/lib/msfe/StrategyFusionEngine';
 import type {
   StrategyOutput,
   FusionResult,
@@ -28,8 +28,8 @@ import type {
   FusionSnapshot,
   MSFEStatistics,
   WeightMap,
-} from '@/app/lib/msfe/types';
-import { formatWeights, getTopStrategyByWeight } from '@/app/lib/msfe/weights';
+} from '../../../app/lib/msfe/types';
+import { formatWeights, getTopStrategyByWeight } from '../../../app/lib/msfe/weights';
 
 // ============================================================================
 // GLOBAL STATE

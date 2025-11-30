@@ -284,24 +284,3 @@ export interface ValidatorWeights {
   liquiditySlip: number; // Default: 0.20
   candlePrecision: number; // Default: 0.15
 }
-
-// ============================================================================
-// EXPORTS
-// ============================================================================
-
-export type {
-  DPLDecision as default,
-  DPLValidatorResult,
-  DPLContext,
-  MicroTrendData,
-  OrderbookData,
-  OrderbookLevel,
-  CandleData,
-  DPLDebug,
-  DPLConfig,
-  DPLStatistics,
-  ValidatorMetadata,
-  DPLSnapshot,
-  PrecisionCheckResult,
-  ValidatorWeights,
-};

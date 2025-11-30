@@ -2,7 +2,7 @@
 NO external calls. Deterministic behavior only.
 """
 from typing import Optional
-from bagbot.worker.decisions.schema import Signal
+from worker.decisions.schema import Signal
 from .risk_manager import RiskManager
 from .account import Account
 from .execution_types import Position, ExecutionResult

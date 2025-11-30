@@ -17,7 +17,7 @@
  * 
  * Usage Example:
  * ```typescript
- * import { initSNHL, startLoop, getCurrentHIF } from '@/app/services/intelligence/snhlService';
+ * import { initSNHL, startLoop, getCurrentHIF } from '../../../app/services/intelligence/snhlService';
  * 
  * // In your main app or intelligence provider:
  * initSNHL();
@@ -33,8 +33,8 @@
 
 'use client';
 
-import { getShieldNetworkHarmonizer } from '@/app/lib/harmonizer/ShieldNetworkHarmonizer';
-import type { HIF } from '@/app/lib/harmonizer/types';
+import { getShieldNetworkHarmonizer } from '../../../app/lib/harmonizer/ShieldNetworkHarmonizer';
+import type { HIF } from '../../../app/lib/harmonizer/types';
 
 // ============================================================================
 // SINGLETON HARMONIZER INSTANCE
@@ -110,8 +110,8 @@ function attachEngines(): void {
 
   // Dynamic engine attachment
   // In a real implementation, these would be imported dynamically:
-  // import { getShieldEngine } from '@/app/lib/shield/ShieldEngine';
-  // import { getThreatClusterEngine } from '@/app/lib/threats/ThreatClusterEngine';
+  // import { getShieldEngine } from '../../../app/lib/shield/ShieldEngine';
+  // import { getThreatClusterEngine } from '../../../app/lib/threats/ThreatClusterEngine';
   // etc.
 
   const engines = {

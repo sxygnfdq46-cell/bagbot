@@ -8,21 +8,21 @@
 import {
   getFusionCore,
   resetFusionCore,
-} from '@/app/lib/intelligence/FusionCore';
+} from '../../../app/lib/intelligence/FusionCore';
 
 import type {
   FusionDecision,
   FusionSummary,
-} from '@/app/lib/intelligence/FusionCore';
+} from '../../../app/lib/intelligence/FusionCore';
 
 import type {
   FusionMatrix,
-} from '@/app/lib/intelligence/fusionMatrix';
+} from '../../../app/lib/intelligence/fusionMatrix';
 
 import type {
   FusionWeights,
   WeightContext,
-} from '@/app/lib/intelligence/fusionWeights';
+} from '../../../app/lib/intelligence/fusionWeights';
 
 import {
   addFusionDecision,
@@ -30,7 +30,7 @@ import {
   getFusionStats,
   getRecentDecisions,
   getFusionQualityTrend,
-} from '@/app/state/fusionState';
+} from '../../../app/state/fusionState';
 
 /**
  * Event listener types

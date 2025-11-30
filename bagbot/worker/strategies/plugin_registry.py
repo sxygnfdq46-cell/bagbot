@@ -1,5 +1,5 @@
 from typing import Type, Dict
-from bagbot.worker.strategies.plugin import PluginBase
+from worker.strategies.plugin import PluginBase
 
 _PLUGIN_REGISTRY: Dict[str, Type[PluginBase]] = {}
 
@@ -12,5 +12,5 @@ def get_plugin_class(name: str):
 def list_plugins():
     return list(_PLUGIN_REGISTRY.keys())
 
-from bagbot.worker.strategies.plugins.sample_plugin import SamplePlugin
+from worker.strategies.plugins.sample_plugin import SamplePlugin
 register_plugin("sample", SamplePlugin)

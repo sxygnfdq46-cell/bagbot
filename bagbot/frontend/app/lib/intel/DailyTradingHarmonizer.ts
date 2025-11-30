@@ -1,7 +1,7 @@
 // app/lib/intel/DailyTradingHarmonizer.ts
 // Step 24.10 — Daily Trading Harmonizer
 
-import { threatSyncOrchestrator } from "@/engines/threat/ThreatSyncOrchestrator";
+import { threatSyncOrchestrator } from "../../../engines/threat/ThreatSyncOrchestrator";
 import { temporalThreatMemory } from "./TemporalThreatMemory";
 
 interface TradingConfig {
@@ -26,8 +26,21 @@ class DailyTradingHarmonizer {
 
     this.unsubscribe = threatSyncOrchestrator.subscribe((state) => {
       const { severity } = state;
-      this.update(severity);
+      // Convert severity enum to number
+      const severityNum = this.severityToNumber(severity);
+      this.update(severityNum);
     });
+  }
+
+  private severityToNumber(severity: string): number {
+    switch (severity) {
+      case 'NONE': return 0;
+      case 'LOW': return 0.25;
+      case 'MEDIUM': return 0.5;
+      case 'HIGH': return 0.75;
+      case 'CRITICAL': return 1.0;
+      default: return 0;
+    }
   }
 
   getConfig(): TradingConfig {

@@ -5,8 +5,8 @@
  * Provides global state access for React components.
  */
 
-import { MasterPattern, HeatmapData, RiskZone, OpportunityZone } from '@/app/lib/patterns/PatternSyncEngine';
-import { PatternType, PatternSignificance } from '@/app/lib/patterns/patternRules';
+import { MasterPattern, HeatmapData, RiskZone, OpportunityZone } from '../../app/lib/patterns/PatternSyncEngine';
+import { PatternType, PatternSignificance } from '../../app/lib/patterns/patternRules';
 
 /**
  * Pattern analysis result

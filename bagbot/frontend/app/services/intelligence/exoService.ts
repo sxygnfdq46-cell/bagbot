@@ -19,7 +19,7 @@
 
 'use client';
 
-import { getExecutionOrchestrator } from '@/app/lib/exo/ExecutionOrchestrator';
+import { getExecutionOrchestrator } from '../../../app/lib/exo/ExecutionOrchestrator';
 import type {
   EXODecision,
   EXOConfig,
@@ -27,10 +27,10 @@ import type {
   EXOStatistics,
   EXOContext,
   OrderbookData,
-} from '@/app/lib/exo/types';
-import type { DPLDecision } from '@/app/lib/dpl/types';
-import type { FusionResult } from '@/app/lib/msfe/types';
-import type { EAETiming } from '@/app/lib/eae/types';
+} from '../../../app/lib/exo/types';
+import type { DPLDecision } from '../../../app/lib/dpl/types';
+import type { FusionResult } from '../../../app/lib/msfe/types';
+import type { EAETiming } from '../../../app/lib/eae/types';
 
 // ============================================================================
 // GLOBAL STATE

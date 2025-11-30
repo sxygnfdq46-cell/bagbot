@@ -5,8 +5,8 @@
  * Tracks fusion decisions, conflict resolutions, and quality metrics.
  */
 
-import type { FusionDecision } from '@/app/lib/intelligence/FusionCore';
-import type { FusionMatrix } from '@/app/lib/intelligence/fusionMatrix';
+import type { FusionDecision } from '../../app/lib/intelligence/FusionCore';
+import type { FusionMatrix } from '../../app/lib/intelligence/fusionMatrix';
 
 /**
  * Conflict log entry

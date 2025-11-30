@@ -597,7 +597,7 @@ class TradingConsciousnessLoopClass {
       let maxDrift = 0;
       let driftType: StabilityDrift['driftType'] = 'PERFORMANCE';
       
-      for (const [metric, baseline] of this.baselineMetrics.entries()) {
+      for (const [metric, baseline] of Array.from(this.baselineMetrics.entries())) {
         const current = currentMetrics.get(metric) || baseline;
         const deviation = Math.abs(current - baseline);
         const percentageDeviation = (deviation / baseline) * 100;

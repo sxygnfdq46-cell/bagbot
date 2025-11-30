@@ -8,7 +8,7 @@
  * These types define market validation states, distortion types, and filter results.
  */
 
-import type { HIF, ExecutionInstruction } from '@/app/lib/harmonizer/types';
+import type { HIF, ExecutionInstruction } from '../../../app/lib/harmonizer/types';
 
 // ============================================================================
 // REALITY FILTERED ACTION — Main Output
@@ -244,24 +244,3 @@ export interface ERFEvent {
   data?: any;
   message?: string;
 }
-
-// ============================================================================
-// EXPORTS
-// ============================================================================
-
-export type {
-  RealityFilteredAction as default,
-  DistortionType,
-  MarketSyncState,
-  LatencyStatus,
-  ERFValidationResult,
-  ERFConfig,
-  VolatilityCheckResult,
-  LatencyCheckResult,
-  TrendCheckResult,
-  DistortionCheckResult,
-  ERFStatistics,
-  MarketRealitySnapshot,
-  ExecutionRealityContext,
-  ERFEvent,
-};

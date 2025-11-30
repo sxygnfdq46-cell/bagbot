@@ -22,7 +22,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import type { ReactorState } from '@/app/lib/avrs/ReactorSyncEngine';
+import type { ReactorState } from '../../../app/lib/avrs/ReactorSyncEngine';
 import './reactor.css';
 
 // ============================================================================

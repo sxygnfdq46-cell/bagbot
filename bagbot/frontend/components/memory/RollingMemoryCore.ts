@@ -254,7 +254,7 @@ export class RollingMemoryCore {
     
     const results: MemoryEntry[] = [];
     
-    for (const entry of this.entries.values()) {
+    for (const entry of Array.from(this.entries.values())) {
       // Check expiration
       if (Date.now() > entry.expiresAt) {
         this.entries.delete(entry.id);
@@ -299,7 +299,7 @@ export class RollingMemoryCore {
     }
     
     // Tag-based relationships
-    for (const otherEntry of this.entries.values()) {
+    for (const otherEntry of Array.from(this.entries.values())) {
       if (otherEntry.id === id) continue;
       if (related.some(r => r.id === otherEntry.id)) continue;
       
@@ -329,7 +329,7 @@ export class RollingMemoryCore {
     const lowerQuery = query.toLowerCase();
     const matches: Array<{ entry: MemoryEntry; score: number }> = [];
     
-    for (const entry of this.entries.values()) {
+    for (const entry of Array.from(this.entries.values())) {
       // Skip expired
       if (Date.now() > entry.expiresAt) {
         this.entries.delete(entry.id);
@@ -401,7 +401,7 @@ export class RollingMemoryCore {
     let decayedCount = 0;
     let purgedCount = 0;
     
-    for (const entry of this.entries.values()) {
+    for (const entry of Array.from(this.entries.values())) {
       // Skip locked entries
       if (entry.locked) continue;
       
@@ -467,7 +467,7 @@ export class RollingMemoryCore {
     const beforeCount = this.entries.size;
     
     // Remove expired entries
-    for (const [id, entry] of this.entries.entries()) {
+    for (const [id, entry] of Array.from(this.entries.entries())) {
       if (now > entry.expiresAt) {
         this.entries.delete(id);
       }
@@ -616,7 +616,7 @@ export class RollingMemoryCore {
     const invalid: string[] = [];
     let valid = 0;
     
-    for (const [id, entry] of this.entries.entries()) {
+    for (const [id, entry] of Array.from(this.entries.entries())) {
       if (this.validateIntegrity(id)) {
         valid++;
       } else {
@@ -652,7 +652,7 @@ export class RollingMemoryCore {
   private calculateStorageSize(): number {
     let size = 0;
     
-    for (const entry of this.entries.values()) {
+    for (const entry of Array.from(this.entries.values())) {
       // Rough estimate in bytes
       size += JSON.stringify(entry).length * 2; // UTF-16 encoding
     }

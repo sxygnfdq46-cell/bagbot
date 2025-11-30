@@ -158,7 +158,14 @@ export class OversightRecommendationEngine {
     
     // Determine if clarification needed
     const requiresClarification = intent.confidence < 70;
-    const clarifications = requiresClarification ? { questions: [], suggestions: [], alternatives: [], severity: 'high' as const } : undefined;
+    const clarifications = requiresClarification ? {
+      intent,
+      questions: [],
+      suggestions: [],
+      alternativeCommands: [],
+      requiredClarifications: [],
+      optionalClarifications: []
+    } : undefined;
     
     // Overall decision
     const shouldProceed = this.determineProceedRecommendation(
@@ -215,13 +222,15 @@ export class OversightRecommendationEngine {
   ): ExecutionPlan {
     
     // Select recommended path
-    const path = forecast.paths[forecast.recommended];
+    const path = forecast.recommended;
     
     // Build rationale
     const rationale = this.buildExecutionRationale(path, riskMap, health);
     
     // Extract expected outcomes
-    const expectedOutcomes = path.outcome.successes.slice(0, 5);
+    const expectedOutcomes = path.outcome === 'success' 
+      ? ['Successful execution expected']
+      : path.warnings.slice(0, 5);
     
     // Identify potential risks
     const potentialRisks = path.risks.map(r => r.description);
@@ -317,8 +326,8 @@ export class OversightRecommendationEngine {
     const alternatives: Alternative[] = [];
     
     // Safe path alternative
-    const safePath = forecast.paths[forecast.safest];
-    const recommendedPath = forecast.paths[forecast.recommended];
+    const safePath = forecast.safest;
+    const recommendedPath = forecast.recommended;
     if (safePath.id !== recommendedPath.id) {
       alternatives.push({
         id: 'safe-path',
@@ -339,7 +348,7 @@ export class OversightRecommendationEngine {
     }
     
     // Fast path alternative
-    const fastPath = forecast.paths[forecast.fastest];
+    const fastPath = forecast.fastest;
     if (fastPath.id !== recommendedPath.id && riskMap.overallZone !== 'FORBIDDEN') {
       alternatives.push({
         id: 'fast-path',
@@ -353,14 +362,14 @@ export class OversightRecommendationEngine {
           'Less stable execution',
           'Requires more monitoring'
         ],
-        riskReduction: this.calculateRiskReduction(forecast.recommendedPath, fastPath),
-        timeImpact: fastPath.duration - forecast.recommendedPath.duration,
+        riskReduction: this.calculateRiskReduction(forecast.recommended, fastPath),
+        timeImpact: fastPath.duration - forecast.recommended.duration,
         recommendation: 'Consider if time is critical and risks are acceptable'
       });
     }
     
     // Rewrite alternative
-    if (!intent.alignment.isValid || riskMap.overallZone === 'FORBIDDEN') {
+    if (intent.alignment.overall < 50 || riskMap.overallZone === 'FORBIDDEN') {
       alternatives.push({
         id: 'rewrite',
         description: 'Rewrite command with reduced scope or different approach',
@@ -383,8 +392,8 @@ export class OversightRecommendationEngine {
   }
 
   private calculateRiskReduction(basePath: ExecutionPath, altPath: ExecutionPath): number {
-    const baseRisk = basePath.risks.reduce((sum, r) => sum + r.probability, 0);
-    const altRisk = altPath.risks.reduce((sum, r) => sum + r.probability, 0);
+    const baseRisk = basePath.risks.reduce((sum, r) => sum + r.likelihood, 0);
+    const altRisk = altPath.risks.reduce((sum, r) => sum + r.likelihood, 0);
     
     if (baseRisk === 0) return 0;
     return Math.round(((baseRisk - altRisk) / baseRisk) * 100);
@@ -426,7 +435,7 @@ export class OversightRecommendationEngine {
         priority: 'high',
         title: 'System Health Critical',
         description: `System health is ${health.overall}`,
-        rationale: health.diagnostics,
+        rationale: health.warnings,
         impacts: ['Increased failure risk', 'Potential instability'],
         actionable: true,
         action: 'Wait for system to stabilize'
@@ -434,14 +443,14 @@ export class OversightRecommendationEngine {
     }
     
     // Trend warnings
-    if (trend.direction === 'degrading') {
+    if (trend.expectedRisk === 'danger' || trend.expectedRisk === 'critical') {
       warnings.push({
         id: 'degrading-trend',
         type: 'warning',
         priority: 'medium',
         title: 'System Degrading',
         description: 'System metrics are trending negatively',
-        rationale: [`Projected to reach ${trend.projectedRisk} in ${trend.timeToRisk}ms`],
+        rationale: [`Projected risk level: ${trend.expectedRisk}`],
         impacts: ['Conditions may worsen during execution'],
         actionable: true,
         action: 'Execute sooner or wait for improvement'
@@ -449,14 +458,14 @@ export class OversightRecommendationEngine {
     }
     
     // Intent alignment warnings
-    if (!intent.alignment.isWithinBoundaries) {
+    if (intent.alignment.withBoundaries < 50) {
       warnings.push({
         id: 'boundary-violation',
         type: 'safety',
         priority: 'critical',
         title: 'Safety Boundary Violation',
         description: 'Command exceeds system safety boundaries',
-        rationale: [`Boundary alignment: ${intent.alignment.boundaryAlignment}%`],
+        rationale: [`Boundary alignment: ${intent.alignment.withBoundaries}%`],
         impacts: ['May cause system damage or data loss'],
         actionable: true,
         action: 'Rewrite command within boundaries'
@@ -556,14 +565,14 @@ export class OversightRecommendationEngine {
   ): SystematicImpact[] {
     
     const impacts: SystematicImpact[] = [];
-    const path = forecast.recommendedPath;
+    const path = forecast.recommended;
     
     // Stability impact
-    const stabilityDelta = trend.direction === 'improving' ? 10 : -15;
+    const stabilityDelta = trend.expectedStability > 70 ? 10 : -15;
     impacts.push({
       category: 'stability',
-      current: health.congestion.stabilityIndex,
-      projected: Math.max(0, Math.min(100, health.congestion.stabilityIndex + stabilityDelta)),
+      current: health.congestion.bottleneckScore,
+      projected: Math.max(0, Math.min(100, health.congestion.bottleneckScore + stabilityDelta)),
       delta: stabilityDelta,
       description: `Execution will ${stabilityDelta > 0 ? 'improve' : 'stress'} system stability`,
       severity: stabilityDelta > 0 ? 'positive' : stabilityDelta < -20 ? 'negative' : 'neutral'
@@ -599,10 +608,10 @@ export class OversightRecommendationEngine {
     health: SystemHealthSnapshot
   ): EmotionalImpact {
     
-    const path = forecast.recommendedPath;
+    const path = forecast.recommended;
     
     // Estimate emotional load change
-    const loadChange = path.emotionalLoad - health.emotional.emotionalLoad;
+    const loadChange = path.emotionalLoad.sustained - health.emotional.emotionalLoad;
     
     // Determine tone shift
     let toneShift = 'stable';
@@ -611,7 +620,7 @@ export class OversightRecommendationEngine {
     else if (loadChange < -10) toneShift = 'relaxed';
     
     // Calculate harmonic impact
-    const harmonicImpact = health.emotional.harmonicBalance - path.emotionalLoad;
+    const harmonicImpact = health.emotional.harmonicBalance - path.emotionalLoad.sustained;
     
     // Estimate recovery time
     const recoveryTime = Math.abs(loadChange) * 500;
@@ -657,12 +666,12 @@ export class OversightRecommendationEngine {
     }
     
     // Block if not within boundaries
-    if (!intent.alignment.isWithinBoundaries) {
+    if (intent.alignment.withBoundaries < 50) {
       return false;
     }
     
-    // Block if not executable
-    if (!intent.alignment.isExecutable) {
+    // Block if not executable (check overall alignment)
+    if (intent.alignment.overall < 30) {
       return false;
     }
     
@@ -694,7 +703,7 @@ export class OversightRecommendationEngine {
       return `⚡ Proceed with caution. ${warnings.length} warning${warnings.length !== 1 ? 's' : ''} detected. Monitor execution closely.`;
     }
     
-    return `✅ Safe to proceed. Expected duration: ~${Math.round(plan.expectedDuration / 1000)}s. Success probability: ${plan.path.outcome.successProbability}%.`;
+    return `✅ Safe to proceed. Expected duration: ~${Math.round(plan.expectedDuration / 1000)}s. Confidence: ${plan.confidence}%.`;
   }
 
   // ─────────────────────────────────────────────────────────────

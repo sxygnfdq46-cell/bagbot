@@ -1,0 +1,150 @@
+/* ================================
+   SHADOW REFINEMENT
+   Enhanced depth perception
+   ================================ */
+
+/* Elevation Shadows - Material Design inspired */
+:root {
+  /* Elevation 1 - Subtle lift */
+  --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.4),
+              0 1px 2px rgba(0, 0, 0, 0.3);
+  
+  /* Elevation 2 - Card hover */
+  --shadow-2: 0 3px 6px rgba(0, 0, 0, 0.4),
+              0 3px 6px rgba(0, 0, 0, 0.3);
+  
+  /* Elevation 3 - Raised panels */
+  --shadow-3: 0 6px 12px rgba(0, 0, 0, 0.4),
+              0 4px 8px rgba(0, 0, 0, 0.3);
+  
+  /* Elevation 4 - Modal/overlay */
+  --shadow-4: 0 10px 20px rgba(0, 0, 0, 0.5),
+              0 6px 12px rgba(0, 0, 0, 0.4);
+  
+  /* Elevation 5 - Maximum depth */
+  --shadow-5: 0 16px 32px rgba(0, 0, 0, 0.6),
+              0 10px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Neon Glow + Shadow Combinations */
+.shadow-glow-cyan-1 {
+  box-shadow: 
+    var(--shadow-1),
+    0 0 15px rgba(0, 246, 255, 0.3);
+}
+
+.shadow-glow-cyan-2 {
+  box-shadow: 
+    var(--shadow-2),
+    0 0 20px rgba(0, 246, 255, 0.4);
+}
+
+.shadow-glow-cyan-3 {
+  box-shadow: 
+    var(--shadow-3),
+    0 0 25px rgba(0, 246, 255, 0.5);
+}
+
+.shadow-glow-magenta-1 {
+  box-shadow: 
+    var(--shadow-1),
+    0 0 15px rgba(255, 0, 255, 0.3);
+}
+
+.shadow-glow-magenta-2 {
+  box-shadow: 
+    var(--shadow-2),
+    0 0 20px rgba(255, 0, 255, 0.4);
+}
+
+.shadow-glow-magenta-3 {
+  box-shadow: 
+    var(--shadow-3),
+    0 0 25px rgba(255, 0, 255, 0.5);
+}
+
+/* Inset Shadows for Depth */
+.inset-shadow-1 {
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.inset-shadow-2 {
+  box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.inset-shadow-3 {
+  box-shadow: inset 0 6px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Combined Inset + Outset */
+.shadow-depth-cyan {
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(0, 246, 255, 0.4),
+    inset 0 0 20px rgba(0, 246, 255, 0.1);
+}
+
+.shadow-depth-magenta {
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(255, 0, 255, 0.4),
+    inset 0 0 20px rgba(255, 0, 255, 0.1);
+}
+
+.shadow-depth-green {
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(0, 255, 170, 0.4),
+    inset 0 0 20px rgba(0, 255, 170, 0.1);
+}
+
+/* Layered Shadows - Maximum depth */
+.shadow-layered-cyan {
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    0 4px 8px rgba(0, 0, 0, 0.2),
+    0 8px 16px rgba(0, 0, 0, 0.15),
+    0 0 20px rgba(0, 246, 255, 0.4),
+    0 0 40px rgba(0, 246, 255, 0.2);
+}
+
+.shadow-layered-magenta {
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    0 4px 8px rgba(0, 0, 0, 0.2),
+    0 8px 16px rgba(0, 0, 0, 0.15),
+    0 0 20px rgba(255, 0, 255, 0.4),
+    0 0 40px rgba(255, 0, 255, 0.2);
+}
+
+/* Text Shadows for Readability */
+.text-shadow-readable {
+  text-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.8),
+    0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.text-shadow-strong {
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.9),
+    0 4px 8px rgba(0, 0, 0, 0.7),
+    0 6px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Utility Classes */
+.shadow-1 { box-shadow: var(--shadow-1); }
+.shadow-2 { box-shadow: var(--shadow-2); }
+.shadow-3 { box-shadow: var(--shadow-3); }
+.shadow-4 { box-shadow: var(--shadow-4); }
+.shadow-5 { box-shadow: var(--shadow-5); }
+
+/* Hover Shadow Enhancement */
+.hover-shadow-lift {
+  transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-shadow-lift:hover {
+  box-shadow: 
+    0 10px 20px rgba(0, 0, 0, 0.5),
+    0 6px 12px rgba(0, 0, 0, 0.4);
+}

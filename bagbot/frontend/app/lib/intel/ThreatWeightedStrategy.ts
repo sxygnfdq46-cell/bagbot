@@ -1,7 +1,7 @@
 // app/lib/intel/ThreatWeightedStrategy.ts
 // Step 24.9 — Threat-Weighted Strategy Prioritizer
 
-import { threatSyncOrchestrator } from "@/engines/threat/ThreatSyncOrchestrator";
+import { threatSyncOrchestrator } from "../../../engines/threat/ThreatSyncOrchestrator";
 
 interface StrategyWeights {
   neural: number;
@@ -27,8 +27,20 @@ class ThreatWeightedStrategy {
 
     this.unsubscribe = threatSyncOrchestrator.subscribe((state) => {
       const { severity } = state;
-      this.adjust(severity);
+      const severityNum = this.severityToNumber(severity);
+      this.adjust(severityNum);
     });
+  }
+
+  private severityToNumber(severity: string): number {
+    switch (severity) {
+      case 'NONE': return 0;
+      case 'LOW': return 0.25;
+      case 'MEDIUM': return 0.5;
+      case 'HIGH': return 0.75;
+      case 'CRITICAL': return 1.0;
+      default: return 0;
+    }
   }
 
   getWeights(): StrategyWeights {

@@ -3,7 +3,7 @@
  * SAFE: Read-only AI query + message history
  */
 
-import { api } from '@/lib/api';
+import { api } from '../lib/api';
 
 export interface ChatMessage {
   id: string;

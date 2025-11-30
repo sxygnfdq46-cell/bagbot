@@ -30,9 +30,9 @@ class ContinuousRuntimeLoop {
         // Update hypervision metrics
         hypervision.updateMetrics({
           cpuLoad: 50, // placeholder
-          shieldScore: result.shield.fusionScore || 0,
+          shieldScore: result.shield.score || 0,
           coherence: 85, // placeholder
-          marketThreat: result.shield.fusionScore || 0,
+          marketThreat: result.shield.score || 0,
           strategyHarmony: 90, // placeholder
         });
 
@@ -47,7 +47,7 @@ class ContinuousRuntimeLoop {
           shield: result.shield.classification,
           strategy: result.strategyDecision.strategyMode,
           decision: result.decision.action,
-          trade: result.trade.orderType,
+          trade: result.trade.action,
         });
 
         eventBus.emit("tick", {
@@ -55,7 +55,7 @@ class ContinuousRuntimeLoop {
           shield: result.shield.classification,
           strategy: result.strategyDecision.strategyMode,
           decision: result.decision.action,
-          trade: result.trade.orderType,
+          trade: result.trade.action,
           safetyLevel,
           distortion: result.distortion || 0
         });

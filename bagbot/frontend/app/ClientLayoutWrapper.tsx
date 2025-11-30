@@ -9,13 +9,13 @@ import { MemoryImprintProvider } from './engine/entity/MemoryImprintProvider';
 import { EnvironmentalConsciousnessCore } from './engine/environmental/EnvironmentalConsciousnessCore';
 import { EnvironmentalFusionProvider } from './engine/fusion';
 import { StabilityProvider } from './engine/reflex';
-import { IdentityPersistenceLayer } from '../components/presence/IdentityPersistenceLayer';
-import { SymbioticGuardianProvider } from '../components/guardian/SymbioticGuardianProvider';
-import { SovereignProvider } from '../components/sovereignty/SovereignProvider';
+import { IdentityPersistenceLayer } from '@/components/presence/IdentityPersistenceLayer';
+import { SymbioticGuardianProvider } from '@/components/guardian/SymbioticGuardianProvider';
+import { SovereignProvider } from '@/components/sovereignty/SovereignProvider';
 import Navigation from './components/navigation/Navigation';
 import ThreatOverlay from './components/threat/ThreatOverlay';
 import ThreatReactivePanel from './components/threat/ThreatReactivePanel';
-import SafeModeBanner from '../components/SafeModeBanner';
+import SafeModeBanner from '@/components/SafeModeBanner';
 
 export default function ClientLayoutWrapper({
   children,

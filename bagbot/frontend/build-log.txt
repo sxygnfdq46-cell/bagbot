@@ -1,0 +1,95 @@
+
+> bagbot-frontend@1.0.0 build
+> next build
+
+   ▲ Next.js 14.0.4
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+Failed to compile.
+
+./src/engine/stability-shield/RiskScoringEngine.ts
+Error: 
+  [31mx[0m Unterminated string constant
+   ,-[[36;1;4m/Users/bagumadavis/Desktop/bagbot/bagbot/frontend/src/engine/stability-shield/RiskScoringEngine.ts[0m:1:1]
+ [2m1[0m | import { CorrelationMatrixEngine } from '../../../components/shield/brain/CorrelationMatrix";
+   : [31;1m                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+ [2m2[0m | import { RootCauseEngine } from '../../../components/shield/brain/RootCauseEngine";
+ [2m3[0m | 
+ [2m4[0m | // Placeholder for PredictionHorizon
+   `----
+
+  [31mx[0m Unterminated string constant
+   ,-[[36;1;4m/Users/bagumadavis/Desktop/bagbot/bagbot/frontend/src/engine/stability-shield/RiskScoringEngine.ts[0m:1:1]
+ [2m1[0m | import { CorrelationMatrixEngine } from '../../../components/shield/brain/CorrelationMatrix";
+ [2m2[0m | import { RootCauseEngine } from '../../../components/shield/brain/RootCauseEngine";
+   : [31;1m                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+ [2m3[0m | 
+ [2m4[0m | // Placeholder for PredictionHorizon
+ [2m5[0m | class PredictionHorizon {
+   `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./src/engine/stability-shield/RiskScoringEngine.ts
+./src/engine/stability-shield/ShieldOrchestrator.ts
+./src/engine/stability-shield/ShieldIntelligenceAPI.ts
+./components/admin/SystemOverviewDeck.tsx
+./app/admin/page.tsx
+
+./app/api/runtime-stream/route.ts
+Error: 
+  [31mx[0m Unterminated string constant
+   ,-[[36;1;4m/Users/bagumadavis/Desktop/bagbot/bagbot/frontend/app/api/runtime-stream/route.ts[0m:1:1]
+ [2m1[0m | import { NextResponse } from 'next/server';
+ [2m2[0m | import { eventBus } from '../../../app/lib/runtime/eventBus";
+   : [31;1m                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+ [2m3[0m | 
+ [2m4[0m | export async function GET() {
+ [2m5[0m |   const stream = new ReadableStream({
+   `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./app/api/runtime-stream/route.ts
+
+./app/api/runtime/route.ts
+Error: 
+  [31mx[0m Unterminated string constant
+   ,-[[36;1;4m/Users/bagumadavis/Desktop/bagbot/bagbot/frontend/app/api/runtime/route.ts[0m:1:1]
+ [2m1[0m | import { continuousRuntime } from '../../../app/lib/runtime/ContinuousRuntimeLoop";
+   : [31;1m                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+ [2m2[0m | 
+ [2m3[0m | export async function POST(request: Request) {
+ [2m4[0m |   try {
+   `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./app/api/runtime/route.ts
+
+./app/threat-center/page.tsx
+Error: 
+  [31mx[0m Unterminated string constant
+   ,-[[36;1;4m/Users/bagumadavis/Desktop/bagbot/bagbot/frontend/app/threat-center/page.tsx[0m:1:1]
+ [2m1[0m | import ThreatSyncDashboard from '../../app/components/threat/ThreatSyncDashboard";
+   : [31;1m                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+ [2m2[0m | 
+ [2m3[0m | export default function ThreatCenterPage() {
+ [2m4[0m |   return (
+   `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./app/threat-center/page.tsx
+
+
+> Build failed because of webpack errors

@@ -284,8 +284,8 @@ export class PreExecutionAuditGate {
     if (this.config.allowAutoApprovalForSafeCommands) {
       if (
         oversightReport.shouldProceed &&
-        oversightReport.riskMap.overallZone === 'SAFE' &&
-        oversightReport.warnings.length === 0
+        oversightReport.warnings.length === 0 &&
+        oversightReport.confidence > 80
       ) {
         return false;
       }

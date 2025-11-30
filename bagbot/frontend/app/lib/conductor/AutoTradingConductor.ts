@@ -5,8 +5,8 @@
  * Evaluates market state, subsystem health, and orchestrates decisions across the entire system.
  */
 
-import { GDSRouter, SignalType } from '@/app/lib/decision/GDSRouter';
-import { GDSTopology, SignalTier, EngineName } from '@/app/lib/decision/GDSTopology';
+import { GDSRouter } from '../../../app/lib/decision/GDSRouter';
+import { GDSTopology, SignalTier, EngineName, SignalType } from '../../../app/lib/decision/GDSTopology';
 
 /**
  * Market state evaluation
@@ -372,7 +372,7 @@ class AutoTradingConductorClass {
     const warnings: string[] = [];
     
     // Check each subsystem
-    for (const [name, config] of this.subsystems.entries()) {
+    for (const [name, config] of Array.from(this.subsystems.entries())) {
       const health = await this.checkSubsystemHealth(name);
       subsystemHealthMap.set(name, health);
       

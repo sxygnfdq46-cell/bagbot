@@ -8,7 +8,7 @@ import {
   OverrideResult,
   OverrideSummary,
   TradeModification,
-} from '@/app/lib/execution/ExecutionOverride';
+} from '../../app/lib/execution/ExecutionOverride';
 
 /**
  * Override state structure

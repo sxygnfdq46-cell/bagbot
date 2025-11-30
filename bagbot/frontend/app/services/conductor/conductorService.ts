@@ -5,15 +5,15 @@
  * Provides interface for cycle management, subsystem analysis, directive issuance, and insights.
  */
 
-import { AutoTradingConductor, CycleResult, OrchestrationDirective } from '@/app/lib/conductor/AutoTradingConductor';
-import { useConductorState } from '@/app/state/conductorState';
+import { AutoTradingConductor, CycleResult, OrchestrationDirective, SubsystemHealth } from '../../../app/lib/conductor/AutoTradingConductor';
+import { useConductorState } from '../../../app/state/conductorState';
 import {
   ConductorProfile,
   CONDUCTOR_PROFILES,
   getConductorProfile,
   getProfileNames,
-} from '@/app/lib/conductor/ConductorRules';
-import { gdsService } from '@/app/services/decision/gdsService';
+} from '../../../app/lib/conductor/ConductorRules';
+import { gdsService } from '../../../app/services/decision/gdsService';
 
 /**
  * Subsystem analysis result
@@ -210,14 +210,14 @@ class ConductorServiceClass {
     
     const analyses: SubsystemAnalysis[] = [];
     
-    state.subsystemHealth.subsystems.forEach((health, name) => {
+    state.subsystemHealth.subsystems.forEach((health: SubsystemHealth, name: string) => {
       // Get health history to determine trend
       const history = state.getSubsystemHealthHistory(name, 10);
       let trend: SubsystemAnalysis['trend'] = 'STABLE';
       
       if (history.length >= 3) {
-        const recentAvg = history.slice(-3).reduce((sum, h) => sum + h.health, 0) / 3;
-        const olderAvg = history.slice(0, 3).reduce((sum, h) => sum + h.health, 0) / 3;
+        const recentAvg = history.slice(-3).reduce((sum: number, h: SubsystemHealth) => sum + h.health, 0) / 3;
+        const olderAvg = history.slice(0, 3).reduce((sum: number, h: SubsystemHealth) => sum + h.health, 0) / 3;
         
         if (recentAvg > olderAvg + 5) {
           trend = 'IMPROVING';
@@ -303,7 +303,7 @@ class ConductorServiceClass {
    */
   getDirectivesByTarget(target: string): OrchestrationDirective[] {
     const state = useConductorState.getState();
-    return state.directiveHistory.filter(d => d.target === target);
+    return state.directiveHistory.filter((d: OrchestrationDirective) => d.target === target);
   }
   
   /**
@@ -311,7 +311,7 @@ class ConductorServiceClass {
    */
   getHighPriorityDirectives(): OrchestrationDirective[] {
     const state = useConductorState.getState();
-    return state.lastDirectives.filter(d => d.priority >= 80);
+    return state.lastDirectives.filter((d: OrchestrationDirective) => d.priority >= 80);
   }
   
   // ==========================================================================

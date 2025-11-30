@@ -1,0 +1,21 @@
+Loading candles...
+Loaded 678 candles
+Initializing backtest components...
+Loading config from best_genome_dual.json...
+Config loaded: Sharpe=2.58, MaxDD=16.26%
+Running backtest...
+
+============================================================
+BACKTEST RESULTS
+============================================================
+
+Total Trades: 240
+Win Rate: 0.00%
+Total Return: 13081.00%
+Max Drawdown: 16.26%
+Sharpe Ratio: 2.580
+
+Final Balance: $1318100.00
+Equity Points: 678
+
+============================================================

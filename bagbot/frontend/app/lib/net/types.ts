@@ -10,7 +10,11 @@
  * Note: Some types are re-exported from harmonizer/types.ts to maintain consistency.
  */
 
-// Re-export types from harmonizer that are shared
+// Import and re-export types from harmonizer that are shared
+import type {
+  SafetyGateResult as HarmonizerSafetyGateResult,
+} from '../../../app/lib/harmonizer/types';
+
 export type {
   HIF,
   ExecutionInstruction,
@@ -18,7 +22,7 @@ export type {
   SafetyGateResult,
   ActionConfidenceLevel,
   ThreatOverrideState,
-} from '@/app/lib/harmonizer/types';
+} from '../../../app/lib/harmonizer/types';
 
 // ============================================================================
 // NET-SPECIFIC CONFIGURATION
@@ -45,8 +49,8 @@ export interface NETConfig {
  * TranslationResult — Full result of HIF → ExecutionInstruction translation
  */
 export interface TranslationResult {
-  instruction: import('@/app/lib/harmonizer/types').ExecutionInstruction;
-  hif: import('@/app/lib/harmonizer/types').HIF;
+  instruction: import('../../../app/lib/harmonizer/types').ExecutionInstruction;
+  hif: import('../../../app/lib/harmonizer/types').HIF;
   translationTime: number; // milliseconds
   wasSafetyBlocked: boolean;
   wasThreatOverridden: boolean;
@@ -146,7 +150,7 @@ export interface SafetyCheckDetail {
 /**
  * EnhancedSafetyGateResult — Extended safety gate result with details
  */
-export interface EnhancedSafetyGateResult extends import('@/app/lib/harmonizer/types').SafetyGateResult {
+export interface EnhancedSafetyGateResult extends HarmonizerSafetyGateResult {
   checkDetails: SafetyCheckDetail[];
   overallScore: number; // 0-100
   criticalFailures: string[]; // List of critical failures
@@ -225,23 +229,3 @@ export interface NETEvent {
   data?: any;
   message?: string;
 }
-
-// ============================================================================
-// EXPORTS
-// ============================================================================
-
-export type {
-  NETConfig as default,
-  TranslationResult,
-  NETStatistics,
-  ExecutionActionType,
-  PositionSizingStrategy,
-  RiskParameters,
-  UrgencyLevel,
-  SafetyCheckDetail,
-  EnhancedSafetyGateResult,
-  ContextAdjustmentResult,
-  TranslationPipelineStage,
-  TranslationPipelineState,
-  NETEvent,
-};

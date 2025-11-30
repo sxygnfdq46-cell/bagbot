@@ -17,9 +17,9 @@
  * 
  * Usage Example:
  * ```typescript
- * import { initAEG, evaluateGovernor, getGovernorSnapshot } from '@/app/services/intelligence/aegService';
- * import { getERFStatus } from '@/app/services/intelligence/erfService';
- * import { getCurrentHIF } from '@/app/services/intelligence/snhlService';
+ * import { initAEG, evaluateGovernor, getGovernorSnapshot } from '../../../app/services/intelligence/aegService';
+ * import { getERFStatus } from '../../../app/services/intelligence/erfService';
+ * import { getCurrentHIF } from '../../../app/services/intelligence/snhlService';
  * 
  * // Initialize AEG
  * initAEG();
@@ -41,16 +41,16 @@
 
 'use client';
 
-import { getAutonomousExecutionGovernor } from '@/app/lib/aeg/AutonomousExecutionGovernor';
-import type { HIF } from '@/app/lib/harmonizer/types';
-import type { ERFValidationResult } from '@/app/lib/erf/types';
+import { getAutonomousExecutionGovernor } from '../../../app/lib/aeg/AutonomousExecutionGovernor';
+import type { HIF } from '../../../app/lib/harmonizer/types';
+import type { ERFValidationResult } from '../../../app/lib/erf/types';
 import type {
   GovernorResult,
   AEGConfig,
   AEGStatistics,
   GovernorSnapshot,
   ExecutionProfile,
-} from '@/app/lib/aeg/types';
+} from '../../../app/lib/aeg/types';
 
 // ============================================================================
 // SINGLETON GOVERNOR INSTANCE
@@ -399,8 +399,8 @@ export function isAegInitialized(): boolean {
  * 
  * Usage:
  * ```typescript
- * import { onValidationComplete } from '@/app/services/intelligence/erfService';
- * import { autoEvaluateFromERF } from '@/app/services/intelligence/aegService';
+ * import { onValidationComplete } from '../../../app/services/intelligence/erfService';
+ * import { autoEvaluateFromERF } from '../../../app/services/intelligence/aegService';
  * 
  * onValidationComplete((erfResult) => {
  *   const hif = getCurrentHIF();

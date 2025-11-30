@@ -3,7 +3,7 @@
  * SAFE: Read-only strategy data + safe start/stop endpoints
  */
 
-import { api } from '@/lib/api';
+import { api } from '../lib/api';
 
 export interface Strategy {
   id: string;

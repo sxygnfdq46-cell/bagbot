@@ -616,7 +616,7 @@ export class MemoryAuditGate {
 
   cleanup(): void {
     // Clear all timers
-    for (const timer of this.expirationTimers.values()) {
+    for (const timer of Array.from(this.expirationTimers.values())) {
       clearTimeout(timer);
     }
     this.expirationTimers.clear();

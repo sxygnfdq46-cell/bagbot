@@ -1,0 +1,207 @@
+/* Responsive Grid Utilities */
+
+/* Mobile First Grid */
+.responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
+}
+
+/* Tablet (iPad) */
+@media (min-width: 768px) {
+  .responsive-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .responsive-grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .responsive-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .responsive-grid {
+    gap: 1.5rem;
+  }
+
+  .responsive-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .responsive-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Desktop 1440p */
+@media (min-width: 1440px) {
+  .responsive-grid {
+    gap: 2rem;
+  }
+
+  .responsive-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+
+  .responsive-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+  }
+}
+
+/* Ultra-Wide 4K */
+@media (min-width: 2560px) {
+  .responsive-grid {
+    gap: 3rem;
+  }
+
+  .responsive-grid-3 {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 3rem;
+  }
+
+  .responsive-grid-4 {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 3rem;
+  }
+
+  .responsive-grid-dashboard {
+    grid-template-columns: repeat(12, 1fr);
+  }
+}
+
+/* Touch-Optimized Buttons (Mobile) */
+@media (max-width: 1023px) {
+  button,
+  a.button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* Collapsible Sidebar Variants */
+.sidebar-collapsed {
+  width: 4rem;
+}
+
+.sidebar-expanded {
+  width: 16rem;
+}
+
+@media (min-width: 768px) {
+  .sidebar-collapsed {
+    width: 5rem;
+  }
+
+  .sidebar-expanded {
+    width: 18rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  .sidebar-expanded {
+    width: 20rem;
+  }
+}
+
+/* Fluid Container Widths */
+.container-fluid {
+  width: 100%;
+  max-width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 768px) {
+  .container-fluid {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  .container-fluid {
+    padding-left: 2rem;
+    padding-right: 2rem;
+    max-width: 1920px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (min-width: 2560px) {
+  .container-fluid {
+    max-width: 2400px;
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+}
+
+/* Responsive Text Sizing */
+.text-responsive-xs {
+  font-size: 0.75rem;
+}
+
+.text-responsive-sm {
+  font-size: 0.875rem;
+}
+
+.text-responsive-base {
+  font-size: 1rem;
+}
+
+.text-responsive-lg {
+  font-size: 1.125rem;
+}
+
+.text-responsive-xl {
+  font-size: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .text-responsive-xl {
+    font-size: 1.5rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  .text-responsive-xl {
+    font-size: 1.75rem;
+  }
+}
+
+@media (min-width: 2560px) {
+  .text-responsive-xl {
+    font-size: 2rem;
+  }
+}
+
+/* Card Responsive Padding */
+.card-responsive {
+  padding: 1rem;
+}
+
+@media (min-width: 768px) {
+  .card-responsive {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  .card-responsive {
+    padding: 2rem;
+  }
+}
+
+@media (min-width: 2560px) {
+  .card-responsive {
+    padding: 2.5rem;
+  }
+}

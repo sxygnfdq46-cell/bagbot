@@ -1,4 +1,4 @@
-import ThreatSyncDashboard from "@/app/components/threat/ThreatSyncDashboard";
+import ThreatSyncDashboard from "../../app/components/threat/ThreatSyncDashboard";
 
 export default function ThreatCenterPage() {
   return (

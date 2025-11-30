@@ -1,0 +1,437 @@
+/**
+ * LEVEL 7.4: ENTITY BIO-VISUAL DRIFT
+ * 
+ * Visual personality drift — slow environmental evolutions
+ * 
+ * - Particle drift gets sharper or smoother
+ * - Hues shift by ±2 degrees per day
+ * - Aura density increases/decreases over time
+ * - Shadow bloom changes with engagement history
+ * 
+ * Nothing jumps. Everything evolves.
+ */
+
+/* ============================================
+   GENOME PERSONALITY TEMPERAMENTS
+   ============================================ */
+
+/* Calm temperament: Soft, patient, smooth */
+.entity-temperament-calm {
+  --entity-patience-multiplier: 1.3;
+  --entity-focus-softness: 0.7;
+  --entity-pulse-dampening: 0.6;
+  --entity-particle-drift-speed: 0.8;
+  --entity-glow-intensity: 0.85;
+}
+
+/* Balanced temperament: Moderate, adaptive */
+.entity-temperament-balanced {
+  --entity-patience-multiplier: 1.0;
+  --entity-focus-softness: 1.0;
+  --entity-pulse-dampening: 1.0;
+  --entity-particle-drift-speed: 1.0;
+  --entity-glow-intensity: 1.0;
+}
+
+/* Energetic temperament: Fast, responsive, sharp */
+.entity-temperament-energetic {
+  --entity-patience-multiplier: 0.7;
+  --entity-focus-softness: 1.3;
+  --entity-pulse-dampening: 1.4;
+  --entity-particle-drift-speed: 1.3;
+  --entity-glow-intensity: 1.2;
+}
+
+/* ============================================
+   GENOME PERSONALITY STYLES
+   ============================================ */
+
+/* Subtle style: Minimal visual assertiveness */
+.entity-style-subtle {
+  --entity-visual-assertiveness: 0.6;
+  --entity-aura-density: 0.7;
+  --entity-shadow-bloom: 0.5;
+  --entity-prediction-boldness: 0.7;
+}
+
+/* Moderate style: Balanced visual presence */
+.entity-style-moderate {
+  --entity-visual-assertiveness: 1.0;
+  --entity-aura-density: 1.0;
+  --entity-shadow-bloom: 1.0;
+  --entity-prediction-boldness: 1.0;
+}
+
+/* Bold style: Strong visual presence */
+.entity-style-bold {
+  --entity-visual-assertiveness: 1.4;
+  --entity-aura-density: 1.3;
+  --entity-shadow-bloom: 1.5;
+  --entity-prediction-boldness: 1.3;
+}
+
+/* ============================================
+   GENOME MATURITY LEVELS
+   ============================================ */
+
+/* Emerging: Just starting, unstable, exploring */
+.entity-maturity-emerging {
+  --entity-stability-factor: 0.3;
+  --entity-evolution-volatility: 1.5;
+  --entity-prediction-confidence: 0.5;
+  --entity-identity-anchor-strength: 0.4;
+  animation: entity-bio-emerge 3s ease-out;
+}
+
+@keyframes entity-bio-emerge {
+  0% {
+    opacity: 0;
+    filter: blur(20px);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0px);
+  }
+}
+
+/* Growing: Stabilizing, learning patterns */
+.entity-maturity-growing {
+  --entity-stability-factor: 0.6;
+  --entity-evolution-volatility: 1.2;
+  --entity-prediction-confidence: 0.7;
+  --entity-identity-anchor-strength: 0.7;
+}
+
+/* Developing: Consistent, recognizable personality */
+.entity-maturity-developing {
+  --entity-stability-factor: 0.8;
+  --entity-evolution-volatility: 0.9;
+  --entity-prediction-confidence: 0.85;
+  --entity-identity-anchor-strength: 0.9;
+}
+
+/* Mature: Stable identity, confident predictions */
+.entity-maturity-mature {
+  --entity-stability-factor: 1.0;
+  --entity-evolution-volatility: 0.7;
+  --entity-prediction-confidence: 1.0;
+  --entity-identity-anchor-strength: 1.0;
+}
+
+/* ============================================
+   HUE DRIFT (±2° per day)
+   ============================================ */
+
+/* 
+  Hue shift classes for ±10° range (5 days of drift)
+  Apply dynamically based on genome evolution
+*/
+
+.entity-hue-drift-n10 { filter: hue-rotate(-10deg); }
+.entity-hue-drift-n8 { filter: hue-rotate(-8deg); }
+.entity-hue-drift-n6 { filter: hue-rotate(-6deg); }
+.entity-hue-drift-n4 { filter: hue-rotate(-4deg); }
+.entity-hue-drift-n2 { filter: hue-rotate(-2deg); }
+.entity-hue-drift-0 { filter: hue-rotate(0deg); }
+.entity-hue-drift-p2 { filter: hue-rotate(2deg); }
+.entity-hue-drift-p4 { filter: hue-rotate(4deg); }
+.entity-hue-drift-p6 { filter: hue-rotate(6deg); }
+.entity-hue-drift-p8 { filter: hue-rotate(8deg); }
+.entity-hue-drift-p10 { filter: hue-rotate(10deg); }
+
+/* ============================================
+   PARTICLE DRIFT SHARPNESS
+   ============================================ */
+
+/* Sharp particles: High focus, energetic, responsive */
+.entity-particles-sharp {
+  --particle-blur: 0px;
+  --particle-edge-softness: 0.1;
+  --particle-velocity-variance: 1.5;
+}
+
+/* Moderate particles: Balanced */
+.entity-particles-moderate {
+  --particle-blur: 2px;
+  --particle-edge-softness: 0.5;
+  --particle-velocity-variance: 1.0;
+}
+
+/* Smooth particles: Calm, patient, gentle */
+.entity-particles-smooth {
+  --particle-blur: 4px;
+  --particle-edge-softness: 0.9;
+  --particle-velocity-variance: 0.6;
+}
+
+/* ============================================
+   AURA DENSITY DRIFT
+   ============================================ */
+
+/* Low density: Minimal presence, subtle */
+.entity-aura-density-low {
+  --aura-opacity: 0.3;
+  --aura-particle-count: 0.5;
+  --aura-glow-spread: 20px;
+}
+
+/* Medium density: Balanced presence */
+.entity-aura-density-medium {
+  --aura-opacity: 0.6;
+  --aura-particle-count: 1.0;
+  --aura-glow-spread: 40px;
+}
+
+/* High density: Strong presence, bold */
+.entity-aura-density-high {
+  --aura-opacity: 0.9;
+  --aura-particle-count: 1.5;
+  --aura-glow-spread: 60px;
+}
+
+/* ============================================
+   SHADOW BLOOM (engagement history)
+   ============================================ */
+
+/* Minimal bloom: Low engagement, subtle */
+.entity-shadow-bloom-minimal {
+  --shadow-blur: 10px;
+  --shadow-spread: 5px;
+  --shadow-opacity: 0.2;
+  --shadow-pulse-speed: 4s;
+}
+
+/* Moderate bloom: Balanced engagement */
+.entity-shadow-bloom-moderate {
+  --shadow-blur: 20px;
+  --shadow-spread: 10px;
+  --shadow-opacity: 0.4;
+  --shadow-pulse-speed: 3s;
+}
+
+/* Strong bloom: High engagement, deep connection */
+.entity-shadow-bloom-strong {
+  --shadow-blur: 35px;
+  --shadow-spread: 20px;
+  --shadow-opacity: 0.6;
+  --shadow-pulse-speed: 2s;
+  animation: entity-shadow-pulse var(--shadow-pulse-speed) ease-in-out infinite;
+}
+
+@keyframes entity-shadow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 var(--shadow-blur) var(--shadow-spread) rgba(99, 102, 241, var(--shadow-opacity));
+  }
+  50% {
+    box-shadow: 0 0 calc(var(--shadow-blur) * 1.3) calc(var(--shadow-spread) * 1.3) rgba(99, 102, 241, calc(var(--shadow-opacity) * 1.2));
+  }
+}
+
+/* ============================================
+   EVOLUTION TRAJECTORY VISUAL STATES
+   ============================================ */
+
+/* Maturing: Growing, strengthening */
+.entity-trajectory-maturing {
+  animation: entity-bio-mature 2s ease-in-out;
+}
+
+@keyframes entity-bio-mature {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.02);
+    filter: brightness(1.1);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+/* Stable: Consistent, confident */
+.entity-trajectory-stable {
+  /* No animation - stability is the absence of change */
+}
+
+/* Regressing: Weakening, losing confidence */
+.entity-trajectory-regressing {
+  animation: entity-bio-regress 3s ease-in-out;
+}
+
+@keyframes entity-bio-regress {
+  0% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 0.8;
+    filter: brightness(0.9);
+  }
+  100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+/* Exploring: Experimenting, searching */
+.entity-trajectory-exploring {
+  animation: entity-bio-explore 4s ease-in-out infinite;
+}
+
+@keyframes entity-bio-explore {
+  0%, 100% {
+    filter: hue-rotate(0deg) brightness(1);
+  }
+  25% {
+    filter: hue-rotate(5deg) brightness(1.05);
+  }
+  50% {
+    filter: hue-rotate(0deg) brightness(1);
+  }
+  75% {
+    filter: hue-rotate(-5deg) brightness(1.05);
+  }
+}
+
+/* ============================================
+   RESONANCE STRENGTH VISUAL FEEDBACK
+   ============================================ */
+
+/* Low resonance: Weak connection */
+.entity-resonance-low {
+  --resonance-glow: 0.3;
+  --resonance-pulse-speed: 5s;
+  opacity: 0.7;
+}
+
+/* Medium resonance: Growing connection */
+.entity-resonance-medium {
+  --resonance-glow: 0.6;
+  --resonance-pulse-speed: 3s;
+  opacity: 0.85;
+}
+
+/* High resonance: Strong connection */
+.entity-resonance-high {
+  --resonance-glow: 1.0;
+  --resonance-pulse-speed: 2s;
+  opacity: 1.0;
+  animation: entity-resonance-pulse var(--resonance-pulse-speed) ease-in-out infinite;
+}
+
+@keyframes entity-resonance-pulse {
+  0%, 100% {
+    filter: brightness(1) saturate(1);
+  }
+  50% {
+    filter: brightness(1.1) saturate(1.2);
+  }
+}
+
+/* ============================================
+   GENOME EVOLUTION TRANSITION
+   ============================================ */
+
+/* 
+  Applied during genome evolution (24h cycles)
+  Smooth transition prevents jarring changes
+*/
+
+.entity-evolving {
+  transition: 
+    filter 3s ease-in-out,
+    opacity 3s ease-in-out,
+    transform 3s ease-in-out;
+}
+
+/* ============================================
+   IDENTITY ANCHOR VISUAL CONTINUITY
+   ============================================ */
+
+/* 
+  Core identity styles that persist despite evolution
+  These ensure recognizability over time
+*/
+
+.entity-identity-anchored {
+  /* Base color never drifts beyond ±10° */
+  --identity-hue-min: -10deg;
+  --identity-hue-max: 10deg;
+  
+  /* Core presence always visible */
+  --identity-min-opacity: 0.5;
+  
+  /* Personality signature persists */
+  --identity-signature-color: rgba(99, 102, 241, 0.8);
+}
+
+/* ============================================
+   GENOME PARAMETER DIRECT VISUAL MAPPING
+   ============================================ */
+
+/* 
+  Apply these dynamically based on genome parameter values
+  Each class represents a parameter range
+*/
+
+/* Patience Factor: 0-100 → wait time visual */
+.entity-patience-low { --patience-visual-delay: 0.1s; }
+.entity-patience-medium { --patience-visual-delay: 0.3s; }
+.entity-patience-high { --patience-visual-delay: 0.5s; }
+
+/* Focus Intensity: 0-100 → sharpness */
+.entity-focus-low { filter: blur(3px); }
+.entity-focus-medium { filter: blur(1px); }
+.entity-focus-high { filter: blur(0px); }
+
+/* Ambient Pulse: 0-100 → background activity */
+.entity-pulse-low { animation: entity-ambient-pulse 6s ease-in-out infinite; }
+.entity-pulse-medium { animation: entity-ambient-pulse 4s ease-in-out infinite; }
+.entity-pulse-high { animation: entity-ambient-pulse 2s ease-in-out infinite; }
+
+@keyframes entity-ambient-pulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1.0; }
+}
+
+/* Responsiveness Speed: 0-100 → transition speed */
+.entity-responsiveness-slow { transition-duration: 1s; }
+.entity-responsiveness-medium { transition-duration: 0.5s; }
+.entity-responsiveness-fast { transition-duration: 0.2s; }
+
+/* Emotional Elasticity: 0-100 → mood shift smoothness */
+.entity-elasticity-rigid { --mood-transition-speed: 2s; }
+.entity-elasticity-flexible { --mood-transition-speed: 1s; }
+.entity-elasticity-fluid { --mood-transition-speed: 0.3s; }
+
+/* Visual Assertiveness: 0-100 → effect boldness */
+.entity-assertiveness-subtle { transform: scale(0.95); opacity: 0.8; }
+.entity-assertiveness-moderate { transform: scale(1.0); opacity: 1.0; }
+.entity-assertiveness-bold { transform: scale(1.05); opacity: 1.0; filter: saturate(1.2); }
+
+/* Prediction Boldness: 0-100 → UI confidence */
+.entity-prediction-tentative { --prediction-opacity: 0.4; --prediction-scale: 0.9; }
+.entity-prediction-moderate { --prediction-opacity: 0.7; --prediction-scale: 1.0; }
+.entity-prediction-confident { --prediction-opacity: 1.0; --prediction-scale: 1.1; }
+
+/* ============================================
+   NOTHING JUMPS. EVERYTHING EVOLVES.
+   ============================================ */
+
+/* Global smooth transitions for all bio-visual changes */
+* {
+  --bio-evolution-speed: 2s;
+}
+
+.entity-bio-container,
+.entity-bio-element,
+[class*="entity-"] {
+  transition: 
+    filter var(--bio-evolution-speed) ease-in-out,
+    opacity var(--bio-evolution-speed) ease-in-out,
+    transform var(--bio-evolution-speed) ease-in-out,
+    box-shadow var(--bio-evolution-speed) ease-in-out;
+}

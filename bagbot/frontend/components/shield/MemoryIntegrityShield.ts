@@ -72,7 +72,7 @@ export interface SyncConflict {
   remoteVersion: number;
   localData: any;
   remoteData: any;
-  resolution: 'local' | 'remote' | 'merged' | 'pending';
+  resolution: 'local' | 'remote' | 'merged' | 'newest' | 'pending';
 }
 
 export interface IntegrityCheck {
@@ -698,7 +698,7 @@ export class MemoryIntegrityShield {
     }
 
     // Clean resolved corruption events
-    for (const [id, event] of this.corruptionEvents.entries()) {
+    for (const [id, event] of Array.from(this.corruptionEvents.entries())) {
       if (event.resolved && Date.now() - (event.resolvedAt || 0) > 3600000) {
         this.corruptionEvents.delete(id);
       }
@@ -782,7 +782,7 @@ export class MemoryIntegrityShield {
   private getTotalStorageUsed(): number {
     // Simulated storage usage
     let total = 0;
-    for (const snapshot of this.snapshots.values()) {
+    for (const snapshot of Array.from(this.snapshots.values())) {
       total += snapshot.metadata.size;
     }
     return total;

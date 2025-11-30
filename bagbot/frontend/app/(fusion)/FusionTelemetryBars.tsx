@@ -8,7 +8,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import DivergenceInsightBridge from '@/app/lib/analytics/DivergenceInsightBridge';
+import DivergenceInsightBridge from '../../app/lib/analytics/DivergenceInsightBridge';
 
 interface FusionTelemetry {
   core: number;

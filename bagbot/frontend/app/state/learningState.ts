@@ -8,12 +8,12 @@
 import {
   RLUpdate,
   LearningSummary,
-} from '@/app/lib/learning/ReinforcementCore';
+} from '../../app/lib/learning/ReinforcementCore';
 import {
   RewardWeights,
   PenaltyWeights,
   LearningConfig,
-} from '@/app/lib/learning/learningRules';
+} from '../../app/lib/learning/learningRules';
 
 /**
  * Learning state structure

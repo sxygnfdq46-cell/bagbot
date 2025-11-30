@@ -18,7 +18,7 @@
  *   LongHorizonThoughtEngine,
  *   MultiAgentDebateEngine,
  *   UltraFusionOverlay
- * } from '@/components/meta';
+ * } from '../../components/meta';
  * ```
  */
 

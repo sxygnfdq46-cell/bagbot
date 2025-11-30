@@ -310,7 +310,7 @@ function detectConflicts(results: AnyEngineResult[]): FusionMatrix['conflicts'] 
   
   // Check for action conflicts
   const actions = results.map(r => ({ engine: r.engineName, action: r.action }));
-  const uniqueActions = [...new Set(actions.map(a => a.action))];
+  const uniqueActions = Array.from(new Set(actions.map(a => a.action)));
   
   if (uniqueActions.length > 2) {
     const conflictingEngines = actions.map(a => a.engine);

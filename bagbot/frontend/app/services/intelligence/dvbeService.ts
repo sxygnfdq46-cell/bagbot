@@ -8,7 +8,7 @@
 import {
   getVolatilityBehaviorEngine,
   resetVolatilityBehaviorEngine,
-} from '@/app/lib/intelligence/VolatilityBehaviorEngine';
+} from '../../../app/lib/intelligence/VolatilityBehaviorEngine';
 
 import type {
   VolatilitySnapshot,
@@ -17,7 +17,7 @@ import type {
   VolatilityPhase,
   VolatilityBehavior,
   DVBEConfig,
-} from '@/app/lib/intelligence/volatilityTypes';
+} from '../../../app/lib/intelligence/volatilityTypes';
 
 import {
   addVolatilityState,
@@ -25,7 +25,7 @@ import {
   getVolatilityStats,
   getRecentTransitions,
   getVolatilityEnvironment,
-} from '@/app/state/dvbeState';
+} from '../../../app/state/dvbeState';
 
 /**
  * Event listener types

@@ -334,22 +334,3 @@ export interface VolatilityAnomaly {
   resolved: boolean;
   resolutionTime: number | null;
 }
-
-/**
- * Export all types
- */
-export type {
-  VolatilityBehavior,
-  VolatilityPhase,
-  VolatilitySeverity,
-  VolatilitySnapshot,
-  BehaviorResult,
-  VolatilityMetrics,
-  PhaseTransition,
-  VolatilityStats,
-  VolatilityContext,
-  DVBEConfig,
-  VolatilityTrend,
-  BehaviorPattern,
-  VolatilityAnomaly,
-};

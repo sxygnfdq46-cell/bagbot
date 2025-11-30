@@ -14,9 +14,10 @@
 import type {
   ExecutionRuleResult,
   RuleContext,
-  EAETiming,
   OrderbookData,
 } from './types';
+
+import type { EAETiming } from '../eae/types';
 
 // ============================================================================
 // RULE: NO KILL ZONES — Avoid unfavorable time windows

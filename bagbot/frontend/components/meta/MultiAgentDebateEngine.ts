@@ -22,10 +22,10 @@
  * • Decision explanation (why the council decided)
  */
 
-import type { EnvironmentalState } from '@/app/engine/environmental/EnvironmentalConsciousnessCore';
-import type { ParallelIntelligenceState } from '@/components/fusion/ParallelIntelligenceCore';
-import type { TriPhaseState } from '@/components/fusion/EnvTriPhaseAwareness';
-import type { ReflexEngineState } from '@/components/fusion/ReflexEngineV2';
+import type { EnvironmentalState } from '../../app/engine/environmental/EnvironmentalConsciousnessCore';
+import type { ParallelIntelligenceState } from '../../components/fusion/ParallelIntelligenceCore';
+import type { TriPhaseState } from '../../components/fusion/EnvTriPhaseAwareness';
+import type { ReflexEngineState } from '../../components/fusion/ReflexEngineV2';
 import type { LongHorizonState } from './LongHorizonThoughtEngine';
 
 // ============================================

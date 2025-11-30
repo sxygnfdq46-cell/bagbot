@@ -1,7 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { threatSyncOrchestrator } from "@/engines/threat/ThreatSyncOrchestrator";
+import { threatSyncOrchestrator, ThreatSeverity } from "../../../engines/threat/ThreatSyncOrchestrator";
+
+// Convert severity string to number for UI calculations
+const severityToNumber = (severity: ThreatSeverity): number => {
+  switch (severity) {
+    case 'NONE': return 0;
+    case 'LOW': return 0.25;
+    case 'MEDIUM': return 0.5;
+    case 'HIGH': return 0.75;
+    case 'CRITICAL': return 1.0;
+    default: return 0;
+  }
+};
 
 export default function ThreatInfluenceIndicator() {
   const [severity, setSeverity] = useState(0);
@@ -9,11 +21,12 @@ export default function ThreatInfluenceIndicator() {
 
   useEffect(() => {
     const unsub = threatSyncOrchestrator.subscribe((stats) => {
-      setSeverity(stats.severity || 0);
+      const severityNum = severityToNumber(stats.severity);
+      setSeverity(severityNum);
       
       // Calculate modifier based on severity
-      if (stats.severity < 0.4) setModifier(1.0);
-      else if (stats.severity <= 0.65) setModifier(0.7);
+      if (severityNum < 0.4) setModifier(1.0);
+      else if (severityNum <= 0.65) setModifier(0.7);
       else setModifier(0.4);
     });
     return () => unsub();

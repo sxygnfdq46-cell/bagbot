@@ -270,7 +270,7 @@ export class FusionCore {
     // Check for volatility warning
     if (!resolvedAction) {
       const volatilityConflict = matrix.conflicts.find(c => c.conflictType === "volatility_warning");
-      if (volatilityConflict && matrix.engines.volatility?.severity > 80) {
+      if (volatilityConflict && matrix.engines.volatility?.severity && matrix.engines.volatility.severity > 80) {
         resolutionMethod = "volatility_halt";
         resolvedAction = "HALT";
         console.log('[FusionCore] High volatility - forcing HALT');
@@ -515,7 +515,7 @@ export class FusionCore {
       warnings.push('⚠️ Shield is active - trading restricted');
     }
     
-    if (matrix.engines.volatility?.severity > 75) {
+    if (matrix.engines.volatility?.severity && matrix.engines.volatility.severity > 75) {
       warnings.push('⚠️ High volatility detected');
     }
     

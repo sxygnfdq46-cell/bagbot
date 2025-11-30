@@ -16,9 +16,9 @@
  * • Strategic narrative generation (coherent story of the plan)
  */
 
-import type { EnvironmentalState } from '@/app/engine/environmental/EnvironmentalConsciousnessCore';
-import type { ParallelIntelligenceState } from '@/components/fusion/ParallelIntelligenceCore';
-import type { TriPhaseState } from '@/components/fusion/EnvTriPhaseAwareness';
+import type { EnvironmentalState } from '../../app/engine/environmental/EnvironmentalConsciousnessCore';
+import type { ParallelIntelligenceState } from '../../components/fusion/ParallelIntelligenceCore';
+import type { TriPhaseState } from '../../components/fusion/EnvTriPhaseAwareness';
 
 // ============================================
 // TYPES

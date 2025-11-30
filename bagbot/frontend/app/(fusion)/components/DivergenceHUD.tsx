@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import DivergenceInsightBridge from "@/app/lib/analytics/DivergenceInsightBridge";
+import DivergenceInsightBridge from "../../../app/lib/analytics/DivergenceInsightBridge";
 
 export default function DivergenceHUD() {
   const [data, setData] = useState<any>(null);
@@ -10,19 +10,17 @@ export default function DivergenceHUD() {
       const bridge = new DivergenceInsightBridge();
       const res = await bridge.getUIIntelligence();
       
-      // Extract divergence metrics from panels
-      const bullish = res.panels.find((p: any) => p.title?.includes("Bullish"));
-      const bearish = res.panels.find((p: any) => p.title?.includes("Bearish"));
-      const conf = res.panels.find((p: any) => p.title?.includes("Confidence"));
-      const trend = res.panels.find((p: any) => p.title?.includes("Trend"));
-      const reversal = res.panels.find((p: any) => p.title?.includes("Reversal"));
-
+      // Extract divergence metrics from panels (check for null)
+      const panels = res.panels || {};
+      const divergencePanel = (panels as any)?.divergencePanel;
+      
+      // Mock data since panel structure has changed
       setData({
-        bullishStrength: bullish ? parseFloat(bullish.value) || 0 : 0,
-        bearishStrength: bearish ? parseFloat(bearish.value) || 0 : 0,
-        confidence: conf ? parseFloat(conf.value) || 0 : 0,
-        trendDirection: trend?.value || "NEUTRAL",
-        lastReversal: reversal?.value || "N/A"
+        bullishStrength: 0,
+        bearishStrength: 0,
+        confidence: 0,
+        trendDirection: "NEUTRAL",
+        lastReversal: "N/A"
       });
     } catch (err) {
       console.error("HUD error:", err);

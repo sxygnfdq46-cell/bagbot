@@ -5,7 +5,7 @@
  * and market perception data for global access.
  */
 
-import { SentienceAnalysis, PressureZone } from '@/app/lib/sentience/SentienceEngine';
+import { SentienceAnalysis, PressureZone } from '../../app/lib/sentience/SentienceEngine';
 
 /**
  * Pressure map entry

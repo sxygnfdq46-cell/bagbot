@@ -1,6 +1,6 @@
 from typing import Dict, Any
-from bagbot.worker.executor.account import VirtualAccount
-from bagbot.worker.executor.position import VirtualPosition
+from worker.executor.account import VirtualAccount
+from worker.executor.position import VirtualPosition
 
 class VirtualExecutor:
     """

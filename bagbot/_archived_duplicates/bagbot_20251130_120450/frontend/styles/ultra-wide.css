@@ -1,0 +1,149 @@
+/* Ultra-Wide 4K Specific Styles */
+
+/* 4K Dashboard Layout */
+@media (min-width: 2560px) {
+  .dashboard-4k {
+    display: grid;
+    grid-template-columns: 320px 1fr 480px;
+    gap: 3rem;
+  }
+
+  .chart-4k {
+    min-height: 800px;
+  }
+
+  .widget-grid-4k {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 2rem;
+  }
+}
+
+/* 4K Typography Scaling */
+@media (min-width: 2560px) {
+  h1 {
+    font-size: 4rem;
+    line-height: 1.1;
+  }
+
+  h2 {
+    font-size: 3rem;
+    line-height: 1.2;
+  }
+
+  h3 {
+    font-size: 2.25rem;
+    line-height: 1.3;
+  }
+
+  .text-display-4k {
+    font-size: 5rem;
+    font-weight: 800;
+  }
+}
+
+/* 4K Sidebar Expansion */
+@media (min-width: 2560px) {
+  .sidebar-4k {
+    width: 320px;
+  }
+
+  .sidebar-4k .nav-item {
+    padding: 1.5rem 2rem;
+    font-size: 1.125rem;
+  }
+
+  .sidebar-4k .icon {
+    font-size: 2rem;
+  }
+}
+
+/* 4K Card Layouts */
+@media (min-width: 2560px) {
+  .card-4k {
+    padding: 3rem;
+    border-radius: 1.5rem;
+  }
+
+  .card-4k-large {
+    padding: 4rem;
+  }
+}
+
+/* 4K Multi-Panel Dashboard */
+@media (min-width: 3440px) {
+  .ultra-wide-dashboard {
+    display: grid;
+    grid-template-columns: 280px repeat(3, 1fr) 400px;
+    gap: 2.5rem;
+  }
+
+  .ultra-wide-chart {
+    grid-column: span 2;
+    min-height: 900px;
+  }
+}
+
+/* 4K Glow Enhancement */
+@media (min-width: 2560px) {
+  .neon-text-4k {
+    text-shadow: 
+      0 0 15px rgba(0, 246, 255, 0.8),
+      0 0 30px rgba(0, 246, 255, 0.6),
+      0 0 45px rgba(0, 246, 255, 0.4),
+      0 0 60px rgba(0, 246, 255, 0.2);
+  }
+
+  .holo-border-4k {
+    box-shadow:
+      0 0 20px rgba(0, 246, 255, 0.4),
+      0 0 40px rgba(0, 246, 255, 0.3),
+      0 0 60px rgba(0, 246, 255, 0.2),
+      inset 0 0 30px rgba(0, 246, 255, 0.1);
+  }
+}
+
+/* 4K Button Sizing */
+@media (min-width: 2560px) {
+  button,
+  .button {
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+    border-radius: 0.75rem;
+  }
+
+  button.button-lg,
+  .button-lg {
+    padding: 1.5rem 3rem;
+    font-size: 1.25rem;
+  }
+}
+
+/* 4K Input Fields */
+@media (min-width: 2560px) {
+  input,
+  textarea,
+  select {
+    padding: 1.25rem 1.5rem;
+    font-size: 1.125rem;
+    border-radius: 0.75rem;
+  }
+}
+
+/* 4K Stats/Widgets */
+@media (min-width: 2560px) {
+  .stat-widget-4k {
+    min-width: 280px;
+    padding: 2.5rem;
+  }
+
+  .stat-widget-4k .value {
+    font-size: 3.5rem;
+    font-weight: 800;
+  }
+
+  .stat-widget-4k .label {
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+  }
+}

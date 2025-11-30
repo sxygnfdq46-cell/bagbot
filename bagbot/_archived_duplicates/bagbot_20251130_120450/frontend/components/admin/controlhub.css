@@ -1,0 +1,1024 @@
+/**
+ * ═══════════════════════════════════════════════════════════════════
+ * CONTROL HUB THEME — LEVEL 17.4
+ * ═══════════════════════════════════════════════════════════════════
+ * Purple techwave styling for operational control hub
+ * 
+ * Features:
+ * - Neon-purple control lines
+ * - Hologram-style panel divisions
+ * - Soft pulsing glows
+ * - GPU-accelerated animations
+ * - Smooth button press feedback
+ * - Cyber-grid background
+ * ═══════════════════════════════════════════════════════════════════
+ */
+
+/* ─────────────────────────────────────────────────────────────────
+   CONTROL HUB CONTAINER
+   ───────────────────────────────────────────────────────────────── */
+
+.control-hub-container {
+  position: relative;
+  background-image: 
+    linear-gradient(rgba(123, 43, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(123, 43, 255, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: -1px -1px;
+}
+
+.control-hub-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(123, 43, 255, 0.05) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  animation: cyber-grid-pulse 8s ease-in-out infinite;
+}
+
+@keyframes cyber-grid-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   CONTROL HUB SECTIONS
+   ───────────────────────────────────────────────────────────────── */
+
+.control-hub-section {
+  background: linear-gradient(
+    135deg,
+    rgba(20, 10, 40, 0.6) 0%,
+    rgba(30, 15, 50, 0.4) 100%
+  );
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(123, 43, 255, 0.2);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.control-hub-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(123, 43, 255, 0.5) 50%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.control-hub-section:hover {
+  border-color: rgba(123, 43, 255, 0.4);
+  box-shadow: 0 4px 20px rgba(123, 43, 255, 0.1);
+}
+
+.control-hub-section:hover::before {
+  opacity: 1;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   CONTROL HUB CARDS
+   ───────────────────────────────────────────────────────────────── */
+
+.control-hub-card {
+  background: linear-gradient(
+    135deg,
+    rgba(15, 8, 30, 0.8) 0%,
+    rgba(25, 12, 40, 0.6) 100%
+  );
+  border: 1px solid rgba(123, 43, 255, 0.2);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.control-hub-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(216, 107, 255, 0.1) 50%,
+    transparent 100%
+  );
+  transition: left 0.5s ease;
+}
+
+.control-hub-card:hover {
+  border-color: rgba(123, 43, 255, 0.5);
+  box-shadow: 
+    0 0 20px rgba(123, 43, 255, 0.2),
+    inset 0 0 20px rgba(123, 43, 255, 0.05);
+  transform: translateY(-2px);
+}
+
+.control-hub-card:hover::after {
+  left: 100%;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   BUTTON FEEDBACK
+   ───────────────────────────────────────────────────────────────── */
+
+.control-hub-section button,
+.control-hub-card button {
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
+  transition: all 0.2s ease;
+}
+
+.control-hub-section button::before,
+.control-hub-card button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translate(-50%, -50%);
+  transition: width 0.4s ease, height 0.4s ease;
+}
+
+.control-hub-section button:active::before,
+.control-hub-card button:active::before {
+  width: 200%;
+  height: 200%;
+}
+
+.control-hub-section button:active,
+.control-hub-card button:active {
+  transform: scale(0.95);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   SOFT PULSE GLOW
+   ───────────────────────────────────────────────────────────────── */
+
+@keyframes soft-pulse-glow {
+  0%, 100% {
+    box-shadow: 
+      0 0 5px rgba(123, 43, 255, 0.3),
+      inset 0 0 5px rgba(123, 43, 255, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 0 15px rgba(123, 43, 255, 0.5),
+      inset 0 0 10px rgba(123, 43, 255, 0.2);
+  }
+}
+
+.soft-pulse-glow {
+  animation: soft-pulse-glow 3s ease-in-out infinite;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   HOLOGRAM DIVIDERS
+   ───────────────────────────────────────────────────────────────── */
+
+.hologram-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(123, 43, 255, 0.5) 20%,
+    rgba(216, 107, 255, 0.5) 50%,
+    rgba(123, 43, 255, 0.5) 80%,
+    transparent 100%
+  );
+  position: relative;
+}
+
+.hologram-divider::before,
+.hologram-divider::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 4px;
+  height: 4px;
+  background: rgba(216, 107, 255, 0.8);
+  border-radius: 50%;
+  animation: hologram-dot-pulse 2s ease-in-out infinite;
+}
+
+.hologram-divider::before {
+  left: 0;
+}
+
+.hologram-divider::after {
+  right: 0;
+  animation-delay: 1s;
+}
+
+@keyframes hologram-dot-pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.5);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   CONFIRMATION MODAL ANIMATIONS
+   ───────────────────────────────────────────────────────────────── */
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   CUSTOM SCROLLBAR
+   ───────────────────────────────────────────────────────────────── */
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(15, 5, 30, 0.5);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    rgba(123, 43, 255, 0.6) 0%,
+    rgba(216, 107, 255, 0.6) 100%
+  );
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(123, 43, 255, 0.8) 0%,
+    rgba(216, 107, 255, 0.8) 100%
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   STATUS INDICATORS
+   ───────────────────────────────────────────────────────────────── */
+
+.status-indicator {
+  position: relative;
+  display: inline-block;
+}
+
+.status-indicator::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: inherit;
+  filter: blur(4px);
+  opacity: 0.5;
+  z-index: -1;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   PERFORMANCE OPTIMIZATIONS
+   ───────────────────────────────────────────────────────────────── */
+
+.control-hub-container *,
+.control-hub-section *,
+.control-hub-card * {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.control-hub-section,
+.control-hub-card,
+.control-hub-container button {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   REDUCED MOTION SUPPORT
+   ───────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .control-hub-container::before,
+  .control-hub-section::before,
+  .control-hub-card::after,
+  .hologram-divider::before,
+  .hologram-divider::after,
+  .soft-pulse-glow {
+    animation: none !important;
+  }
+
+  .control-hub-section,
+  .control-hub-card,
+  button {
+    transition: none !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   RESPONSIVE ADJUSTMENTS
+   ───────────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .control-hub-section {
+    padding: 1rem;
+  }
+
+  .control-hub-container {
+    background-size: 15px 15px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PHASE 2 ENHANCEMENTS — Level 17.4
+   ═══════════════════════════════════════════════════════════════════
+   New styles for:
+   - Neon frame anchors
+   - 3-column adaptive grid
+   - GPU blur panels
+   - Holographic ripple effects
+   - Ring meters
+   - Toggle switches
+   - Pulse indicators
+   - Time-reversal slider
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────────────────────────
+   NEON FRAME ANCHORS
+   ───────────────────────────────────────────────────────────────── */
+
+.frame-anchor {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(123, 43, 255, 0.6);
+  pointer-events: none;
+  z-index: 10;
+  animation: frame-anchor-pulse 3s ease-in-out infinite;
+}
+
+.frame-anchor::before,
+.frame-anchor::after {
+  content: '';
+  position: absolute;
+  background: rgba(216, 107, 255, 0.8);
+  box-shadow: 0 0 8px rgba(216, 107, 255, 0.6);
+}
+
+.frame-anchor-tl {
+  top: 10px;
+  left: 10px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.frame-anchor-tl::before {
+  width: 8px;
+  height: 2px;
+  top: -2px;
+  left: -2px;
+}
+
+.frame-anchor-tl::after {
+  width: 2px;
+  height: 8px;
+  top: -2px;
+  left: -2px;
+}
+
+.frame-anchor-tr {
+  top: 10px;
+  right: 10px;
+  border-left: none;
+  border-bottom: none;
+}
+
+.frame-anchor-tr::before {
+  width: 8px;
+  height: 2px;
+  top: -2px;
+  right: -2px;
+}
+
+.frame-anchor-tr::after {
+  width: 2px;
+  height: 8px;
+  top: -2px;
+  right: -2px;
+}
+
+.frame-anchor-bl {
+  bottom: 10px;
+  left: 10px;
+  border-right: none;
+  border-top: none;
+}
+
+.frame-anchor-bl::before {
+  width: 8px;
+  height: 2px;
+  bottom: -2px;
+  left: -2px;
+}
+
+.frame-anchor-bl::after {
+  width: 2px;
+  height: 8px;
+  bottom: -2px;
+  left: -2px;
+}
+
+.frame-anchor-br {
+  bottom: 10px;
+  right: 10px;
+  border-left: none;
+  border-top: none;
+}
+
+.frame-anchor-br::before {
+  width: 8px;
+  height: 2px;
+  bottom: -2px;
+  right: -2px;
+}
+
+.frame-anchor-br::after {
+  width: 2px;
+  height: 8px;
+  bottom: -2px;
+  right: -2px;
+}
+
+@keyframes frame-anchor-pulse {
+  0%, 100% {
+    opacity: 0.6;
+    border-color: rgba(123, 43, 255, 0.6);
+  }
+  50% {
+    opacity: 1;
+    border-color: rgba(216, 107, 255, 0.9);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   3-COLUMN ADAPTIVE GRID
+   ───────────────────────────────────────────────────────────────── */
+
+.adaptive-3col-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  transition: all 240ms ease;
+}
+
+/* Tablet: 2 columns */
+@media (min-width: 768px) {
+  .adaptive-3col-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop: 3 columns */
+@media (min-width: 1024px) {
+  .adaptive-3col-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Ultrawide: 3 columns with larger gap */
+@media (min-width: 1920px) {
+  .adaptive-3col-grid {
+    gap: 2rem;
+  }
+}
+
+.adaptive-3col-span {
+  grid-column: 1 / -1;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   GPU BLUR PANELS
+   ───────────────────────────────────────────────────────────────── */
+
+.blur-panel {
+  backdrop-filter: blur(12px) saturate(1.2);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  position: relative;
+  transform: translateZ(0);
+  will-change: backdrop-filter;
+}
+
+.blur-panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 50% 0%,
+    rgba(123, 43, 255, 0.05) 0%,
+    transparent 60%
+  );
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   HOLOGRAPHIC RIPPLE EFFECTS
+   ───────────────────────────────────────────────────────────────── */
+
+.hologram-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 240ms ease;
+}
+
+.hologram-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.2) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transform: scale(0);
+  transition: opacity 400ms ease, transform 600ms ease;
+}
+
+.hologram-button:active::before {
+  opacity: 1;
+  transform: scale(2);
+  transition: opacity 100ms ease, transform 300ms ease;
+}
+
+.shadow-red-ripple {
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+}
+
+.shadow-green-ripple {
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+}
+
+.shadow-orange-ripple {
+  box-shadow: 0 0 15px rgba(251, 146, 60, 0.4);
+}
+
+.hologram-tag {
+  animation: soft-pulse-glow 3s ease-in-out infinite;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   TOGGLE SWITCHES
+   ───────────────────────────────────────────────────────────────── */
+
+.toggle-switch-container {
+  display: inline-block;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  background: rgba(107, 114, 128, 0.3);
+  border: 1px solid rgba(107, 114, 128, 0.5);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 240ms ease;
+}
+
+.toggle-switch-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: rgba(156, 163, 175, 0.8);
+  border-radius: 50%;
+  transition: all 240ms ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-switch-on {
+  background: rgba(16, 185, 129, 0.3);
+  border-color: rgba(52, 211, 153, 0.6);
+}
+
+.toggle-switch-on .toggle-switch-slider {
+  transform: translateX(16px);
+  background: rgba(52, 211, 153, 0.9);
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);
+}
+
+.toggle-switch-off:hover {
+  background: rgba(107, 114, 128, 0.4);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   STATUS ORBS
+   ───────────────────────────────────────────────────────────────── */
+
+.status-orb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  position: relative;
+}
+
+.status-orb::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: inherit;
+  filter: blur(6px);
+  opacity: 0.6;
+  animation: orb-pulse 2s ease-in-out infinite;
+}
+
+.status-orb-active {
+  background: rgba(52, 211, 153, 0.9);
+}
+
+.status-orb-inactive {
+  background: rgba(107, 114, 128, 0.6);
+}
+
+@keyframes orb-pulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   MODE INDICATORS
+   ───────────────────────────────────────────────────────────────── */
+
+.mode-indicator {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: rgba(167, 139, 250, 0.9);
+  border-radius: 50%;
+  animation: mode-blink 1.5s ease-in-out infinite;
+}
+
+@keyframes mode-blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.active-mode {
+  box-shadow: 0 0 20px rgba(167, 139, 250, 0.5);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   RING METERS
+   ───────────────────────────────────────────────────────────────── */
+
+.ring-meter-card {
+  transition: all 240ms ease;
+}
+
+.ring-meter-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(123, 43, 255, 0.2);
+}
+
+.ring-meter-progress {
+  transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 0 8px rgba(123, 43, 255, 0.6));
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   PULSE INDICATORS
+   ───────────────────────────────────────────────────────────────── */
+
+.pulse-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.pulse-indicator::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: inherit;
+  filter: blur(4px);
+  animation: pulse-ring 2s ease-in-out infinite;
+}
+
+.pulse-indicator-active {
+  background: rgba(52, 211, 153, 0.9);
+}
+
+.pulse-indicator-idle {
+  background: rgba(107, 114, 128, 0.6);
+}
+
+.pulse-indicator-blocked {
+  background: rgba(239, 68, 68, 0.9);
+}
+
+.pulse-indicator-waiting {
+  background: rgba(251, 191, 36, 0.9);
+}
+
+@keyframes pulse-ring {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.3);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   THREAD STATES
+   ───────────────────────────────────────────────────────────────── */
+
+.thread-card {
+  transition: all 240ms ease;
+}
+
+.thread-warning {
+  border-color: rgba(251, 146, 60, 0.5) !important;
+  box-shadow: 0 0 12px rgba(251, 146, 60, 0.3);
+}
+
+.thread-overload {
+  border-color: rgba(239, 68, 68, 0.6) !important;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.5);
+  animation: overload-glow 2s ease-in-out infinite;
+}
+
+@keyframes overload-glow {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.7);
+  }
+}
+
+.performance-rank {
+  animation: rank-shimmer 3s ease-in-out infinite;
+}
+
+@keyframes rank-shimmer {
+  0%, 100% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1.2);
+  }
+}
+
+.activity-bar-glow {
+  filter: drop-shadow(0 0 4px rgba(167, 139, 250, 0.5));
+}
+
+.cpu-overload-glow {
+  filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.6));
+  animation: cpu-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes cpu-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.8));
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   SAFETY GATE ENHANCEMENTS
+   ───────────────────────────────────────────────────────────────── */
+
+.safety-gate-card {
+  transition: all 240ms ease;
+}
+
+.cooldown-timer {
+  animation: cooldown-pulse 1s ease-in-out infinite;
+}
+
+@keyframes cooldown-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   TIME-REVERSAL SLIDER
+   ───────────────────────────────────────────────────────────────── */
+
+.time-reversal-panel {
+  transition: all 240ms ease;
+}
+
+.time-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(123, 43, 255, 0.3) 0%,
+    rgba(216, 107, 255, 0.3) 100%
+  );
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+
+.time-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(
+    135deg,
+    rgba(123, 43, 255, 0.9) 0%,
+    rgba(216, 107, 255, 0.9) 100%
+  );
+  border: 2px solid rgba(216, 107, 255, 0.6);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(123, 43, 255, 0.6);
+  transition: all 240ms ease;
+}
+
+.time-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 16px rgba(123, 43, 255, 0.8);
+}
+
+.time-slider::-webkit-slider-thumb:active {
+  transform: scale(1.1);
+}
+
+.time-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(
+    135deg,
+    rgba(123, 43, 255, 0.9) 0%,
+    rgba(216, 107, 255, 0.9) 100%
+  );
+  border: 2px solid rgba(216, 107, 255, 0.6);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(123, 43, 255, 0.6);
+  transition: all 240ms ease;
+}
+
+.time-slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 16px rgba(123, 43, 255, 0.8);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   SAFE MODE INDICATOR
+   ───────────────────────────────────────────────────────────────── */
+
+.safe-mode-indicator {
+  margin-left: auto;
+  padding: 0.25rem 0.75rem;
+  background: rgba(251, 146, 60, 0.1);
+  border: 1px solid rgba(251, 146, 60, 0.3);
+  border-radius: 9999px;
+  animation: safe-mode-pulse 3s ease-in-out infinite;
+}
+
+@keyframes safe-mode-pulse {
+  0%, 100% {
+    border-color: rgba(251, 146, 60, 0.3);
+    background: rgba(251, 146, 60, 0.1);
+  }
+  50% {
+    border-color: rgba(251, 146, 60, 0.5);
+    background: rgba(251, 146, 60, 0.15);
+  }
+}
+
+.module-control-card {
+  transition: all 240ms ease;
+}
+
+.module-control-card:hover {
+  transform: translateY(-2px);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   GLOBAL TRANSITION OVERRIDE
+   ───────────────────────────────────────────────────────────────── */
+
+.control-hub-container * {
+  transition-duration: 240ms !important;
+  transition-timing-function: ease !important;
+}
+
+/* Preserve specific animations that should be longer */
+.ring-meter-progress,
+.activity-bar-glow,
+.time-slider::-webkit-slider-thumb,
+.time-slider::-moz-range-thumb {
+  transition-duration: 1s !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   RECOVERY SYSTEM PANEL
+   ───────────────────────────────────────────────────────────────── */
+
+.recovery-system-panel {
+  animation: recovery-pulse 4s ease-in-out infinite;
+}
+
+@keyframes recovery-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(52, 211, 153, 0);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(52, 211, 153, 0.2);
+  }
+}
+
+.recovery-system-panel[class*="border-yellow"] {
+  animation: recovery-warning 2s ease-in-out infinite;
+}
+
+@keyframes recovery-warning {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(251, 191, 36, 0);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
+  }
+}
+
+.recovery-system-panel[class*="border-red"] {
+  animation: recovery-critical 1.5s ease-in-out infinite;
+}
+
+@keyframes recovery-critical {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(239, 68, 68, 0);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(239, 68, 68, 0.4);
+  }
+}
+

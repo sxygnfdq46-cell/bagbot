@@ -31,7 +31,7 @@
  * - Clear action recommendations
  */
 
-import type { HIF, ExecutionInstruction } from '@/app/lib/harmonizer/types';
+import type { HIF, ExecutionInstruction } from '../../../app/lib/harmonizer/types';
 import type {
   RealityFilteredAction,
   DistortionType,

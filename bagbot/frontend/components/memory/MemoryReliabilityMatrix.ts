@@ -155,14 +155,14 @@ export class MemoryReliabilityMatrix {
     let score = 100;
     
     // Check if entry has integrity hash
-    if (!entry.integrityHash) {
+    if (!entry.hash) {
       issues.push('Missing integrity hash');
       return 0;
     }
     
     // Recalculate hash and compare
     const expectedHash = this.calculateHash(entry);
-    if (expectedHash !== entry.integrityHash) {
+    if (expectedHash !== entry.hash) {
       issues.push('Hash mismatch - content may have been altered');
       this.reportCorruption(entry.id, 'hash_mismatch', 'critical',
         'Cryptographic hash does not match stored hash', false);
@@ -176,14 +176,14 @@ export class MemoryReliabilityMatrix {
     let score = 100;
     
     // Timestamp ordering
-    if (entry.updatedAt < entry.createdAt) {
+    if (entry.modifiedAt < entry.createdAt) {
       issues.push('Updated timestamp precedes created timestamp');
       score -= 30;
       this.reportCorruption(entry.id, 'invalid_timestamps', 'high',
         'Temporal inconsistency detected', true);
     }
     
-    if (entry.lastAccessed && entry.lastAccessed < entry.createdAt) {
+    if (entry.lastAccessedAt && entry.lastAccessedAt < entry.createdAt) {
       issues.push('Last accessed timestamp precedes created timestamp');
       score -= 20;
     }
@@ -212,7 +212,7 @@ export class MemoryReliabilityMatrix {
 
   private calculateFreshness(entry: MemoryEntry, issues: string[]): number {
     const now = Date.now();
-    const age = now - entry.updatedAt;
+    const age = now - entry.modifiedAt;
     const maxAge = 72 * 3600 * 1000; // 72 hours
     
     // Linear decay from 100 to 0 over maxAge
@@ -226,7 +226,7 @@ export class MemoryReliabilityMatrix {
     }
     
     // Bonus for recent access
-    if (entry.lastAccessed && (now - entry.lastAccessed) < 3600000) { // 1 hour
+    if (entry.lastAccessedAt && (now - entry.lastAccessedAt) < 3600000) { // 1 hour
       freshness = Math.min(100, freshness + 10);
     }
     
@@ -410,27 +410,27 @@ export class MemoryReliabilityMatrix {
   private validateTypeSpecific(entry: MemoryEntry): { valid: boolean; expected: string; actual: string } {
     switch (entry.type) {
       case 'component_map':
-        if (!entry.content.components || !Array.isArray(entry.content.components)) {
+        if (!entry.content.details.components || !Array.isArray(entry.content.details.components)) {
           return {
             valid: false,
             expected: 'components array',
-            actual: typeof entry.content.components
+            actual: typeof entry.content.details.components
           };
         }
         break;
         
       case 'task_history':
-        if (!entry.content.task || !entry.content.status) {
+        if (!entry.content.details.task || !entry.content.details.status) {
           return {
             valid: false,
             expected: 'task and status fields',
-            actual: `task: ${!!entry.content.task}, status: ${!!entry.content.status}`
+            actual: `task: ${!!entry.content.details.task}, status: ${!!entry.content.details.status}`
           };
         }
         break;
         
       case 'error_context':
-        if (!entry.content.error) {
+        if (!entry.content.details.error) {
           return {
             valid: false,
             expected: 'error field',
@@ -461,7 +461,7 @@ export class MemoryReliabilityMatrix {
     let staleness = 0;
     
     // Age-based staleness
-    const age = now - entry.updatedAt;
+    const age = now - entry.modifiedAt;
     const ageRatio = age / threshold;
     
     if (ageRatio > 1) {
@@ -476,7 +476,7 @@ export class MemoryReliabilityMatrix {
     }
     
     // Never accessed
-    if (!entry.lastAccessed) {
+    if (!entry.lastAccessedAt) {
       staleness += 20;
       reasons.push('Never accessed since creation');
     }

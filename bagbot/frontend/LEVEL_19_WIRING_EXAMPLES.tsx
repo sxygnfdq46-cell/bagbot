@@ -26,8 +26,8 @@
 // 📦 EXAMPLE 1: System Overview Deck — Risk Score & Summary
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-import { useIntelligenceStream } from '@/hooks/useIntelligenceStream';
-import { IntelligenceAPI } from '@/src/engine/stability-shield/ShieldIntelligenceAPI';
+import { useIntelligenceStream } from 'hooks/useIntelligenceStream';
+import { IntelligenceAPI } from 'src/engine/stability-shield/ShieldIntelligenceAPI';
 
 export function SystemOverviewDeck() {
   const { snapshot, risk } = useIntelligenceStream();
@@ -47,9 +47,9 @@ export function SystemOverviewDeck() {
 
       {/* Real-time status dots */}
       <div className="status-indicators">
-        <div className="dot" data-status={snapshot.clusters.length > 0 ? 'active' : 'idle'} />
-        <div className="dot" data-status={snapshot.correlations.pairs.length > 0 ? 'active' : 'idle'} />
-        <div className="dot" data-status={snapshot.predictions.nearTerm.length > 0 ? 'active' : 'idle'} />
+        <div className="dot" data-status={(snapshot.clusters?.length || 0) > 0 ? 'active' : 'idle'} />
+        <div className="dot" data-status={(snapshot.correlations?.pairs?.length || 0) > 0 ? 'active' : 'idle'} />
+        <div className="dot" data-status={(snapshot.predictions?.nearTerm?.length || 0) > 0 ? 'active' : 'idle'} />
       </div>
 
       {/* Dashboard notifications */}
@@ -80,11 +80,11 @@ export function UserIntelligenceBoard() {
       {/* Threat Clusters Widget */}
       <div className="widget threat-clusters">
         <h3>🧩 Active Threat Clusters</h3>
-        {clusters.map(cluster => (
+        {clusters.map((cluster: any) => (
           <div key={cluster.clusterId} className="cluster-item">
-            <span className="category">{cluster.category}</span>
-            <span className="severity">{cluster.averageSeverity.toFixed(1)}</span>
-            <span className="count">{cluster.members.length} threats</span>
+            <span className="category">{cluster.category || 'Unknown'}</span>
+            <span className="severity">{(cluster.averageSeverity || 0).toFixed(1)}</span>
+            <span className="count">{(cluster.members || []).length} threats</span>
           </div>
         ))}
       </div>
@@ -104,7 +104,7 @@ export function UserIntelligenceBoard() {
       {/* Prediction Forecast Widget */}
       <div className="widget predictions">
         <h3>🔮 Threat Forecast (0-10 min)</h3>
-        {criticalPredictions.slice(0, 5).map((pred, i) => (
+        {criticalPredictions.slice(0, 5).map((pred: any, i: number) => (
           <div key={i} className="prediction-item">
             <span className="timeframe">{pred.timeframe}</span>
             <span className="description">{pred.description}</span>
@@ -210,7 +210,7 @@ export function SystemDiagnosticsPanel() {
           <strong>Primary:</strong> {rootCause}
         </div>
         <div className="causal-chains">
-          {causalChains.map((chain, i) => (
+          {causalChains.map((chain: any, i: number) => (
             <div key={i} className="chain-item">
               <span className="source">{chain.sourceShield}</span>
               <span className="arrow">→</span>
@@ -231,7 +231,7 @@ export function SystemDiagnosticsPanel() {
         </div>
         <div className="recommendations">
           <h4>Recommendations:</h4>
-          {fullReport.recommendations.map((rec, i) => (
+          {fullReport.recommendations.map((rec: any, i: number) => (
             <div key={i} className="rec-item">• {rec}</div>
           ))}
         </div>
@@ -253,13 +253,13 @@ export function SystemDiagnosticsPanel() {
         </div>
         <div className="primary-issues">
           <strong>Primary Issues:</strong>
-          {reasoning.primaryIssues.map((issue, i) => (
+          {reasoning.primaryIssues.map((issue: any, i: number) => (
             <div key={i}>• {issue}</div>
           ))}
         </div>
         <div className="predicted-events">
           <strong>Predicted Events:</strong>
-          {reasoning.predictedEvents.map((event, i) => (
+          {reasoning.predictedEvents.map((event: any, i: number) => (
             <div key={i}>• {event}</div>
           ))}
         </div>

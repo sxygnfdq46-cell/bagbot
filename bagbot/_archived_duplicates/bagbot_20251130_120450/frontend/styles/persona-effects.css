@@ -1,0 +1,646 @@
+/**
+ * LEVEL 11.2 — SYNCED PERSONA EFFECTS CSS
+ * 
+ * Visual effects that react to personality changes in real-time.
+ * Creates personality-driven visual identity through dynamic styling.
+ * 
+ * Personality mappings:
+ * - Warm personality → soft purple-cyan glow
+ * - Focused mode → sharp edges + holographic lines
+ * - High-energy → pulse speed increases
+ * - Calm mode → low-frequency breathing glow
+ * - Intense mode → deeper gradients + stronger highlights
+ */
+
+/* ===================================
+   PERSONALITY-DRIVEN ANIMATIONS
+   =================================== */
+
+@keyframes warm-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.3),
+                0 0 40px rgba(34, 211, 238, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(168, 85, 247, 0.5),
+                0 0 60px rgba(34, 211, 238, 0.3);
+  }
+}
+
+@keyframes focused-pulse {
+  0%, 100% {
+    border-color: rgba(56, 189, 248, 0.6);
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.3),
+                inset 0 0 5px rgba(56, 189, 248, 0.2);
+  }
+  50% {
+    border-color: rgba(56, 189, 248, 0.9);
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.6),
+                inset 0 0 10px rgba(56, 189, 248, 0.4);
+  }
+}
+
+@keyframes high-energy-burst {
+  0%, 100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  25%, 75% {
+    transform: scale(1.02);
+    filter: brightness(1.15);
+  }
+  50% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes calm-breathe {
+  0%, 100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.01);
+  }
+}
+
+@keyframes intense-surge {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes analytical-grid {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 20px 20px;
+  }
+}
+
+@keyframes supportive-shimmer {
+  0%, 100% {
+    background-position: -200% center;
+  }
+  50% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes decisive-edge {
+  0%, 100% {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+  50% {
+    clip-path: polygon(2px 2px, calc(100% - 2px) 2px, calc(100% - 2px) calc(100% - 2px), 2px calc(100% - 2px));
+  }
+}
+
+/* ===================================
+   PERSONALITY MODE CLASSES
+   =================================== */
+
+/* Warm personality mode */
+.persona-warm {
+  animation: warm-glow 3s ease-in-out infinite;
+  background: linear-gradient(135deg, 
+    rgba(168, 85, 247, 0.1) 0%, 
+    rgba(34, 211, 238, 0.1) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.persona-warm::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, 
+    rgba(168, 85, 247, 0.15) 0%, 
+    transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Focused mode */
+.persona-focused {
+  animation: focused-pulse 2s ease-in-out infinite;
+  background: linear-gradient(135deg,
+    rgba(56, 189, 248, 0.05) 0%,
+    rgba(147, 51, 234, 0.05) 100%);
+  border: 2px solid rgba(56, 189, 248, 0.4);
+  position: relative;
+}
+
+.persona-focused::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(56, 189, 248, 0.2) 50%,
+    transparent 100%);
+  background-size: 200% 100%;
+  animation: supportive-shimmer 3s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* High-energy mode */
+.persona-energetic {
+  animation: high-energy-burst 1.5s ease-in-out infinite;
+  background: linear-gradient(135deg,
+    rgba(251, 191, 36, 0.1) 0%,
+    rgba(239, 68, 68, 0.1) 50%,
+    rgba(168, 85, 247, 0.1) 100%);
+  background-size: 200% 200%;
+  animation: intense-surge 2s ease infinite, high-energy-burst 1.5s ease-in-out infinite;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+}
+
+/* Calm mode */
+.persona-calm {
+  animation: calm-breathe 4s ease-in-out infinite;
+  background: linear-gradient(135deg,
+    rgba(34, 211, 238, 0.08) 0%,
+    rgba(147, 197, 253, 0.08) 100%);
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  transition: all 0.6s ease;
+}
+
+/* Intense mode */
+.persona-intense {
+  background: linear-gradient(135deg,
+    rgba(239, 68, 68, 0.15) 0%,
+    rgba(168, 85, 247, 0.15) 50%,
+    rgba(147, 51, 234, 0.15) 100%);
+  background-size: 200% 200%;
+  animation: intense-surge 3s ease infinite;
+  border: 2px solid rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 30px rgba(239, 68, 68, 0.3),
+              inset 0 0 20px rgba(168, 85, 247, 0.2);
+}
+
+/* Analytical mode */
+.persona-analytical {
+  background: 
+    linear-gradient(90deg, rgba(56, 189, 248, 0.05) 1px, transparent 1px),
+    linear-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, transparent 100%);
+  background-size: 20px 20px, 20px 20px, 100% 100%;
+  animation: analytical-grid 8s linear infinite;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+/* Supportive mode */
+.persona-supportive {
+  background: linear-gradient(135deg,
+    rgba(168, 85, 247, 0.1) 0%,
+    rgba(236, 72, 153, 0.1) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.persona-supportive::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(236, 72, 153, 0.3) 50%,
+    transparent 100%);
+  background-size: 200% 100%;
+  animation: supportive-shimmer 4s linear infinite;
+  pointer-events: none;
+}
+
+/* Decisive mode */
+.persona-decisive {
+  background: linear-gradient(135deg,
+    rgba(34, 197, 94, 0.1) 0%,
+    rgba(59, 130, 246, 0.1) 100%);
+  border: 2px solid rgba(34, 197, 94, 0.4);
+  animation: decisive-edge 1s ease-in-out infinite;
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.2);
+}
+
+/* ===================================
+   TRAIT-BASED MODIFIERS
+   =================================== */
+
+/* High warmth trait */
+.trait-high-warmth {
+  filter: hue-rotate(-10deg) saturate(1.2);
+}
+
+/* High logic trait */
+.trait-high-logic {
+  filter: brightness(0.95) contrast(1.1);
+}
+
+/* High intensity trait */
+.trait-high-intensity {
+  filter: saturate(1.3) brightness(1.05);
+}
+
+/* High fluidity trait */
+.trait-high-fluidity {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* High curiosity trait */
+.trait-high-curiosity {
+  filter: hue-rotate(5deg) brightness(1.02);
+}
+
+/* High presence trait */
+.trait-high-presence {
+  box-shadow: 0 0 25px rgba(168, 85, 247, 0.3);
+}
+
+/* ===================================
+   STABILITY INDICATORS
+   =================================== */
+
+/* Excellent stability */
+.stability-excellent {
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+.stability-excellent::before {
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.1) 0%, transparent 70%);
+}
+
+/* Good stability */
+.stability-good {
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.stability-good::before {
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+}
+
+/* Concerning stability */
+.stability-concerning {
+  border-color: rgba(251, 191, 36, 0.5);
+}
+
+.stability-concerning::before {
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.1) 0%, transparent 70%);
+}
+
+/* Critical stability */
+.stability-critical {
+  border-color: rgba(239, 68, 68, 0.6);
+  animation: focused-pulse 1s ease-in-out infinite;
+}
+
+.stability-critical::before {
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.15) 0%, transparent 70%);
+}
+
+/* ===================================
+   EMOTIONAL STATE OVERLAYS
+   =================================== */
+
+/* Calm emotion */
+.emotion-calm {
+  opacity: 0.9;
+}
+
+/* Excited emotion */
+.emotion-excited {
+  animation: high-energy-burst 1.2s ease-in-out infinite;
+}
+
+/* Stressed emotion */
+.emotion-stressed {
+  border-color: rgba(251, 191, 36, 0.6);
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
+}
+
+/* Frustrated emotion */
+.emotion-frustrated {
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+/* Satisfied emotion */
+.emotion-satisfied {
+  border-color: rgba(34, 197, 94, 0.5);
+  animation: warm-glow 2s ease-in-out infinite;
+}
+
+/* ===================================
+   TONE VISUAL INDICATORS
+   =================================== */
+
+/* Warm tone */
+.tone-warm {
+  background: linear-gradient(135deg, 
+    rgba(168, 85, 247, 0.08) 0%, 
+    rgba(236, 72, 153, 0.08) 100%);
+}
+
+/* Neutral tone */
+.tone-neutral {
+  background: linear-gradient(135deg,
+    rgba(148, 163, 184, 0.05) 0%,
+    rgba(203, 213, 225, 0.05) 100%);
+}
+
+/* Decisive tone */
+.tone-decisive {
+  background: linear-gradient(135deg,
+    rgba(34, 197, 94, 0.08) 0%,
+    rgba(59, 130, 246, 0.08) 100%);
+  border-left: 3px solid rgba(34, 197, 94, 0.5);
+}
+
+/* Intense tone */
+.tone-intense {
+  background: linear-gradient(135deg,
+    rgba(239, 68, 68, 0.1) 0%,
+    rgba(168, 85, 247, 0.1) 100%);
+}
+
+/* Analytical tone */
+.tone-analytical {
+  background: linear-gradient(135deg,
+    rgba(56, 189, 248, 0.06) 0%,
+    rgba(59, 130, 246, 0.06) 100%);
+}
+
+/* Soft tone */
+.tone-soft {
+  background: linear-gradient(135deg,
+    rgba(147, 197, 253, 0.08) 0%,
+    rgba(196, 181, 253, 0.08) 100%);
+  opacity: 0.95;
+}
+
+/* Uplifting tone */
+.tone-uplifting {
+  background: linear-gradient(135deg,
+    rgba(251, 191, 36, 0.08) 0%,
+    rgba(168, 85, 247, 0.08) 100%);
+}
+
+/* Calming tone */
+.tone-calming {
+  background: linear-gradient(135deg,
+    rgba(34, 211, 238, 0.07) 0%,
+    rgba(147, 197, 253, 0.07) 100%);
+  animation: calm-breathe 5s ease-in-out infinite;
+}
+
+/* ===================================
+   INTERACTIVE PERSONALITY STATES
+   =================================== */
+
+/* Engaged state */
+.state-engaged {
+  border-width: 2px;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+}
+
+/* Distracted state */
+.state-distracted {
+  opacity: 0.8;
+  filter: blur(0.5px);
+}
+
+/* Deep focus state */
+.state-deep-focus {
+  border-color: rgba(56, 189, 248, 0.7);
+  box-shadow: 0 0 30px rgba(56, 189, 248, 0.4),
+              inset 0 0 15px rgba(56, 189, 248, 0.2);
+}
+
+/* Pressure indicators */
+.pressure-low {
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.pressure-medium {
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
+.pressure-high {
+  border-color: rgba(239, 68, 68, 0.5);
+  animation: focused-pulse 1.5s ease-in-out infinite;
+}
+
+/* ===================================
+   PERSONALITY VECTOR VISUALIZATIONS
+   =================================== */
+
+/* Warmth cluster visualization */
+.cluster-warmth {
+  background: radial-gradient(circle at 30% 30%,
+    rgba(236, 72, 153, 0.15) 0%,
+    rgba(168, 85, 247, 0.1) 50%,
+    transparent 100%);
+}
+
+/* Confidence cluster visualization */
+.cluster-confidence {
+  background: radial-gradient(circle at 70% 30%,
+    rgba(34, 197, 94, 0.15) 0%,
+    rgba(59, 130, 246, 0.1) 50%,
+    transparent 100%);
+}
+
+/* Logic cluster visualization */
+.cluster-logic {
+  background: radial-gradient(circle at 50% 50%,
+    rgba(56, 189, 248, 0.15) 0%,
+    rgba(59, 130, 246, 0.1) 50%,
+    transparent 100%);
+}
+
+/* Intensity cluster visualization */
+.cluster-intensity {
+  background: radial-gradient(circle at 30% 70%,
+    rgba(239, 68, 68, 0.15) 0%,
+    rgba(251, 191, 36, 0.1) 50%,
+    transparent 100%);
+}
+
+/* Fluidity cluster visualization */
+.cluster-fluidity {
+  background: radial-gradient(circle at 70% 70%,
+    rgba(34, 211, 238, 0.15) 0%,
+    rgba(147, 197, 253, 0.1) 50%,
+    transparent 100%);
+}
+
+/* Curiosity cluster visualization */
+.cluster-curiosity {
+  background: radial-gradient(circle at 50% 20%,
+    rgba(251, 191, 36, 0.15) 0%,
+    rgba(168, 85, 247, 0.1) 50%,
+    transparent 100%);
+}
+
+/* Presence cluster visualization */
+.cluster-presence {
+  background: radial-gradient(circle at 50% 80%,
+    rgba(168, 85, 247, 0.2) 0%,
+    rgba(147, 51, 234, 0.1) 50%,
+    transparent 100%);
+}
+
+/* ===================================
+   TRANSITION EFFECTS
+   =================================== */
+
+/* Smooth personality transitions */
+.persona-transition {
+  transition: background 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.6s ease,
+              box-shadow 0.6s ease,
+              filter 0.5s ease,
+              opacity 0.4s ease;
+}
+
+/* Rapid adaptation */
+.adaptation-rapid {
+  transition-duration: 0.3s;
+}
+
+/* Gradual adaptation */
+.adaptation-gradual {
+  transition-duration: 1.5s;
+}
+
+/* ===================================
+   COMPONENT-SPECIFIC STYLES
+   =================================== */
+
+/* Personality vector card */
+.personality-vector-card {
+  position: relative;
+  border-radius: 12px;
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+
+/* Trait bar with personality coloring */
+.trait-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg,
+    rgba(34, 197, 94, 0.3) 0%,
+    rgba(251, 191, 36, 0.3) 50%,
+    rgba(239, 68, 68, 0.3) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.trait-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg,
+    rgba(34, 197, 94, 1) 0%,
+    rgba(251, 191, 36, 1) 50%,
+    rgba(239, 68, 68, 1) 100%);
+  border-radius: 4px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Stability graph */
+.stability-graph {
+  position: relative;
+  height: 100px;
+  background: linear-gradient(to top,
+    rgba(34, 197, 94, 0.1) 0%,
+    rgba(251, 191, 36, 0.1) 50%,
+    rgba(239, 68, 68, 0.1) 100%);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Tone indicator badge */
+.tone-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+}
+
+.tone-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* ===================================
+   RESPONSIVE ADJUSTMENTS
+   =================================== */
+
+@media (max-width: 768px) {
+  .personality-vector-card {
+    padding: 1rem;
+  }
+  
+  .trait-bar {
+    height: 6px;
+  }
+  
+  .tone-badge {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+  }
+}
+
+/* ===================================
+   ACCESSIBILITY
+   =================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .persona-warm,
+  .persona-focused,
+  .persona-energetic,
+  .persona-calm,
+  .persona-intense,
+  .persona-analytical,
+  .persona-supportive,
+  .persona-decisive,
+  .tone-calming,
+  .emotion-excited,
+  .emotion-satisfied,
+  .stability-critical,
+  .pressure-high {
+    animation: none;
+  }
+  
+  .persona-transition,
+  .adaptation-rapid,
+  .adaptation-gradual {
+    transition: none;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .personality-vector-card {
+    border-width: 2px;
+  }
+  
+  .trait-bar {
+    height: 10px;
+  }
+  
+  .tone-badge {
+    border: 2px solid currentColor;
+  }
+}

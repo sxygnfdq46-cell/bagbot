@@ -651,47 +651,11 @@ export function resetThreatSyncOrchestrator(): void {
 // LEGACY COMPATIBLE EXPORT
 // ═══════════════════════════════════════════════════════════════════
 
-export const threatSyncOrchestrator = {
-  async sync() {
-    // Minimal safe behavior for UI and pipeline
-    return {
-      status: "ok",
-      timestamp: Date.now()
-    };
-  },
+// Singleton instance for use across the application
+const orchestratorInstance = new ThreatSyncOrchestrator();
 
-  async synchronizeThreats(feed?: any) {
-    return {
-      status: "ok",
-      lastUpdated: Date.now(),
-      threats: [],
-      metrics: {
-        totalThreats: 0,
-        active: 0,
-        neutralized: 0,
-        flagged: 0,
-        severityScore: 0,
-        lastUpdate: Date.now()
-      }
-    };
-  },
-
-  getThreatSnapshot() {
-    return {
-      status: "stable",
-      lastUpdated: Date.now(),
-      threats: [],
-      metrics: {
-        totalThreats: 0,
-        active: 0,
-        neutralized: 0,
-        flagged: 0,
-        severityScore: 0,
-        lastUpdate: Date.now()
-      }
-    };
-  }
-};
+// Export the instance with all methods
+export const threatSyncOrchestrator = orchestratorInstance;
 
 // Default export for convenience
 export default ThreatSyncOrchestrator;

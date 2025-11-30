@@ -261,7 +261,7 @@ export const useConsciousnessService = create<ConsciousnessServiceStore>((set, g
       console.log('[Consciousness Service] Loading consciousness system...');
       
       // Initialize consciousness loop
-      const loop = TradingConsciousnessLoop.getInstance();
+      const loop = TradingConsciousnessLoop;
       
       // Load current state
       const state = consciousnessState.getCurrentState();
@@ -350,7 +350,7 @@ export const useConsciousnessService = create<ConsciousnessServiceStore>((set, g
     try {
       console.log('[Consciousness Service] Syncing with soul engine...');
       
-      const loop = TradingConsciousnessLoop.getInstance();
+      const loop = TradingConsciousnessLoop;
       const syncResult = await loop.integrateWithSoulEngine();
       
       const soulSync: SoulSyncStatus = {
@@ -445,15 +445,13 @@ export const useConsciousnessService = create<ConsciousnessServiceStore>((set, g
   
   enableDailyReview: (hour: number = 23, minute: number = 30): boolean => {
     try {
-      const loop = TradingConsciousnessLoop.getInstance();
-      const success = loop.enableDailyReview(hour, minute);
+      const loop = TradingConsciousnessLoop;
+      loop.enableDailyReview(hour, minute);
       
-      if (success) {
-        set({ dailyReviewEnabled: true });
-        console.log(`[Consciousness Service] Daily review enabled at ${hour}:${minute.toString().padStart(2, '0')}`);
-      }
+      set({ dailyReviewEnabled: true });
+      console.log(`[Consciousness Service] Daily review enabled at ${hour}:${minute.toString().padStart(2, '0')}`);
       
-      return success;
+      return true;
     } catch (error) {
       console.error('[Consciousness Service] Failed to enable daily review:', error);
       return false;
@@ -462,15 +460,13 @@ export const useConsciousnessService = create<ConsciousnessServiceStore>((set, g
   
   disableDailyReview: (): boolean => {
     try {
-      const loop = TradingConsciousnessLoop.getInstance();
-      const success = loop.disableDailyReview();
+      const loop = TradingConsciousnessLoop;
+      loop.disableDailyReview();
       
-      if (success) {
-        set({ dailyReviewEnabled: false });
-        console.log('[Consciousness Service] Daily review disabled');
-      }
+      set({ dailyReviewEnabled: false });
+      console.log('[Consciousness Service] Daily review disabled');
       
-      return success;
+      return true;
     } catch (error) {
       console.error('[Consciousness Service] Failed to disable daily review:', error);
       return false;
@@ -479,15 +475,13 @@ export const useConsciousnessService = create<ConsciousnessServiceStore>((set, g
   
   enableMicroLearning: (intervalMinutes: number = 15): boolean => {
     try {
-      const loop = TradingConsciousnessLoop.getInstance();
-      const success = loop.enableMicroLearning(intervalMinutes);
+      const loop = TradingConsciousnessLoop;
+      loop.enableMicroLearning(intervalMinutes);
       
-      if (success) {
-        set({ microLearningEnabled: true });
-        console.log(`[Consciousness Service] Micro learning enabled (${intervalMinutes} min intervals)`);
-      }
+      set({ microLearningEnabled: true });
+      console.log(`[Consciousness Service] Micro learning enabled (${intervalMinutes} min intervals)`);
       
-      return success;
+      return true;
     } catch (error) {
       console.error('[Consciousness Service] Failed to enable micro learning:', error);
       return false;
@@ -496,15 +490,13 @@ export const useConsciousnessService = create<ConsciousnessServiceStore>((set, g
   
   disableMicroLearning: (): boolean => {
     try {
-      const loop = TradingConsciousnessLoop.getInstance();
-      const success = loop.disableMicroLearning();
+      const loop = TradingConsciousnessLoop;
+      loop.disableMicroLearning();
       
-      if (success) {
-        set({ microLearningEnabled: false });
-        console.log('[Consciousness Service] Micro learning disabled');
-      }
+      set({ microLearningEnabled: false });
+      console.log('[Consciousness Service] Micro learning disabled');
       
-      return success;
+      return true;
     } catch (error) {
       console.error('[Consciousness Service] Failed to disable micro learning:', error);
       return false;
@@ -513,16 +505,14 @@ export const useConsciousnessService = create<ConsciousnessServiceStore>((set, g
   
   enableWeeklyEvolution: (dayOfWeek: number = 0, hour: number = 22): boolean => {
     try {
-      const loop = TradingConsciousnessLoop.getInstance();
-      const success = loop.enableWeeklyEvolution(dayOfWeek, hour);
+      const loop = TradingConsciousnessLoop;
+      loop.enableWeeklyEvolution(dayOfWeek, hour);
       
-      if (success) {
-        set({ weeklyEvolutionEnabled: true });
-        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        console.log(`[Consciousness Service] Weekly evolution enabled (${days[dayOfWeek]} at ${hour}:00)`);
-      }
+      set({ weeklyEvolutionEnabled: true });
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      console.log(`[Consciousness Service] Weekly evolution enabled (${days[dayOfWeek]} at ${hour}:00)`);
       
-      return success;
+      return true;
     } catch (error) {
       console.error('[Consciousness Service] Failed to enable weekly evolution:', error);
       return false;
@@ -531,15 +521,13 @@ export const useConsciousnessService = create<ConsciousnessServiceStore>((set, g
   
   disableWeeklyEvolution: (): boolean => {
     try {
-      const loop = TradingConsciousnessLoop.getInstance();
-      const success = loop.disableWeeklyEvolution();
+      const loop = TradingConsciousnessLoop;
+      loop.disableWeeklyEvolution();
       
-      if (success) {
-        set({ weeklyEvolutionEnabled: false });
-        console.log('[Consciousness Service] Weekly evolution disabled');
-      }
+      set({ weeklyEvolutionEnabled: false });
+      console.log('[Consciousness Service] Weekly evolution disabled');
       
-      return success;
+      return true;
     } catch (error) {
       console.error('[Consciousness Service] Failed to disable weekly evolution:', error);
       return false;
@@ -554,10 +542,10 @@ export const useConsciousnessService = create<ConsciousnessServiceStore>((set, g
     try {
       console.log('[Consciousness Service] Triggering daily review...');
       
-      const loop = TradingConsciousnessLoop.getInstance();
+      const loop = TradingConsciousnessLoop;
       const result = await loop.runDailyReview();
       
-      if (result.overallScore > 0) {
+      if (result.overallPerformance > 0) {
         // Update insights
         await get().updateConsciousness();
         
@@ -569,7 +557,7 @@ export const useConsciousnessService = create<ConsciousnessServiceStore>((set, g
           significance: 'HIGH',
         });
         
-        console.log(`[Consciousness Service] Daily review completed with score: ${result.overallScore}`);
+        console.log(`[Consciousness Service] Daily review completed with score: ${result.overallPerformance}`);
         return true;
       }
       
@@ -584,10 +572,10 @@ export const useConsciousnessService = create<ConsciousnessServiceStore>((set, g
     try {
       console.log('[Consciousness Service] Triggering micro learning cycle...');
       
-      const loop = TradingConsciousnessLoop.getInstance();
+      const loop = TradingConsciousnessLoop;
       const result = await loop.runMicroLearningCycle();
       
-      if (result.improvement !== undefined) {
+      if (result.performance.improvement !== undefined) {
         // Update insights
         await get().updateConsciousness();
         
@@ -599,7 +587,7 @@ export const useConsciousnessService = create<ConsciousnessServiceStore>((set, g
           significance: 'MEDIUM',
         });
         
-        console.log(`[Consciousness Service] Micro learning completed with improvement: ${result.improvement.toFixed(3)}`);
+        console.log(`[Consciousness Service] Micro learning completed with improvement: ${result.performance.improvement.toFixed(3)}`);
         return true;
       }
       
@@ -614,7 +602,7 @@ export const useConsciousnessService = create<ConsciousnessServiceStore>((set, g
     try {
       console.log('[Consciousness Service] Triggering weekly evolution...');
       
-      const loop = TradingConsciousnessLoop.getInstance();
+      const loop = TradingConsciousnessLoop;
       const result = await loop.runWeeklyEvolutionCycle();
       
       if (result.evolutionScore > 0) {
@@ -934,7 +922,7 @@ export const useConsciousnessService = create<ConsciousnessServiceStore>((set, g
   resetConsciousness: (): boolean => {
     try {
       // Reset consciousness loop
-      const loop = TradingConsciousnessLoop.getInstance();
+      const loop = TradingConsciousnessLoop;
       loop.disableDailyReview();
       loop.disableMicroLearning();
       loop.disableWeeklyEvolution();

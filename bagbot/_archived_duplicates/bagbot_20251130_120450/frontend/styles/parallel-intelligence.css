@@ -1,0 +1,775 @@
+/**
+ * 🌟 PARALLEL INTELLIGENCE VISUAL SYSTEM
+ * 
+ * Visual representation of parallel processing, multi-dimensional analysis,
+ * and tri-phase temporal awareness.
+ */
+
+/* ============================================
+   SHIMMER STATES
+   Multi-layered shimmering effects for parallel processing
+   ============================================ */
+
+.parallel-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.parallel-shimmer::before,
+.parallel-shimmer::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(0, 255, 255, 0.1) 50%,
+    transparent 70%
+  );
+  animation: parallel-shimmer-sweep 4s infinite linear;
+  pointer-events: none;
+}
+
+.parallel-shimmer::after {
+  background: linear-gradient(
+    -45deg,
+    transparent 30%,
+    rgba(255, 0, 255, 0.1) 50%,
+    transparent 70%
+  );
+  animation: parallel-shimmer-sweep 5s infinite linear reverse;
+}
+
+@keyframes parallel-shimmer-sweep {
+  0% {
+    transform: translateX(-50%) translateY(-50%) rotate(0deg);
+  }
+  100% {
+    transform: translateX(50%) translateY(50%) rotate(360deg);
+  }
+}
+
+.shimmer-intense {
+  position: relative;
+}
+
+.shimmer-intense::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 255, 255, 0) 0%,
+    rgba(0, 255, 255, 0.3) 25%,
+    rgba(255, 0, 255, 0.3) 50%,
+    rgba(0, 255, 255, 0.3) 75%,
+    rgba(0, 255, 255, 0) 100%
+  );
+  animation: shimmer-intense-flow 2s infinite ease-in-out;
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.shimmer-intense:hover::before,
+.shimmer-intense.active::before {
+  opacity: 1;
+}
+
+@keyframes shimmer-intense-flow {
+  0%, 100% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(100%);
+  }
+}
+
+/* ============================================
+   PARALLEL GLOW
+   Multi-source luminosity representing parallel processing paths
+   ============================================ */
+
+.parallel-glow {
+  position: relative;
+  filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.4))
+          drop-shadow(0 0 16px rgba(255, 0, 255, 0.3))
+          drop-shadow(0 0 24px rgba(0, 255, 255, 0.2));
+  animation: parallel-glow-pulse 3s infinite ease-in-out;
+}
+
+@keyframes parallel-glow-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.4))
+            drop-shadow(0 0 16px rgba(255, 0, 255, 0.3))
+            drop-shadow(0 0 24px rgba(0, 255, 255, 0.2));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(0, 255, 255, 0.6))
+            drop-shadow(0 0 24px rgba(255, 0, 255, 0.5))
+            drop-shadow(0 0 36px rgba(0, 255, 255, 0.4));
+  }
+}
+
+.parallel-glow-strong {
+  position: relative;
+}
+
+.parallel-glow-strong::before,
+.parallel-glow-strong::after {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  background: radial-gradient(
+    circle at center,
+    rgba(0, 255, 255, 0.2) 0%,
+    transparent 70%
+  );
+  animation: parallel-glow-expand 2s infinite ease-in-out;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.parallel-glow-strong::after {
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 0, 255, 0.15) 0%,
+    transparent 70%
+  );
+  animation: parallel-glow-expand 2.5s infinite ease-in-out reverse;
+}
+
+@keyframes parallel-glow-expand {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.3;
+  }
+}
+
+/* ============================================
+   TRI-PHASE INDICATORS
+   Visual representation of past, present, future awareness
+   ============================================ */
+
+.tri-phase-container {
+  position: relative;
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+}
+
+.tri-phase-indicator {
+  position: relative;
+  flex: 1;
+  padding: 16px;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.tri-phase-indicator::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(135deg, var(--phase-color-1), var(--phase-color-2));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Past Phase - Blue tones */
+.tri-phase-past {
+  --phase-color-1: rgba(0, 136, 255, 0.6);
+  --phase-color-2: rgba(0, 68, 204, 0.4);
+  background: linear-gradient(135deg, rgba(0, 136, 255, 0.1), rgba(0, 68, 204, 0.05));
+}
+
+.tri-phase-past::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(0, 136, 255, 0.2) 0%, transparent 70%);
+  animation: tri-phase-past-pulse 4s infinite ease-in-out;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+@keyframes tri-phase-past-pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+/* Present Phase - Green tones */
+.tri-phase-present {
+  --phase-color-1: rgba(0, 255, 136, 0.6);
+  --phase-color-2: rgba(0, 204, 102, 0.4);
+  background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 204, 102, 0.05));
+  transform: scale(1.05);
+  z-index: 2;
+}
+
+.tri-phase-present::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(0, 255, 136, 0.3) 0%, transparent 70%);
+  animation: tri-phase-present-pulse 2s infinite ease-in-out;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+@keyframes tri-phase-present-pulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+/* Future Phase - Orange tones */
+.tri-phase-future {
+  --phase-color-1: rgba(255, 136, 0, 0.6);
+  --phase-color-2: rgba(204, 102, 0, 0.4);
+  background: linear-gradient(135deg, rgba(255, 136, 0, 0.1), rgba(204, 102, 0, 0.05));
+}
+
+.tri-phase-future::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(255, 136, 0, 0.2) 0%, transparent 70%);
+  animation: tri-phase-future-pulse 3s infinite ease-in-out;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+@keyframes tri-phase-future-pulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+}
+
+/* Tri-phase connector lines */
+.tri-phase-connector {
+  position: absolute;
+  top: 50%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--connector-color) 50%,
+    transparent 100%
+  );
+  animation: tri-phase-flow 3s infinite ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes tri-phase-flow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scaleX(0.8);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scaleX(1.2);
+  }
+}
+
+/* ============================================
+   INTELLIGENCE STREAMS
+   Flowing data visualization
+   ============================================ */
+
+.intelligence-stream {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background: rgba(0, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.intelligence-stream::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 255, 255, 0.8) 25%,
+    rgba(255, 0, 255, 0.8) 50%,
+    rgba(0, 255, 255, 0.8) 75%,
+    transparent 100%
+  );
+  animation: intelligence-stream-flow 3s infinite linear;
+}
+
+@keyframes intelligence-stream-flow {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.intelligence-stream-fast::before {
+  animation-duration: 1.5s;
+}
+
+.intelligence-stream-slow::before {
+  animation-duration: 5s;
+}
+
+/* Stream with particles */
+.intelligence-stream-particles {
+  position: relative;
+  width: 100%;
+  height: 8px;
+}
+
+.intelligence-stream-particles::before,
+.intelligence-stream-particles::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(0, 255, 255, 0.8);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.6);
+  animation: stream-particle 4s infinite ease-in-out;
+}
+
+.intelligence-stream-particles::after {
+  background: rgba(255, 0, 255, 0.8);
+  box-shadow: 0 0 10px rgba(255, 0, 255, 0.6);
+  animation: stream-particle 5s infinite ease-in-out 0.5s;
+}
+
+@keyframes stream-particle {
+  0% {
+    left: -10px;
+    opacity: 0;
+    transform: translateY(-50%) scale(0);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+  100% {
+    left: calc(100% + 10px);
+    opacity: 0;
+    transform: translateY(-50%) scale(0);
+  }
+}
+
+/* ============================================
+   PARALLEL PROCESSING INDICATORS
+   Visual cues for multi-path computation
+   ============================================ */
+
+.parallel-process-indicator {
+  position: relative;
+  display: inline-flex;
+  gap: 4px;
+  padding: 8px;
+}
+
+.parallel-process-bar {
+  width: 4px;
+  height: 24px;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 255, 255, 0.2),
+    rgba(0, 255, 255, 0.8)
+  );
+  border-radius: 2px;
+  animation: parallel-process-pulse 1.5s infinite ease-in-out;
+}
+
+.parallel-process-bar:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.parallel-process-bar:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.parallel-process-bar:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.parallel-process-bar:nth-child(4) {
+  animation-delay: 0.6s;
+}
+
+.parallel-process-bar:nth-child(5) {
+  animation-delay: 0.8s;
+}
+
+@keyframes parallel-process-pulse {
+  0%, 100% {
+    transform: scaleY(0.4);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   INTELLIGENCE NODES
+   Circular nodes representing data points
+   ============================================ */
+
+.intelligence-node {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(0, 255, 255, 0.6),
+    rgba(0, 255, 255, 0.2)
+  );
+  border: 2px solid rgba(0, 255, 255, 0.4);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.4),
+              inset 0 0 10px rgba(0, 255, 255, 0.2);
+  animation: intelligence-node-breathe 3s infinite ease-in-out;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.intelligence-node:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.6),
+              inset 0 0 15px rgba(0, 255, 255, 0.4);
+}
+
+@keyframes intelligence-node-breathe {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.4),
+                inset 0 0 10px rgba(0, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.6),
+                inset 0 0 15px rgba(0, 255, 255, 0.4);
+  }
+}
+
+.intelligence-node::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  animation: intelligence-node-ring 2s infinite ease-out;
+}
+
+@keyframes intelligence-node-ring {
+  0% {
+    inset: -4px;
+    opacity: 1;
+  }
+  100% {
+    inset: -12px;
+    opacity: 0;
+  }
+}
+
+/* Node types */
+.intelligence-node-critical {
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 0, 255, 0.8),
+    rgba(255, 0, 255, 0.3)
+  );
+  border-color: rgba(255, 0, 255, 0.6);
+  box-shadow: 0 0 30px rgba(255, 0, 255, 0.6),
+              inset 0 0 15px rgba(255, 0, 255, 0.3);
+  animation: intelligence-node-critical-pulse 1s infinite ease-in-out;
+}
+
+@keyframes intelligence-node-critical-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.intelligence-node-opportunity {
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(0, 255, 0, 0.6),
+    rgba(0, 255, 0, 0.2)
+  );
+  border-color: rgba(0, 255, 0, 0.4);
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.4),
+              inset 0 0 10px rgba(0, 255, 0, 0.2);
+}
+
+.intelligence-node-warning {
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 0, 0, 0.6),
+    rgba(255, 0, 0, 0.2)
+  );
+  border-color: rgba(255, 0, 0, 0.4);
+  box-shadow: 0 0 20px rgba(255, 0, 0, 0.4),
+              inset 0 0 10px rgba(255, 0, 0, 0.2);
+}
+
+/* ============================================
+   DECISION PATH VISUALIZATION
+   Multi-path decision trees
+   ============================================ */
+
+.decision-path {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  border-left: 3px solid rgba(0, 255, 255, 0.4);
+  transition: all 0.3s ease;
+}
+
+.decision-path:hover {
+  border-left-color: rgba(0, 255, 255, 0.8);
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow: -4px 0 20px rgba(0, 255, 255, 0.2);
+}
+
+.decision-path.optimal {
+  border-left-color: rgba(255, 215, 0, 0.8);
+  box-shadow: -4px 0 30px rgba(255, 215, 0, 0.3);
+  animation: decision-path-optimal-glow 2s infinite ease-in-out;
+}
+
+@keyframes decision-path-optimal-glow {
+  0%, 100% {
+    box-shadow: -4px 0 30px rgba(255, 215, 0, 0.3);
+  }
+  50% {
+    box-shadow: -4px 0 40px rgba(255, 215, 0, 0.5);
+  }
+}
+
+.decision-step {
+  position: relative;
+  padding-left: 24px;
+}
+
+.decision-step::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(0, 255, 255, 0.6);
+  transform: translateY(-50%);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
+}
+
+.decision-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: calc(50% + 4px);
+  width: 2px;
+  height: calc(100% + 8px);
+  background: linear-gradient(
+    180deg,
+    rgba(0, 255, 255, 0.4),
+    rgba(0, 255, 255, 0.1)
+  );
+}
+
+/* ============================================
+   CERTAINTY INDEX METER
+   Visual gauge for confidence levels
+   ============================================ */
+
+.certainty-index-meter {
+  position: relative;
+  width: 100%;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 255, 255, 0.2);
+}
+
+.certainty-index-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.6) 0%,
+    rgba(255, 136, 0, 0.6) 25%,
+    rgba(255, 255, 0, 0.6) 50%,
+    rgba(0, 255, 136, 0.6) 75%,
+    rgba(0, 255, 255, 0.8) 100%
+  );
+  transition: width 0.5s ease;
+  position: relative;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+}
+
+.certainty-index-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  animation: certainty-sweep 2s infinite linear;
+}
+
+@keyframes certainty-sweep {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 200%;
+  }
+}
+
+/* ============================================
+   REFLEX ENGINE DISPLAY
+   Reflex state and decision visualization
+   ============================================ */
+
+.reflex-indicator {
+  position: relative;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 0, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.reflex-indicator.primed {
+  border-color: rgba(255, 255, 0, 0.6);
+  box-shadow: 0 0 15px rgba(255, 255, 0, 0.3);
+  animation: reflex-primed-pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes reflex-primed-pulse {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(255, 255, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(255, 255, 0, 0.5);
+  }
+}
+
+.reflex-indicator.triggered {
+  border-color: rgba(255, 0, 0, 0.8);
+  box-shadow: 0 0 25px rgba(255, 0, 0, 0.5);
+  animation: reflex-triggered-alert 0.5s infinite ease-in-out;
+}
+
+@keyframes reflex-triggered-alert {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.reflex-indicator.executing {
+  border-color: rgba(0, 255, 0, 0.6);
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.4);
+}
+
+.reflex-type-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.reflex-type-protective {
+  background: rgba(255, 0, 0, 0.2);
+  color: rgba(255, 100, 100, 1);
+  border: 1px solid rgba(255, 0, 0, 0.4);
+}
+
+.reflex-type-opportunistic {
+  background: rgba(0, 255, 0, 0.2);
+  color: rgba(100, 255, 100, 1);
+  border: 1px solid rgba(0, 255, 0, 0.4);
+}
+
+.reflex-type-adaptive {
+  background: rgba(0, 136, 255, 0.2);
+  color: rgba(100, 180, 255, 1);
+  border: 1px solid rgba(0, 136, 255, 0.4);
+}
+
+.reflex-type-anticipatory {
+  background: rgba(255, 0, 255, 0.2);
+  color: rgba(255, 100, 255, 1);
+  border: 1px solid rgba(255, 0, 255, 0.4);
+}

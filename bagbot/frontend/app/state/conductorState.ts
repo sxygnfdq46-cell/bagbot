@@ -13,8 +13,8 @@ import {
   SubsystemHealth,
   AllSubsystemsHealth,
   CycleResult,
-} from '@/app/lib/conductor/AutoTradingConductor';
-import { ConductorProfile } from '@/app/lib/conductor/ConductorRules';
+} from '../../app/lib/conductor/AutoTradingConductor';
+import { ConductorProfile } from '../../app/lib/conductor/ConductorRules';
 
 /**
  * Orchestration history entry

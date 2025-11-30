@@ -1,0 +1,36 @@
+[
+  {
+    "timestamp": 1764316156.756385,
+    "module": "test_integration",
+    "event_type": "system_optimization",
+    "previous_state": {
+      "regime": "unknown"
+    },
+    "new_state": {
+      "regime": "stable"
+    },
+    "reason": "Testing system integration",
+    "metrics": {
+      "confidence": 0.5
+    },
+    "success": true,
+    "error_message": null,
+    "correlation_id": null,
+    "vault_id": "d74a6dbc2403468c"
+  },
+  {
+    "timestamp": 1764316192.1139688,
+    "module": "integration_test",
+    "event_type": "system_optimization",
+    "previous_state": {},
+    "new_state": {
+      "test": "complete"
+    },
+    "reason": "Integration test",
+    "metrics": {},
+    "success": true,
+    "error_message": null,
+    "correlation_id": null,
+    "vault_id": "414e85d1d2463f38"
+  }
+]

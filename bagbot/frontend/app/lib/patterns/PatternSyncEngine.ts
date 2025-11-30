@@ -297,9 +297,9 @@ class PatternSyncEngineClass {
     
     // Calculate significance
     const significance = PatternRules.determineSignificance(
+      multiPattern.type,
       multiPattern.mergedConfidence,
-      multiPattern.mergedWeight,
-      multiPattern.type
+      multiPattern.mergedWeight
     );
     
     // Calculate scores
@@ -308,7 +308,7 @@ class PatternSyncEngineClass {
     const heatIndex = this.calculateHeatIndex(multiPattern);
     
     // Calculate volatility signature
-    const volatilitySignature = PatternRules.calculateVolatilitySignature(
+    const volatilitySignature = PatternRules.calculateVolSignature(
       this.volatilityLevel,
       []
     );
@@ -681,7 +681,8 @@ class PatternSyncEngineClass {
       const maxPrice = Math.max(...prices);
       
       const avgRiskScore = clusterPatterns.reduce((sum, p) => sum + p.riskScore, 0) / clusterPatterns.length;
-      const avgThreatLevel = clusterPatterns.reduce((sum, p) => sum + p.threatLevel, 0) / clusterPatterns.length;
+      // MasterPattern doesn't have threatLevel, using riskScore instead
+      const avgThreatLevel = avgRiskScore;
       
       const riskLevel = avgRiskScore > 85 ? 'CRITICAL' :
                         avgRiskScore > 70 ? 'HIGH' :
@@ -912,7 +913,7 @@ class PatternSyncEngineClass {
   
   updateRegime(regime: string): void {
     this.currentRegime = regime;
-    PatternRules.setCurrentRegime(regime);
+    PatternRules.setRegime(regime);
   }
   
   updateVolatilityLevel(level: number): void {

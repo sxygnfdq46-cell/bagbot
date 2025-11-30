@@ -32,8 +32,8 @@
  * - Clear execution rules
  */
 
-import type { HIF } from '@/app/lib/harmonizer/types';
-import type { ERFValidationResult } from '@/app/lib/erf/types';
+import type { HIF } from '../../../app/lib/harmonizer/types';
+import type { ERFValidationResult } from '../../../app/lib/erf/types';
 import type {
   ExecutionSpeed,
   ExecutionSize,

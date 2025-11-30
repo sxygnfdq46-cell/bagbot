@@ -25,7 +25,7 @@
  * understanding where we've been, where we are, and where we're going, all at once.
  */
 
-import type { EnvironmentalState } from '@/app/engine/environmental/EnvironmentalConsciousnessCore';
+import type { EnvironmentalState } from '../../app/engine/environmental/EnvironmentalConsciousnessCore';
 import type { ParallelIntelligenceState } from './ParallelIntelligenceCore';
 
 // ============================================

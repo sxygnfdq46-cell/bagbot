@@ -9,7 +9,7 @@ import type {
   FlowSnapshot,
   FlowIntentResult,
   FlowIntent,
-} from '@/app/lib/intelligence/flowTypes';
+} from '../../app/lib/intelligence/flowTypes';
 
 /**
  * Global MFAE state

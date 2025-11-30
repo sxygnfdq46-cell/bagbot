@@ -18,7 +18,7 @@
  * • Anticipatory: Pre-emptive actions based on prediction
  */
 
-import type { EnvironmentalState } from '@/app/engine/environmental/EnvironmentalConsciousnessCore';
+import type { EnvironmentalState } from '../../app/engine/environmental/EnvironmentalConsciousnessCore';
 import type { ParallelIntelligenceState } from './ParallelIntelligenceCore';
 import type { TriPhaseState } from './EnvTriPhaseAwareness';
 

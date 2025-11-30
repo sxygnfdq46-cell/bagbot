@@ -5,8 +5,8 @@
  * Must run before StrategySelector to provide market awareness context.
  */
 
-import { SentienceEngine, MarketSnapshot, SentienceAnalysis, PressureZone } from '@/app/lib/sentience/SentienceEngine';
-import * as SentienceState from '@/app/state/sentienceState';
+import { SentienceEngine, MarketSnapshot, SentienceAnalysis, PressureZone } from '../../../app/lib/sentience/SentienceEngine';
+import * as SentienceState from '../../../app/state/sentienceState';
 
 /**
  * Market emotion

@@ -1,0 +1,9 @@
+Optimization Report - 20251123_234207
+============================================================
+
+Objective: sharpe
+Population: 2 | Generations: 1 | Seed: 42
+Data: /var/folders/3c/4wk8wc7s0fx4lc1mlvbzmgdc0000gn/T/tmpgg996_4a/test_data.csv
+
+Backtest Report:
+{'num_trades': 0, 'win_rate': None, 'sharpe': None, 'max_drawdown': 0.0, 'total_return': 0.0}

@@ -6,8 +6,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { SignalType, SignalTier, EngineName } from '@/app/lib/decision/GDSTopology';
-import { SignalPayload, FinalDecision, EngineResponse } from '@/app/lib/decision/GDSRouter';
+import { SignalType, SignalTier, EngineName } from '../../app/lib/decision/GDSTopology';
+import { SignalPayload, FinalDecision, EngineResponse } from '../../app/lib/decision/GDSRouter';
 
 /**
  * Signal in backlog
@@ -330,7 +330,9 @@ export const useGDSState = create<GDSState>()(
         // Keep only last 100 signal responses
         if (responseMap.size > 100) {
           const firstKey = responseMap.keys().next().value;
-          responseMap.delete(firstKey);
+          if (firstKey !== undefined) {
+            responseMap.delete(firstKey);
+          }
         }
         
         return { engineResponseMap: responseMap };

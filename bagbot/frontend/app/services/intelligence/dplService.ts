@@ -19,7 +19,7 @@
 
 'use client';
 
-import { getDecisionPrecisionLayer } from '@/app/lib/dpl/DecisionPrecisionLayer';
+import { getDecisionPrecisionLayer } from '../../../app/lib/dpl/DecisionPrecisionLayer';
 import type {
   DPLDecision,
   DPLConfig,
@@ -28,7 +28,7 @@ import type {
   MicroTrendData,
   OrderbookData,
   CandleData,
-} from '@/app/lib/dpl/types';
+} from '../../../app/lib/dpl/types';
 
 // ============================================================================
 // GLOBAL STATE

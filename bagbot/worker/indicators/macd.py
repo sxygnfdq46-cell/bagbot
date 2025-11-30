@@ -1,5 +1,5 @@
 from typing import List, Optional, Dict
-from bagbot.worker.indicators.ema import EMA
+from worker.indicators.ema import EMA
 
 class MACD:
     """

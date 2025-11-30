@@ -11,7 +11,7 @@
  * creating a quantum-like superposition of market understanding.
  */
 
-import type { EnvironmentalState } from '@/app/engine/environmental/EnvironmentalConsciousnessCore';
+import type { EnvironmentalState } from '../../app/engine/environmental/EnvironmentalConsciousnessCore';
 
 // ============================================
 // TYPES

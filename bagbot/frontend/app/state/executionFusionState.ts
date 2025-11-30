@@ -9,7 +9,7 @@ import type {
   FusionDecision,
   FusionError,
   FusionPerformanceLog,
-} from '@/app/lib/fusion/types';
+} from '../../app/lib/fusion/types';
 
 /**
  * Global fusion state

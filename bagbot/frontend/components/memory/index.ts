@@ -28,21 +28,17 @@ export type {
   MemoryType,
   MemoryPriority,
   DecayConfig,
-  RetentionPolicy,
-  QueryOptions,
-  MemoryExport
+  RetentionPolicy
 } from './RollingMemoryCore';
 
 export { TechnicalContextWeaver } from './TechnicalContextWeaver';
 export type {
   ContextThread,
-  ThreadStatus,
   ContextMilestone,
   ContextConnection,
   ContextWeave,
   ContextGap,
-  ContinuityReport,
-  ContinuityStatus
+  ContinuityReport
 } from './TechnicalContextWeaver';
 
 export { IntentThreadTracker } from './IntentThreadTracker';

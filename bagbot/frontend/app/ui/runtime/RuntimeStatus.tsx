@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 export default function RuntimeStatus() {
-  const [logs, setLogs] = useState([]);
+  const [logs, setLogs] = useState<any[]>([]);
 
   useEffect(() => {
     const eventSource = new EventSource("/api/runtime-stream");

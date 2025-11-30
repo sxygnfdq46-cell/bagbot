@@ -11,7 +11,7 @@ class FullSpectrumSync {
 
     // RDS: Detect reality distortion from market data
     const distortion = RDS.detect({
-      volatility: shield.fusionScore / 5, // normalize for detection
+      volatility: shield.score / 5, // normalize for detection
       liquidity: 50, // placeholder
       momentumInversion: false, // placeholder
       correlationBreak: false // placeholder
@@ -31,9 +31,10 @@ class FullSpectrumSync {
     // RDS: Apply filters to decision signal
     decision = RDS.applyFilters(decision);
 
-    if (decision.forceSafeMode) {
-      console.log("⚠️ RDS: Entering Anti-Chaos Safe Mode");
-    }
+    // Check for safe mode (RDS doesn't add forceSafeMode to DecisionResult)
+    // if (decision.forceSafeMode) {
+    //   console.log("⚠️ RDS: Entering Anti-Chaos Safe Mode");
+    // }
 
     // 4. Push decision into trading pipeline
     const trade = tradingPipeline.execute({

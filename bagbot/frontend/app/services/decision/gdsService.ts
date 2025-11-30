@@ -5,9 +5,9 @@
  * Provides interface for signal submission, decision retrieval, and monitoring.
  */
 
-import { GDSRouter, SignalPayload, FinalDecision } from '@/app/lib/decision/GDSRouter';
-import { useGDSState } from '@/app/state/gdsState';
-import { SignalType, SignalTier, EngineName } from '@/app/lib/decision/GDSTopology';
+import { GDSRouter, SignalPayload, FinalDecision } from '../../../app/lib/decision/GDSRouter';
+import { useGDSState } from '../../../app/state/gdsState';
+import { SignalType, SignalTier, EngineName } from '../../../app/lib/decision/GDSTopology';
 
 /**
  * Signal submission request

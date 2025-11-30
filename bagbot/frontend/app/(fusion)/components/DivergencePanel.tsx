@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import DivergenceInsightBridge from "@/app/lib/analytics/DivergenceInsightBridge";
+import DivergenceInsightBridge from "../../../app/lib/analytics/DivergenceInsightBridge";
 
 export default function DivergencePanel() {
     const [loading, setLoading] = useState(true);

@@ -6,10 +6,9 @@
  * Acts as the highest-level perception layer before strategy selection.
  */
 
-import { PatternSyncEngine, MasterPattern } from '@/app/lib/patterns/PatternSyncEngine';
-import { FusionEngine } from '@/app/lib/fusion/FusionEngine';
-import { ReinforcementCore } from '@/app/lib/learning/ReinforcementCore';
-import { ShieldEngine } from '@/app/lib/shield/ShieldEngine';
+import { PatternSyncEngine, MasterPattern } from '../../../app/lib/patterns/PatternSyncEngine';
+import { FusionEngine } from '../../../src/engine/fusion/FusionEngine';
+import { ReinforcementCore } from '../../../app/lib/learning/ReinforcementCore';
 import * as SentienceMath from './sentienceMath';
 
 /**

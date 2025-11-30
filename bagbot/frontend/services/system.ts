@@ -3,7 +3,7 @@
  * SAFE: Read-only system metrics and health checks
  */
 
-import { api } from '@/lib/api';
+import { api } from '../lib/api';
 
 export interface SystemHealth {
   status: 'healthy' | 'degraded' | 'down';

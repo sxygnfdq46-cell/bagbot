@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { threatSyncOrchestrator } from "@/engines/threat/ThreatSyncOrchestrator";
+import { threatSyncOrchestrator } from "../../../engines/threat/ThreatSyncOrchestrator";
 
 export default function ThreatOverlay() {
   const [activeThreats, setActiveThreats] = useState(0);
 
   useEffect(() => {
     const unsubscribe = threatSyncOrchestrator.subscribe((stats) => {
-      setActiveThreats(stats.totalThreats || 0);
+      // ThreatState doesn't have totalThreats - count is always 1 per notification
+      setActiveThreats(stats.severity === 'NONE' ? 0 : 1);
     });
 
     return () => unsubscribe();

@@ -3,7 +3,7 @@
  * SAFE: Read/write user settings (no system config changes)
  */
 
-import { api } from '@/lib/api';
+import { api } from '../lib/api';
 
 export interface UserSettings {
   user_id: string;

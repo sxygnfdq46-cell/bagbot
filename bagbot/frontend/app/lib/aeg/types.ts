@@ -8,8 +8,8 @@
  * These types define execution speed, size, aggression modes, and governance results.
  */
 
-import type { HIF } from '@/app/lib/harmonizer/types';
-import type { ERFValidationResult } from '@/app/lib/erf/types';
+import type { HIF } from '../../../app/lib/harmonizer/types';
+import type { ERFValidationResult } from '../../../app/lib/erf/types';
 
 // ============================================================================
 // EXECUTION SPEED
@@ -258,23 +258,3 @@ export interface GovernanceRule {
   priority: number; // Higher = more important
 }
 
-// ============================================================================
-// EXPORTS
-// ============================================================================
-
-export type {
-  ExecutionSpeed as default,
-  ExecutionSize,
-  AggressionMode,
-  GovernorResult,
-  GovernorContext,
-  AEGConfig,
-  SpeedCalculationInput,
-  SizeCalculationInput,
-  AggressionCalculationInput,
-  AEGStatistics,
-  GovernorSnapshot,
-  ExecutionProfile,
-  AEGEvent,
-  GovernanceRule,
-};

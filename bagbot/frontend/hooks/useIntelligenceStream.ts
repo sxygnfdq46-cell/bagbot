@@ -2,7 +2,7 @@
 // React hook for subscribing to ShieldIntelligenceAPI
 
 import { useEffect, useState } from 'react';
-import { IntelligenceAPI } from '@/src/engine/stability-shield/ShieldIntelligenceAPI';
+import { IntelligenceAPI } from '../src/engine/stability-shield/ShieldIntelligenceAPI';
 
 export function useIntelligenceStream() {
   const [snapshot, setSnapshot] = useState(IntelligenceAPI.getSnapshot());

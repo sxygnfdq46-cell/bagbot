@@ -17,9 +17,9 @@
  * 
  * Usage Example:
  * ```typescript
- * import { initERF, filterExecution, getERFStatus } from '@/app/services/intelligence/erfService';
- * import { getCurrentHIF } from '@/app/services/intelligence/snhlService';
- * import { getLastTranslation } from '@/app/services/intelligence/netService';
+ * import { initERF, filterExecution, getERFStatus } from '../../../app/services/intelligence/erfService';
+ * import { getCurrentHIF } from '../../../app/services/intelligence/snhlService';
+ * import { getLastTranslation } from '../../../app/services/intelligence/netService';
  * 
  * // Initialize ERF
  * initERF();
@@ -39,14 +39,14 @@
 
 'use client';
 
-import { getExecutionRealityFilter } from '@/app/lib/erf/ExecutionRealityFilter';
-import type { HIF, ExecutionInstruction } from '@/app/lib/harmonizer/types';
+import { getExecutionRealityFilter } from '../../../app/lib/erf/ExecutionRealityFilter';
+import type { HIF, ExecutionInstruction } from '../../../app/lib/harmonizer/types';
 import type {
   ERFValidationResult,
   ERFConfig,
   ERFStatistics,
   MarketRealitySnapshot,
-} from '@/app/lib/erf/types';
+} from '../../../app/lib/erf/types';
 
 // ============================================================================
 // SINGLETON FILTER INSTANCE
@@ -310,8 +310,8 @@ export function isErfInitialized(): boolean {
  * 
  * Usage:
  * ```typescript
- * import { onNewInstruction } from '@/app/services/intelligence/netService';
- * import { autoFilterFromNET } from '@/app/services/intelligence/erfService';
+ * import { onNewInstruction } from '../../../app/services/intelligence/netService';
+ * import { autoFilterFromNET } from '../../../app/services/intelligence/erfService';
  * 
  * onNewInstruction((instruction) => {
  *   const hif = getCurrentHIF();

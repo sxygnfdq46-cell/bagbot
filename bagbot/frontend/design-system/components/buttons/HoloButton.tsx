@@ -1,7 +1,7 @@
 'use client';
 
 import React, { ButtonHTMLAttributes, ReactNode } from 'react';
-import { useTheme } from '../../app/providers';
+import { useTheme } from '../../../app/providers';
 
 interface HoloButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;

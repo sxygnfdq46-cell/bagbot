@@ -5,14 +5,14 @@
  * Manages flow analysis lifecycle, state tracking, and event notifications.
  */
 
-import { getMFAE, resetMFAE } from '@/app/lib/intelligence/MarketFlowAnticipation';
+import { getMFAE, resetMFAE } from '../../../app/lib/intelligence/MarketFlowAnticipation';
 import type {
   FlowSnapshot,
   FlowIntentResult,
   FlowState,
   MFAEConfig,
   FlowIntent,
-} from '@/app/lib/intelligence/flowTypes';
+} from '../../../app/lib/intelligence/flowTypes';
 
 import {
   addFlowSnapshot,
@@ -21,7 +21,7 @@ import {
   getResultHistory,
   getFlowStats,
   clearFlowHistory,
-} from '@/app/state/mfaeState';
+} from '../../../app/state/mfaeState';
 
 /**
  * Event listeners for flow events

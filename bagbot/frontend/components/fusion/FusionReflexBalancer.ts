@@ -15,7 +15,7 @@
 
 import type { UserPresenceSignature, SymbioticFusionState } from './SymbioticEnvironmentLink';
 import type { PresenceMapping } from './EnvironmentPresenceMapper';
-import type { EnvironmentalState } from '@/app/engine/environmental/EnvironmentalConsciousnessCore';
+import type { EnvironmentalState } from '../../app/engine/environmental/EnvironmentalConsciousnessCore';
 
 // ============================================
 // TYPES

@@ -1,8 +1,8 @@
 // app/lib/intel/FusionThreatBridge.ts
 // Step 24.8 — Threat → Fusion Influence Link
 
-import { threatSyncOrchestrator } from "@/engines/threat/ThreatSyncOrchestrator";
-import { getFusionEngine } from "@/src/engine/fusion/FusionEngine";
+import { threatSyncOrchestrator } from "../../../engines/threat/ThreatSyncOrchestrator";
+import { getFusionEngine } from "../../../src/engine/fusion/FusionEngine";
 
 class FusionThreatBridge {
   private threatModifier: number = 1.0;
@@ -14,17 +14,18 @@ class FusionThreatBridge {
     if (this.unsubscribe) return; // Already initialized
 
     this.unsubscribe = threatSyncOrchestrator.subscribe((stats) => {
-      const severity = stats.severity || 0;
-      const totalThreats = stats.totalThreats || 0;
+      // Convert severity enum to number
+      const severityNum = this.severityToNumber(stats.severity);
+      const totalThreats = 0; // ThreatState doesn't have totalThreats property
 
       // GREEN (normal): Full confidence, no modification
-      if (severity < 0.4) {
+      if (severityNum < 0.4) {
         this.threatModifier = 1.0;
         this.confidenceReduction = 0;
         this.freezeHighRisk = false;
       }
       // YELLOW (caution mode): Reduce aggression, lower confidence
-      else if (severity >= 0.4 && severity <= 0.65) {
+      else if (severityNum >= 0.4 && severityNum <= 0.65) {
         this.threatModifier = 0.7;
         this.confidenceReduction = 5;
         this.freezeHighRisk = false;
@@ -39,6 +40,17 @@ class FusionThreatBridge {
       // Apply modifiers to FusionEngine
       this.applyToFusion();
     });
+  }
+
+  private severityToNumber(severity: string): number {
+    switch (severity) {
+      case 'NONE': return 0;
+      case 'LOW': return 0.25;
+      case 'MEDIUM': return 0.5;
+      case 'HIGH': return 0.75;
+      case 'CRITICAL': return 1.0;
+      default: return 0;
+    }
   }
 
   private applyToFusion() {

@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useUIKernel, DataPulseFeed } from '@/components/ui';
-import { useIntelligenceStream } from '@/hooks/useIntelligenceStream';
-import { IntelligenceAPI } from '@/src/engine/stability-shield/ShieldIntelligenceAPI';
+import { useUIKernel, DataPulseFeed } from '../../components/ui';
+import { useIntelligenceStream } from '../../hooks/useIntelligenceStream';
+import { IntelligenceAPI } from '../../src/engine/stability-shield/ShieldIntelligenceAPI';
 
 /**
  * ═══════════════════════════════════════════════════════════════════
@@ -355,8 +355,8 @@ export default function SystemOverviewDeck() {
             </div>
             <div className="flex gap-1">
               <div className={`w-2 h-2 rounded-full ${clusters.length > 0 ? 'bg-cyan-400 animate-pulse' : 'bg-gray-600'}`} title="Clusters" />
-              <div className={`w-2 h-2 rounded-full ${snapshot.correlations.pairs.length > 0 ? 'bg-purple-400 animate-pulse' : 'bg-gray-600'}`} title="Correlations" />
-              <div className={`w-2 h-2 rounded-full ${snapshot.predictions.nearTerm.length > 0 ? 'bg-orange-400 animate-pulse' : 'bg-gray-600'}`} title="Predictions" />
+              <div className={`w-2 h-2 rounded-full ${(snapshot.correlations?.pairs?.length || 0) > 0 ? 'bg-purple-400 animate-pulse' : 'bg-gray-600'}`} title="Correlations" />
+              <div className={`w-2 h-2 rounded-full ${(snapshot.predictions?.nearTerm?.length || 0) > 0 ? 'bg-orange-400 animate-pulse' : 'bg-gray-600'}`} title="Predictions" />
             </div>
           </div>
         </div>

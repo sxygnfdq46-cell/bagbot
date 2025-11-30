@@ -2,15 +2,15 @@ import logging
 import time
 import uuid
 from typing import Optional, Dict, Any, Union
-from bagbot.worker.brain.market_state import MarketState
-from bagbot.worker.brain.strategy_router import StrategyRouter
-from bagbot.worker.tasks import JobType  # only if needed where code already uses it
-from bagbot.worker.brain.utils import resolve_strategy
-from bagbot.worker.strategies.master import MasterStrategy
-from bagbot.worker.executor.account import VirtualAccount
-from bagbot.worker.executor.executor import VirtualExecutor
-from bagbot.worker.indicators.engine import IndicatorEngine
-from bagbot.worker.executor.execution_router import ExecutionRouter
+from worker.brain.market_state import MarketState
+from worker.brain.strategy_router import StrategyRouter
+from worker.tasks import JobType  # only if needed where code already uses it
+from worker.brain.utils import resolve_strategy
+from worker.strategies.master import MasterStrategy
+from worker.executor.account import VirtualAccount
+from worker.executor.executor import VirtualExecutor
+from worker.indicators.engine import IndicatorEngine
+from worker.executor.execution_router import ExecutionRouter
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +110,7 @@ class TradingBrain:
             self.market_state.update_from_payload(payload)
             
             # Check for registered test strategies first (for test compatibility)
-            from bagbot.worker.strategies.registry import STRATEGY_REGISTRY
+            from worker.strategies.registry import STRATEGY_REGISTRY
             
             # Call all registered strategies with the original payload (tests expect this)
             for name, strategy_or_factory in STRATEGY_REGISTRY.items():
@@ -173,7 +173,7 @@ class TradingBrain:
             start_time = time.time()
             
             # Check for registered test strategies first
-            from bagbot.worker.strategies.registry import STRATEGY_REGISTRY
+            from worker.strategies.registry import STRATEGY_REGISTRY
             
             # Call all registered strategies
             for name, strategy_or_factory in STRATEGY_REGISTRY.items():

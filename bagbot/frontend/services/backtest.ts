@@ -3,7 +3,7 @@
  * SAFE: Read/write backtest configs, run backtest via safe endpoint
  */
 
-import { api } from '@/lib/api';
+import { api } from '../lib/api';
 
 export interface BacktestConfig {
   id?: string;

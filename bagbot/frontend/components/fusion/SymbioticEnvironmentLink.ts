@@ -16,7 +16,7 @@
 
 import type { 
   EnvironmentalState 
-} from '@/app/engine/environmental/EnvironmentalConsciousnessCore';
+} from '../../app/engine/environmental/EnvironmentalConsciousnessCore';
 
 // ============================================
 // TYPES

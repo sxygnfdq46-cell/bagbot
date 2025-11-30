@@ -5,7 +5,7 @@
  * Provides initialization, evaluation, and state management for final execution decisions.
  */
 
-import { getReactor, resetReactor } from '@/app/lib/xreactor/XReactor';
+import { getReactor, resetReactor } from '../../../app/lib/xreactor/XReactor';
 import type {
   ReactorDecision,
   ReactorContext,
@@ -13,7 +13,7 @@ import type {
   ReactorMetrics,
   MicroCheckResult,
   ReactorRuleResult,
-} from '@/app/lib/xreactor/types';
+} from '../../../app/lib/xreactor/types';
 
 /**
  * Event listeners for reactor state changes
@@ -110,7 +110,7 @@ function emitDecisionEvents(decision: ReactorDecision): void {
 export function getReactorState(): {
   metrics: ReactorMetrics;
   lastDecision: ReactorDecision | null;
-  diagnostics: ReturnType<typeof getReactor>["getDiagnostics"];
+  diagnostics: ReturnType<ReturnType<typeof getReactor>["getDiagnostics"]>;
 } {
   const reactor = getReactor();
   const metrics = reactor.getMetrics();

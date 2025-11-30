@@ -291,7 +291,7 @@ export class ReinforcementCore {
     const netLearning = this.totalReward - this.totalPenalty;
     
     // Calculate recent performance
-    const recentStates = StateMemory.getRecentStates(50);
+    const recentStates = StateMemory.getRecent(50);
     const withOutcomes = recentStates.filter(s => s.outcome);
     const successful = withOutcomes.filter(s => s.outcome?.success);
     

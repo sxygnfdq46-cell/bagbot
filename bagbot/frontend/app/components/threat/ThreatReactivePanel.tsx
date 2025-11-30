@@ -1,7 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { threatSyncOrchestrator } from "@/engines/threat/ThreatSyncOrchestrator";
+import { threatSyncOrchestrator, ThreatSeverity } from "../../../engines/threat/ThreatSyncOrchestrator";
+
+const severityToNumber = (severity: ThreatSeverity): number => {
+  switch (severity) {
+    case 'NONE': return 0;
+    case 'LOW': return 0.25;
+    case 'MEDIUM': return 0.5;
+    case 'HIGH': return 0.75;
+    case 'CRITICAL': return 1.0;
+    default: return 0;
+  }
+};
 
 export default function ThreatReactivePanel() {
   const [visible, setVisible] = useState(false);
@@ -10,8 +21,9 @@ export default function ThreatReactivePanel() {
   useEffect(() => {
     const unsubscribe = threatSyncOrchestrator.subscribe((stats) => {
       setData(stats);
+      const severityNum = severityToNumber(stats.severity);
 
-      if (stats.severity && stats.severity > 0.6) {
+      if (severityNum > 0.6) {
         setVisible(true);
         setTimeout(() => setVisible(false), 9000); // auto-hide after 9s
       }

@@ -41,7 +41,7 @@ import type {
   SafetyGateResult,
   ThreatOverrideState,
   ActionConfidenceLevel,
-} from '@/app/lib/harmonizer/types';
+} from '../../../app/lib/harmonizer/types';
 
 // ============================================================================
 // NET CONFIGURATION

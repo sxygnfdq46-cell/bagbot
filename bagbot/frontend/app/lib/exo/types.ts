@@ -341,28 +341,3 @@ export interface LayerInputs {
     volatility: string;
   };
 }
-
-// ============================================================================
-// EXPORTS
-// ============================================================================
-
-export type {
-  EXODecision as default,
-  EXOContext,
-  SignalMergeData,
-  SignalWeights,
-  SignalAlignment,
-  SignalConflict,
-  ExecutionRuleResult,
-  EXOMetadata,
-  OrderbookData,
-  OrderbookLevel,
-  PositionData,
-  EXOConfig,
-  EXOStatistics,
-  EXOSnapshot,
-  RuleContext,
-  RiskAssessment,
-  ExecutionCommandDetails,
-  LayerInputs,
-};

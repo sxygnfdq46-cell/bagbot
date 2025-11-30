@@ -1,5 +1,5 @@
 from typing import Dict, Any, List
-from bagbot.worker.strategies.plugin_registry import get_plugin_class
+from worker.strategies.plugin_registry import get_plugin_class
 
 class MasterStrategy:
     """

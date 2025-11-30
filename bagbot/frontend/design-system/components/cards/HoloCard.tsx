@@ -1,7 +1,7 @@
 'use client';
 
 import React, { ReactNode } from 'react';
-import { useTheme } from '../../app/providers';
+import { useTheme } from '../../../app/providers';
 
 interface HoloCardProps {
   children: ReactNode;

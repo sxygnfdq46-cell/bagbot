@@ -347,9 +347,9 @@ const TimelineView: React.FC<{
             {thread.milestones.length > 0 && (
               <div className="thread-milestones">
                 {thread.milestones.slice(-3).map((milestone, idx) => (
-                  <div key={idx} className={`milestone milestone-${milestone.type}`}>
+                  <div key={idx} className={`milestone milestone-${milestone.significance}`}>
                     <span className="milestone-icon">
-                      {milestone.type === 'critical' ? '⚡' : milestone.type === 'major' ? '🎯' : '📍'}
+                      {milestone.significance === 'critical' ? '⚡' : milestone.significance === 'major' ? '🎯' : '📍'}
                     </span>
                     <span className="milestone-desc">{milestone.description}</span>
                   </div>
@@ -474,7 +474,7 @@ const MemoryBrowserView: React.FC<{
               </div>
               <div className="meta-row">
                 <span className="meta-label">Updated:</span>
-                <span className="meta-value">{new Date(selected.updatedAt).toLocaleString()}</span>
+                <span className="meta-value">{new Date(selected.modifiedAt).toLocaleString()}</span>
               </div>
               <div className="meta-row">
                 <span className="meta-label">Retention:</span>

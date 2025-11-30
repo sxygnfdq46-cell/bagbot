@@ -6,12 +6,12 @@ Pure Python only. No new dependencies or network calls.
 
 from dataclasses import dataclass, field
 from typing import Optional, Dict, Any
-from bagbot.worker.strategies.base import StrategyBase
-from bagbot.worker.indicators.sma import SMA
-from bagbot.worker.indicators.ema import EMA
-from bagbot.worker.indicators.rsi import RSI
-from bagbot.worker.indicators.macd import MACD
-from bagbot.worker.indicators.atr import ATR
+from worker.strategies.base import StrategyBase
+from worker.indicators.sma import SMA
+from worker.indicators.ema import EMA
+from worker.indicators.rsi import RSI
+from worker.indicators.macd import MACD
+from worker.indicators.atr import ATR
 
 
 @dataclass

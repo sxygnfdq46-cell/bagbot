@@ -1,5 +1,5 @@
 from typing import List, Optional
-from bagbot.worker.indicators.base import BaseIndicator
+from worker.indicators.base import BaseIndicator
 
 class RSI(BaseIndicator):
     """

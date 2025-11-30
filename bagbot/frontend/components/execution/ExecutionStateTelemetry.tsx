@@ -10,9 +10,9 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { Separator } from '../../components/ui/separator';
 import {
   Activity,
   Zap,
@@ -95,7 +95,7 @@ const neonPulse = {
     transition: {
       duration: 2,
       repeat: Infinity,
-      ease: 'easeInOut',
+      ease: "easeInOut" as const,
     },
   },
 };
@@ -107,7 +107,7 @@ const energyFlow = {
     x: ['-100%', '0%', '100%', '200%'],
     transition: {
       duration: 1.5,
-      ease: 'easeInOut',
+      ease: "easeInOut" as const,
     },
   },
 };

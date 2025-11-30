@@ -298,21 +298,3 @@ export interface ThreatOverrideState {
   overriddenAction: string;
   enforcedAction: string;
 }
-
-// ============================================================================
-// EXPORTS
-// ============================================================================
-
-export type {
-  HIF as default,
-  HarmonizerInput,
-  HarmonizerConfig,
-  ConflictedSignals,
-  HarmonizedSignals,
-  NormalizedSignal,
-  ExecutionInstruction,
-  ExecutionContext,
-  SafetyGateResult,
-  ActionConfidenceLevel,
-  ThreatOverrideState,
-};

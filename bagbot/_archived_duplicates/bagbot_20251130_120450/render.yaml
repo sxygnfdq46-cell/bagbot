@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: bagbot-web
+    env: python
+    plan: free
+    rootDir: bagbot
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    autoDeploy: true
+    healthCheckPath: /api/health
+
+  - type: worker
+    name: bagbot-worker
+    env: python
+    plan: free
+    buildCommand: pip install -r bagbot/requirements.txt
+    startCommand: python3 -u worker.py
+    autoDeploy: true
+
+  - type: web
+    name: bagbot-frontend
+    env: node
+    plan: free
+    rootDir: bagbot/frontend
+    buildCommand: npm install && npm run build
+    startCommand: cd .next/standalone && HOSTNAME=0.0.0.0 PORT=$PORT node server.js
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://bagbot2-backend.onrender.com
+      - key: PORT
+        value: "10000"

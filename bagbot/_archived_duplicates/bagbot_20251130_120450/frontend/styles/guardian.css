@@ -1,0 +1,574 @@
+/**
+ * LEVEL 12.1 — GUARDIAN VISUAL STABILIZATION
+ * 
+ * GPU-accelerated visual effects for Guardian system:
+ * - Harmonic glow stabilizer (calm pulsation)
+ * - Pulsation dampening (reduces visual overload)
+ * - Overload cooling animation (emergency cool-down)
+ * - Stability rings (protection indicators)
+ * 
+ * All effects synchronized with Guardian engines via CSS custom properties.
+ */
+
+/* ================================ */
+/* CSS CUSTOM PROPERTIES            */
+/* ================================ */
+
+:root {
+  /* Guardian harmonic properties */
+  --guardian-harmonic: 0.5;
+  /* 0-1 stabilizing frequency */
+  --guardian-harmonic-phase: 0deg;
+  /* 0-360deg */
+  --guardian-harmonic-amplitude: 0.7;
+  /* 0-1 */
+  
+  /* Guardian intensity properties */
+  --guardian-intensity: 0;
+  /* 0-1 protection strength */
+  --guardian-protection-level: 'none';
+  /* none/low/medium/high/critical */
+  
+  /* Balance properties */
+  --guardian-balance: 1;
+  /* 0-1 coherence score */
+  --guardian-emotional-balance: 1;
+  /* 0-1 */
+  --guardian-visual-balance: 1;
+  /* 0-1 */
+  
+  /* Protection properties */
+  --guardian-reflex-strength: 0;
+  /* 0-1 */
+  --guardian-threat-level: 'none';
+  /* none/low/medium/high/critical */
+  --guardian-protection-active: 0;
+  /* 0 or 1 */
+  
+  /* Integrity properties */
+  --guardian-integrity: 1;
+  /* 0-1 */
+  --guardian-coherence: 1;
+  /* 0-1 */
+  
+  /* Visual dampening */
+  --guardian-dampening: 0;
+  /* 0-1 */
+  --guardian-overstimulation-risk: 0;
+  /* 0-1 */
+  
+  /* Cascade prevention */
+  --guardian-cascade-risk: 0;
+  /* 0-1 */
+  --guardian-cascade-active: 0;
+  /* 0 or 1 */
+  
+  /* Derived colors */
+  --guardian-color-stable: rgba(52, 211, 153, calc(var(--guardian-intensity) * 0.6));
+  --guardian-color-warning: rgba(251, 191, 36, calc(var(--guardian-intensity) * 0.7));
+  --guardian-color-critical: rgba(239, 68, 68, calc(var(--guardian-intensity) * 0.8));
+}
+
+/* ================================ */
+/* BASE GUARDIAN ROOT               */
+/* ================================ */
+
+.symbiotic-guardian-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Guardian active indicator */
+.symbiotic-guardian-root[data-guardian-active='true']::before {
+  content: '';
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--guardian-color-stable);
+  box-shadow: 0 0 calc(10px + var(--guardian-intensity) * 10px) var(--guardian-color-stable);
+  z-index: 10000;
+  animation: guardianPulse 2s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+
+@keyframes guardianPulse {
+  0%,
+  100% {
+    opacity: calc(0.5 + var(--guardian-intensity) * 0.5);
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(calc(1 + var(--guardian-intensity) * 0.3));
+  }
+}
+
+/* ================================ */
+/* HARMONIC GLOW STABILIZER         */
+/* ================================ */
+
+.guardian-harmonic-glow {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: calc(80% + var(--guardian-harmonic) * 20%);
+  height: calc(80% + var(--guardian-harmonic) * 20%);
+  transform: translate(-50%, -50%) rotate(var(--guardian-harmonic-phase));
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    transparent 40%,
+    var(--guardian-color-stable) calc(50% - var(--guardian-dampening) * 10%),
+    transparent 70%
+  );
+  filter: blur(calc(60px - var(--guardian-dampening) * 20px));
+  mix-blend-mode: screen;
+  opacity: calc(0.3 + var(--guardian-balance) * 0.3);
+  pointer-events: none;
+  z-index: 1;
+  animation: harmonicRotate calc(20s / var(--guardian-harmonic)) linear infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes harmonicRotate {
+  0% {
+    transform: translate(-50%, -50%) rotate(var(--guardian-harmonic-phase));
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(calc(var(--guardian-harmonic-phase) + 360deg));
+  }
+}
+
+/* ================================ */
+/* PULSATION DAMPENING              */
+/* ================================ */
+
+.guardian-dampening-field {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(31, 41, 55, calc(var(--guardian-dampening) * 0.3)) 0%,
+    transparent 50%,
+    rgba(31, 41, 55, calc(var(--guardian-dampening) * 0.3)) 100%
+  );
+  opacity: var(--guardian-dampening);
+  pointer-events: none;
+  z-index: 2;
+  transition: opacity 0.5s ease;
+  will-change: opacity;
+}
+
+/* Dampening active indicator */
+.symbiotic-guardian-root[data-guardian-active='true'] .guardian-dampening-field {
+  animation: dampeningPulse 3s ease-in-out infinite;
+}
+
+@keyframes dampeningPulse {
+  0%,
+  100% {
+    opacity: var(--guardian-dampening);
+  }
+  50% {
+    opacity: calc(var(--guardian-dampening) * 1.2);
+  }
+}
+
+/* ================================ */
+/* OVERLOAD COOLING ANIMATION       */
+/* ================================ */
+
+.guardian-cooling-effect {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 60%;
+  height: 60%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    rgba(59, 130, 246, calc(var(--guardian-overstimulation-risk) * 0.4)) 0%,
+    rgba(147, 51, 234, calc(var(--guardian-overstimulation-risk) * 0.3)) 40%,
+    transparent 70%
+  );
+  filter: blur(80px);
+  mix-blend-mode: screen;
+  opacity: var(--guardian-overstimulation-risk);
+  pointer-events: none;
+  z-index: 3;
+  animation: coolingWave 4s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes coolingWave {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: var(--guardian-overstimulation-risk);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: calc(var(--guardian-overstimulation-risk) * 0.7);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: var(--guardian-overstimulation-risk);
+  }
+}
+
+/* High overstimulation: faster cooling */
+.symbiotic-guardian-root[data-guardian-active='true'] .guardian-cooling-effect {
+  animation-duration: calc(4s - var(--guardian-overstimulation-risk) * 2s);
+}
+
+/* ================================ */
+/* STABILITY RINGS                  */
+/* ================================ */
+
+.guardian-stability-ring {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: calc(40% + var(--guardian-balance) * 20%);
+  height: calc(40% + var(--guardian-balance) * 20%);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: calc(1px + var(--guardian-intensity) * 2px) solid var(--guardian-color-stable);
+  opacity: calc(0.2 + var(--guardian-intensity) * 0.4);
+  pointer-events: none;
+  z-index: 4;
+  filter: blur(2px);
+  mix-blend-mode: screen;
+  animation: stabilityPulse calc(3s - var(--guardian-intensity) * 1s) ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes stabilityPulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: calc(0.2 + var(--guardian-intensity) * 0.4);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(calc(1 + var(--guardian-intensity) * 0.1));
+    opacity: calc(0.4 + var(--guardian-intensity) * 0.6);
+  }
+}
+
+/* Multiple stability rings (concentric) */
+.guardian-stability-ring:nth-child(2) {
+  width: calc(50% + var(--guardian-balance) * 20%);
+  height: calc(50% + var(--guardian-balance) * 20%);
+  animation-delay: 1s;
+}
+
+.guardian-stability-ring:nth-child(3) {
+  width: calc(60% + var(--guardian-balance) * 20%);
+  height: calc(60% + var(--guardian-balance) * 20%);
+  animation-delay: 2s;
+}
+
+/* ================================ */
+/* CASCADE PREVENTION SHIELD        */
+/* ================================ */
+
+.guardian-cascade-shield {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    45deg,
+    transparent 48%,
+    rgba(239, 68, 68, calc(var(--guardian-cascade-risk) * 0.2)) 50%,
+    transparent 52%
+  );
+  background-size: 30px 30px;
+  opacity: var(--guardian-cascade-risk);
+  pointer-events: none;
+  z-index: 5;
+  animation: cascadeShield 2s linear infinite;
+  will-change: background-position, opacity;
+}
+
+@keyframes cascadeShield {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 30px 30px;
+  }
+}
+
+/* Cascade active: intensify shield */
+.symbiotic-guardian-root[data-cascade-active='true'] .guardian-cascade-shield {
+  background: linear-gradient(
+    45deg,
+    transparent 45%,
+    rgba(239, 68, 68, 0.4) 50%,
+    transparent 55%
+  );
+  animation-duration: 1s;
+}
+
+/* ================================ */
+/* PROTECTION LEVEL INDICATORS      */
+/* ================================ */
+
+/* None: No indicator */
+[data-guardian-active='false']::before {
+  display: none;
+}
+
+/* Low: Green glow */
+.symbiotic-guardian-root[data-guardian-active='true'][data-guardian-protection-level='low']::before {
+  background: var(--guardian-color-stable);
+  box-shadow: 0 0 15px var(--guardian-color-stable);
+}
+
+/* Medium: Yellow glow */
+.symbiotic-guardian-root[data-guardian-active='true'][data-guardian-protection-level='medium']::before {
+  background: var(--guardian-color-warning);
+  box-shadow: 0 0 20px var(--guardian-color-warning);
+  animation-duration: 1.5s;
+}
+
+/* High: Orange glow, faster pulse */
+.symbiotic-guardian-root[data-guardian-active='true'][data-guardian-protection-level='high']::before {
+  background: rgba(249, 115, 22, 1);
+  box-shadow: 0 0 25px rgba(249, 115, 22, 0.8);
+  animation-duration: 1s;
+}
+
+/* Critical: Red glow, urgent pulse */
+.symbiotic-guardian-root[data-guardian-active='true'][data-guardian-protection-level='critical']::before {
+  background: var(--guardian-color-critical);
+  box-shadow: 0 0 30px var(--guardian-color-critical);
+  animation-duration: 0.5s;
+}
+
+/* ================================ */
+/* HARMONIC PHASE VARIANTS          */
+/* ================================ */
+
+/* Aligned: Calm, smooth */
+.symbiotic-guardian-root[data-harmonic-phase='aligned'] .guardian-harmonic-glow {
+  filter: blur(80px);
+  opacity: calc(0.4 + var(--guardian-balance) * 0.2);
+}
+
+/* Converging: Gentle pulsation */
+.symbiotic-guardian-root[data-harmonic-phase='converging'] .guardian-harmonic-glow {
+  filter: blur(70px);
+  animation-duration: 15s;
+}
+
+/* Diverging: Increased activity */
+.symbiotic-guardian-root[data-harmonic-phase='diverging'] .guardian-harmonic-glow {
+  filter: blur(60px);
+  animation-duration: 10s;
+  opacity: calc(0.5 + var(--guardian-intensity) * 0.3);
+}
+
+/* Chaotic: Rapid stabilization attempt */
+.symbiotic-guardian-root[data-harmonic-phase='chaotic'] .guardian-harmonic-glow {
+  filter: blur(50px);
+  animation-duration: 5s;
+  opacity: calc(0.6 + var(--guardian-intensity) * 0.4);
+}
+
+/* ================================ */
+/* REFLEX MODE VARIANTS             */
+/* ================================ */
+
+/* Dormant: Minimal presence */
+.symbiotic-guardian-root[data-reflex-mode='dormant'] .guardian-stability-ring {
+  opacity: 0.1;
+}
+
+/* Monitoring: Subtle activity */
+.symbiotic-guardian-root[data-reflex-mode='monitoring'] .guardian-stability-ring {
+  opacity: calc(0.2 + var(--guardian-intensity) * 0.2);
+}
+
+/* Active: Full protection */
+.symbiotic-guardian-root[data-reflex-mode='active'] .guardian-stability-ring {
+  opacity: calc(0.4 + var(--guardian-intensity) * 0.4);
+  border-width: calc(2px + var(--guardian-intensity) * 3px);
+}
+
+/* Emergency: Maximum intensity */
+.symbiotic-guardian-root[data-reflex-mode='emergency'] .guardian-stability-ring {
+  opacity: calc(0.6 + var(--guardian-intensity) * 0.4);
+  border-width: calc(3px + var(--guardian-intensity) * 4px);
+  border-color: var(--guardian-color-critical);
+  animation-duration: 1s;
+}
+
+/* ================================ */
+/* INTEGRITY VISUALIZATION          */
+/* ================================ */
+
+.guardian-integrity-grid {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: repeating-linear-gradient(
+      0deg,
+      rgba(52, 211, 153, calc(var(--guardian-integrity) * 0.05)) 0px,
+      transparent 1px,
+      transparent calc(50px * var(--guardian-integrity)),
+      rgba(52, 211, 153, calc(var(--guardian-integrity) * 0.05)) calc(51px * var(--guardian-integrity))
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(52, 211, 153, calc(var(--guardian-integrity) * 0.05)) 0px,
+      transparent 1px,
+      transparent calc(50px * var(--guardian-integrity)),
+      rgba(52, 211, 153, calc(var(--guardian-integrity) * 0.05)) calc(51px * var(--guardian-integrity))
+    );
+  opacity: calc(0.3 + var(--guardian-integrity) * 0.3);
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: screen;
+  will-change: opacity;
+}
+
+/* Low integrity: red grid */
+.symbiotic-guardian-root[data-guardian-active='true'] .guardian-integrity-grid {
+  background-image: repeating-linear-gradient(
+      0deg,
+      rgba(239, 68, 68, calc((1 - var(--guardian-integrity)) * 0.1)) 0px,
+      transparent 1px,
+      transparent 50px,
+      rgba(239, 68, 68, calc((1 - var(--guardian-integrity)) * 0.1)) 51px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(239, 68, 68, calc((1 - var(--guardian-integrity)) * 0.1)) 0px,
+      transparent 1px,
+      transparent 50px,
+      rgba(239, 68, 68, calc((1 - var(--guardian-integrity)) * 0.1)) 51px
+    );
+}
+
+/* ================================ */
+/* COHERENCE SHIMMER                */
+/* ================================ */
+
+.guardian-coherence-shimmer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    calc(var(--guardian-harmonic-phase) + 45deg),
+    transparent 0%,
+    rgba(147, 51, 234, calc(var(--guardian-coherence) * 0.03)) 50%,
+    transparent 100%
+  );
+  opacity: var(--guardian-coherence);
+  pointer-events: none;
+  z-index: 2;
+  mix-blend-mode: screen;
+  animation: coherenceShimmer 15s ease-in-out infinite;
+  will-change: background, opacity;
+}
+
+@keyframes coherenceShimmer {
+  0%,
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+  25% {
+    transform: translateX(2%) translateY(1%);
+  }
+  50% {
+    transform: translateX(0) translateY(2%);
+  }
+  75% {
+    transform: translateX(-2%) translateY(1%);
+  }
+}
+
+/* ================================ */
+/* PERFORMANCE OPTIMIZATIONS        */
+/* ================================ */
+
+.guardian-harmonic-glow,
+.guardian-dampening-field,
+.guardian-cooling-effect,
+.guardian-stability-ring,
+.guardian-cascade-shield,
+.guardian-integrity-grid,
+.guardian-coherence-shimmer {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .guardian-harmonic-glow,
+  .guardian-dampening-field,
+  .guardian-cooling-effect,
+  .guardian-stability-ring,
+  .guardian-cascade-shield,
+  .guardian-integrity-grid,
+  .guardian-coherence-shimmer {
+    animation: none !important;
+  }
+  
+  .symbiotic-guardian-root::before {
+    animation: none !important;
+  }
+}
+
+/* ================================ */
+/* BLEND MODE VARIATIONS            */
+/* ================================ */
+
+.blend-additive .guardian-harmonic-glow,
+.blend-additive .guardian-cooling-effect,
+.blend-additive .guardian-stability-ring {
+  mix-blend-mode: screen;
+}
+
+.blend-soft .guardian-harmonic-glow,
+.blend-soft .guardian-cooling-effect,
+.blend-soft .guardian-stability-ring {
+  mix-blend-mode: soft-light;
+}
+
+.blend-overlay .guardian-harmonic-glow,
+.blend-overlay .guardian-cooling-effect,
+.blend-overlay .guardian-stability-ring {
+  mix-blend-mode: overlay;
+}
+
+/* ================================ */
+/* INTENSITY MODIFIERS              */
+/* ================================ */
+
+.intensity-subtle {
+  --guardian-intensity: 0.3;
+}
+
+.intensity-normal {
+  --guardian-intensity: 0.6;
+}
+
+.intensity-strong {
+  --guardian-intensity: 1;
+}

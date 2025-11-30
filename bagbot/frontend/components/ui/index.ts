@@ -226,7 +226,7 @@ import {
   getPulseFeed,
   MultiLayerVisualComposer,
   getIntentRouter
-} from '@/components/ui';
+} from '../../components/ui';
 
 // 1. Wrap app with UIKernelProvider
 <UIKernelProvider config={{ targetFPS: 60 }}>

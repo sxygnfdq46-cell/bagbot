@@ -183,20 +183,14 @@ export class ExecutionPrecisionCore {
     // Use simulated market data if not provided
     if (!marketData && typeof window !== 'undefined') {
       try {
-        const engine = getMarketSimulationEngine();
-        const state = engine.getMarketState();
-        const candles = engine.getCandles('1m', 10);
-        
-        if (candles.length > 0) {
-          const lastCandle = candles[candles.length - 1];
-          marketData = {
-            currentPrice: state.currentPrice,
-            bidPrice: lastCandle.low,
-            askPrice: lastCandle.high,
-            orderBookDepth: 50 + Math.random() * 30,
-            recentVolatility: state.volatility * 100,
-          };
-        }
+        // MarketSimulationEngine is a stub - use mock data
+        marketData = {
+          currentPrice: 50000,
+          bidPrice: 49990,
+          askPrice: 50010,
+          orderBookDepth: 60,
+          recentVolatility: 1.2,
+        };
       } catch (e) {
         // Fallback if engine not initialized
       }

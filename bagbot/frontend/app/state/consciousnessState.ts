@@ -698,7 +698,12 @@ export class ConsciousnessStateManager {
       current: this.state.currentConfidenceLevel,
       stability: this.state.confidenceStability,
       trend,
-      calibration: latest.calibrationBasis,
+      calibration: {
+        performance: latest.calibrationBasis.recentPerformance,
+        market: latest.calibrationBasis.marketAlignment,
+        system: latest.calibrationBasis.systemStability,
+        learning: latest.calibrationBasis.learningProgress,
+      },
     };
   }
   

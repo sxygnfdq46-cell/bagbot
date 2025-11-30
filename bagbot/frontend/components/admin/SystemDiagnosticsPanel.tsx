@@ -3,10 +3,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import EventLogStream from './EventLogStream';
 import IntegrityScanner from './IntegrityScanner';
-import type { LogEvent } from './EventLogStream';
-import type { SystemState } from './IntegrityScanner';
-import { useIntelligenceStream } from '@/hooks/useIntelligenceStream';
-import { IntelligenceAPI } from '@/src/engine/stability-shield/ShieldIntelligenceAPI';
+import type { SystemState, SubsystemStatus } from './IntegrityScanner';
+import { useIntelligenceStream } from '../../hooks/useIntelligenceStream';
+import { IntelligenceAPI } from '../../src/engine/stability-shield/ShieldIntelligenceAPI';
 
 /**
  * ═══════════════════════════════════════════════════════════════════
@@ -31,14 +30,6 @@ import { IntelligenceAPI } from '@/src/engine/stability-shield/ShieldIntelligenc
 // ─────────────────────────────────────────────────────────────────
 // TYPES
 // ─────────────────────────────────────────────────────────────────
-
-interface SubsystemStatus {
-  name: string;
-  health: number; // 0-100
-  status: 'healthy' | 'degraded' | 'critical' | 'offline';
-  lastUpdate: string;
-  activeThreads: number;
-}
 
 interface LogEvent {
   id: string;
@@ -65,11 +56,11 @@ export default function SystemDiagnosticsPanel() {
   const { snapshot, clusters } = useIntelligenceStream();
   const [intelligenceHistory, setIntelligenceHistory] = useState<any[]>([]);
   const [subsystems, setSubsystems] = useState<SubsystemStatus[]>([
-    { name: 'Memory Layer', health: 97, status: 'healthy', lastUpdate: '2s ago', activeThreads: 12 },
-    { name: 'Emotional Engine', health: 94, status: 'healthy', lastUpdate: '3s ago', activeThreads: 8 },
-    { name: 'Sovereignty Core', health: 99, status: 'healthy', lastUpdate: '1s ago', activeThreads: 6 },
-    { name: 'Execution Manager', health: 91, status: 'healthy', lastUpdate: '2s ago', activeThreads: 15 },
-    { name: 'Thread Coordinator', health: 88, status: 'degraded', lastUpdate: '5s ago', activeThreads: 64 }
+    { name: 'Memory Layer', health: 97, status: 'healthy', lastUpdate: Date.now() - 2000, activeThreads: 12 },
+    { name: 'Emotional Engine', health: 94, status: 'healthy', lastUpdate: Date.now() - 3000, activeThreads: 8 },
+    { name: 'Sovereignty Core', health: 99, status: 'healthy', lastUpdate: Date.now() - 1000, activeThreads: 6 },
+    { name: 'Execution Manager', health: 91, status: 'healthy', lastUpdate: Date.now() - 2000, activeThreads: 15 },
+    { name: 'Thread Coordinator', health: 88, status: 'degraded', lastUpdate: Date.now() - 5000, activeThreads: 64 }
   ]);
 
   const [fpsMetrics, setFpsMetrics] = useState<FPSMetrics>({
@@ -84,8 +75,8 @@ export default function SystemDiagnosticsPanel() {
   const [scanResults, setScanResults] = useState<any[]>([]);
   const [autoScanEnabled, setAutoScanEnabled] = useState(false);
 
-  const logStreamRef = useRef<EventLogStream>(null);
-  const scannerRef = useRef<IntegrityScanner>(null);
+  const logStreamRef = useRef<EventLogStream | null>(null);
+  const scannerRef = useRef<IntegrityScanner | null>(null);
 
   // Track intelligence history (100 entries)
   useEffect(() => {
@@ -93,9 +84,9 @@ export default function SystemDiagnosticsPanel() {
       timestamp: Date.now(),
       riskScore: IntelligenceAPI.getRiskScore(),
       clusters: clusters.length,
-      predictions: snapshot.predictions.nearTerm.length + snapshot.predictions.midTerm.length,
-      rootCauses: snapshot.rootCause?.chains.length || 0,
-      correlations: snapshot.correlations.pairs.length
+      predictions: (snapshot.predictions?.nearTerm?.length || 0) + (snapshot.predictions?.midTerm?.length || 0),
+      rootCauses: snapshot.rootCause?.chains?.length || 0,
+      correlations: snapshot.correlations?.pairs?.length || 0
     };
     
     setIntelligenceHistory(prev => {
@@ -237,7 +228,7 @@ export default function SystemDiagnosticsPanel() {
         timestamp: Date.now(),
         severity: results.issues.length > 0 ? 'warning' : 'info',
         subsystem: 'Integrity',
-        message: `Scan completed: ${results.issues.length} issue(s) detected, confidence ${results.overallConfidence}%`
+        message: `Scan completed: ${results.issues.length} issue(s) detected, confidence ${results.confidence}%`
       });
     }, 800);
   };
@@ -297,7 +288,7 @@ export default function SystemDiagnosticsPanel() {
           <h4 className="text-sm font-bold text-cyan-300 mb-2">🧩 Active Clusters</h4>
           <div className="text-2xl font-bold text-cyan-200">{clusters.length}</div>
           <div className="text-xs text-cyan-400">
-            {clusters.reduce((sum, c) => sum + c.members.length, 0)} total threats
+            {clusters.reduce((sum: number, c: any) => sum + c.members.length, 0)} total threats
           </div>
         </div>
 
@@ -305,7 +296,7 @@ export default function SystemDiagnosticsPanel() {
         <div className="p-4 bg-orange-950/30 border border-orange-500/30 rounded-lg">
           <h4 className="text-sm font-bold text-orange-300 mb-2">🔍 Root Causes</h4>
           <div className="text-2xl font-bold text-orange-200">
-            {snapshot.rootCause?.chains.length || 0}
+            {snapshot.rootCause?.chains?.length || 0}
           </div>
           <div className="text-xs text-orange-400">
             {IntelligenceAPI.getPrimaryCause()}
@@ -316,10 +307,10 @@ export default function SystemDiagnosticsPanel() {
         <div className="p-4 bg-green-950/30 border border-green-500/30 rounded-lg">
           <h4 className="text-sm font-bold text-green-300 mb-2">🔮 Predictions</h4>
           <div className="text-2xl font-bold text-green-200">
-            {snapshot.predictions.nearTerm.length + snapshot.predictions.midTerm.length}
+            {(snapshot.predictions?.nearTerm?.length || 0) + (snapshot.predictions?.midTerm?.length || 0)}
           </div>
           <div className="text-xs text-green-400">
-            {snapshot.predictions.nearTerm.filter((p: any) => p.severity >= 4).length} critical
+            {snapshot.predictions?.nearTerm?.filter((p: any) => p.severity >= 4).length || 0} critical
           </div>
         </div>
       </div>

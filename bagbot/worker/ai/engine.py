@@ -1,4 +1,4 @@
-from bagbot.worker.ai.predictor import AIPredictor
+from worker.ai.predictor import AIPredictor
 
 class AIDecisionEngine:
     def __init__(self, predictor=None):

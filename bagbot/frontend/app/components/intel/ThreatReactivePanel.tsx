@@ -1,7 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { threatSyncOrchestrator } from "@/engines/threat/ThreatSyncOrchestrator";
+import { threatSyncOrchestrator, ThreatSeverity } from "../../../engines/threat/ThreatSyncOrchestrator";
+
+// Convert severity string to number
+const severityToNumber = (severity: ThreatSeverity): number => {
+  switch (severity) {
+    case 'NONE': return 0;
+    case 'LOW': return 0.25;
+    case 'MEDIUM': return 0.5;
+    case 'HIGH': return 0.75;
+    case 'CRITICAL': return 1.0;
+    default: return 0;
+  }
+};
 
 interface ThreatData {
   totalThreats: number;
@@ -18,15 +30,17 @@ export default function ThreatReactivePanel() {
 
   useEffect(() => {
     const unsub = threatSyncOrchestrator.subscribe((stats) => {
+      const severityNum = severityToNumber(stats.severity);
+      
       // Map numeric severity to color
       let severityColor: "green" | "yellow" | "red" = "green";
-      if (stats.severity > 0.65) severityColor = "red";
-      else if (stats.severity > 0.4) severityColor = "yellow";
+      if (severityNum > 0.65) severityColor = "red";
+      else if (severityNum > 0.4) severityColor = "yellow";
 
       setData({
-        totalThreats: stats.totalThreats || 0,
+        totalThreats: 0, // ThreatState doesn't have totalThreats
         severity: severityColor,
-        sources: stats.sources || []
+        sources: [stats.source]
       });
     });
     return () => unsub();

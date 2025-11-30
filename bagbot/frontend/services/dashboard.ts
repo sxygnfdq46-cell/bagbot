@@ -3,7 +3,7 @@
  * SAFE: Read-only dashboard metrics
  */
 
-import { api } from '@/lib/api';
+import { api } from '../lib/api';
 
 export interface RecentTrade {
   id: string;

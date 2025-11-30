@@ -3,7 +3,7 @@
  * SAFE: Read-only market data, no trading execution
  */
 
-import { api } from '@/lib/api';
+import { api } from '../lib/api';
 
 export interface Ticker {
   symbol: string;

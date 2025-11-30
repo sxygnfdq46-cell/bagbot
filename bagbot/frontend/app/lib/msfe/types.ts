@@ -225,24 +225,3 @@ export interface MSFEEvent {
   data?: any;
   message?: string;
 }
-
-// ============================================================================
-// EXPORTS
-// ============================================================================
-
-export type {
-  StrategyOutput as default,
-  StrategyScore,
-  WeightMap,
-  FusionResult,
-  MarketContext,
-  MSFEConfig,
-  ConflictResolution,
-  FusionDebug,
-  StrategyContribution,
-  StrategyPerformance,
-  MSFEStatistics,
-  FusionSnapshot,
-  WeightAdaptationContext,
-  MSFEEvent,
-};

@@ -6,8 +6,8 @@ import ResourceMatrix from './ResourceMatrix';
 import SafetyGateMonitor from './SafetyGateMonitor';
 import ExecutionQueueView from './ExecutionQueueView';
 import UplinkDiagnostics from './UplinkDiagnostics';
-import { useIntelligenceStream } from '@/hooks/useIntelligenceStream';
-import { IntelligenceAPI } from '@/src/engine/stability-shield/ShieldIntelligenceAPI';
+import { useIntelligenceStream } from '../../hooks/useIntelligenceStream';
+import { IntelligenceAPI } from '../../src/engine/stability-shield/ShieldIntelligenceAPI';
 
 /**
  * ═══════════════════════════════════════════════════════════════════
@@ -62,8 +62,8 @@ export default function OperationalControlHub() {
   // Live intelligence metrics
   const cascadeRisks = IntelligenceAPI.getCascadeRiskMatrix();
   const destabilizing = IntelligenceAPI.getDestabilizingLinks();
-  const predictions = snapshot.predictions;
-  const liveThreadCount = clusters.reduce((sum, c) => sum + c.members.length, 0);
+  const predictions = snapshot.predictions || { nearTerm: [], midTerm: [] };
+  const liveThreadCount = clusters.reduce((sum: number, c: any) => sum + c.members.length, 0);
   const [systemStatuses, setSystemStatuses] = useState<SystemStatus[]>([
     { module: 'memory', running: true, uptime: '47d 12h', health: 98 },
     { module: 'brain', running: true, uptime: '47d 12h', health: 97 },
@@ -177,10 +177,10 @@ export default function OperationalControlHub() {
         <div className="p-4 bg-cyan-950/30 border border-cyan-500/30 rounded-lg">
           <div className="text-xs text-cyan-400 mb-1">🔮 Predictions</div>
           <div className="text-3xl font-bold text-cyan-200">
-            {predictions.nearTerm.length + predictions.midTerm.length}
+            {(predictions.nearTerm?.length || 0) + (predictions.midTerm?.length || 0)}
           </div>
           <div className="text-xs text-cyan-500 mt-1">
-            {predictions.nearTerm.filter((p: any) => p.severity >= 4).length} critical
+            {predictions.nearTerm?.filter((p: any) => p.severity >= 4).length || 0} critical
           </div>
         </div>
 

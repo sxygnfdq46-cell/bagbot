@@ -5,9 +5,9 @@
  * Manages pattern synchronization, heatmap updates, and zone computation.
  */
 
-import { PatternSyncEngine, MasterPattern, HeatmapData, RiskZone, OpportunityZone } from '@/app/lib/patterns/PatternSyncEngine';
-import { PatternType } from '@/app/lib/patterns/patternRules';
-import { addPatternAnalysis, updateHeatmapData, updateRiskZones, updateOpportunityZones } from '@/app/state/patternState';
+import { PatternSyncEngine, MasterPattern, HeatmapData, RiskZone, OpportunityZone } from '../../../app/lib/patterns/PatternSyncEngine';
+import { PatternType } from '../../../app/lib/patterns/patternRules';
+import { addPatternAnalysis, updateHeatmapData, updateRiskZones, updateOpportunityZones } from '../../../app/state/patternState';
 
 /**
  * Signal source for pattern analysis

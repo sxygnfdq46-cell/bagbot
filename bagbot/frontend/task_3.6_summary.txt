@@ -1,0 +1,75 @@
+TASK 3.6 COMPLETION SUMMARY
+===========================
+
+Branch: feature/brain-decision-upgrade
+Date: 2025-11-23
+
+OBJECTIVE:
+----------
+Validate deterministic replay & backtest integration with TradingBrain.
+No architecture changes unless strictly necessary.
+
+VALIDATION PERFORMED:
+---------------------
+✅ ReplayEngine produces identical results across multiple runs
+✅ Brain processes replay events correctly via process() method
+✅ Brain + ReplayEngine combination is fully deterministic
+✅ CSV loading and replay maintains determinism
+✅ Subset replay (run_from_to) maintains determinism
+✅ create_brain_adapter properly routes to brain and executor
+
+TESTS ADDED:
+------------
+1. test_replay_deterministic_multiple_runs
+   - Validates identical output across 2 runs with same input
+   
+2. test_replay_adapter_routes_to_brain
+   - Validates create_brain_adapter routes candles to brain
+   - Validates executor.update_equity called per candle
+   
+3. test_replay_with_brain_deterministic_decisions
+   - Full integration: ReplayEngine + TradingBrain + test strategy
+   - Validates identical strategy call sequences across 2 runs
+   - Confirms deterministic behavior end-to-end
+   
+4. test_replay_from_csv_deterministic
+   - Load CSV 3 times, replay each, verify identical results
+   - Validates loader + replay determinism
+   
+5. test_replay_subset_deterministic
+   - Run run_from_to() 3 times, verify identical results
+   - Validates subset replay determinism
+   
+6. test_brain_adapter_handles_execute_order
+   - Validates adapter handles EXECUTE_ORDER decisions
+   - Validates orders routed to executor.execute_order()
+   - Validates equity updates called per candle
+
+TEST RESULTS:
+-------------
+Before: 56 tests passing
+After: 62 tests passing (+6 new tests)
+All tests pass with no failures or warnings.
+
+KEY FINDINGS:
+-------------
+1. Existing ReplayEngine architecture is sound and deterministic
+2. No threading, no sleeping, pure sequential iteration
+3. TradingBrain.process("PRICE_UPDATE") correctly routes to strategies
+4. create_brain_adapter in replay.py works but expects on_price_update method
+5. Strategy registry properly handles instance registration
+6. No architecture changes required
+
+FILES MODIFIED:
+---------------
+1. bagbot/tests/test_replay_brain_integration.py (NEW - 392 lines)
+
+ARCHITECTURE NOTES:
+-------------------
+- ReplayEngine: Simple iterator over candles, calls tick_callback
+- TradingBrain: Routes PRICE_UPDATE events to registered strategies
+- create_brain_adapter: Bridges candles → brain.on_price_update → executor
+- Strategy registry: Handles both class and instance registration
+- Integration: ReplayEngine → adapter → brain → strategies → executor
+
+All integration points validated. System confirmed deterministic.

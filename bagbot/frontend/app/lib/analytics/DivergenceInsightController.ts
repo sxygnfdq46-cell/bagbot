@@ -1,4 +1,11 @@
-import { computeDivergenceSignal } from "../../../engine/divergence/DivergenceSignalEngine";
+// DivergenceSignalEngine is in backend, stub for now
+const computeDivergenceSignal = (insight: DivergenceInsight) => ({
+  type: "NEUTRAL" as const,
+  confidence: 0,
+  strength: 0,
+  risk: "LOW" as const,
+  reasoning: "Signal computation not available in frontend"
+});
 
 export interface DivergenceInsight {
   bullishStrength: number;
@@ -36,6 +43,8 @@ export default class DivergenceInsightController {
       delta: insight.delta,
       volatility: insight.volatility,
       trendDirection: insight.trendDirection,
+      confidence: insight.confidence,
+      timestamp: insight.timestamp,
     });
 
     return {

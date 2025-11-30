@@ -1,7 +1,7 @@
 from typing import Type, Dict
-from bagbot.worker.strategies.base import StrategyBase
-from bagbot.worker.strategies.example_strategy import ExampleStrategy
-from bagbot.worker.strategies.ai_fusion import AIFusionStrategy
+from worker.strategies.base import StrategyBase
+from worker.strategies.example_strategy import ExampleStrategy
+from worker.strategies.ai_fusion import AIFusionStrategy
 
 _registry: Dict[str, Type[StrategyBase]] = {}
 

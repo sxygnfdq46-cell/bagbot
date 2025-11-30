@@ -1,0 +1,891 @@
+/**
+ * GOD-MODE LEVEL 5 — THE ASCENSION SUITE
+ * The final transformation layer - peak browser UI evolution
+ * 
+ * 8 NEW SYSTEMS:
+ * 1. Neural-Synapse UI - Brain-like reactions to market data
+ * 2. AI-Emotion HoloAura - Mood-based glows
+ * 3. Gravity-Warp Transitions - Space-bending page changes
+ * 4. Temporal Displacement FX - Time-based distortions
+ * 5. Quantum Ripple Propagation - Chart/signal reactive ripples
+ * 6. HaloFlux Layer - Global light simulation
+ * 7. Event-Driven Aurora Streams - Backend event auras
+ * 8. Adaptive HUD Scaling - Self-reorganizing UI
+ * 
+ * GPU-accelerated | 120fps | Accessible | Zero backend impact
+ */
+
+/* ========================================
+   SYSTEM 1: NEURAL-SYNAPSE UI
+   UI reacts like a living brain to market pulses
+   ======================================== */
+
+@keyframes synapse-fire {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.8) translateZ(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2) translateZ(0);
+  }
+}
+
+@keyframes neural-pulse-path {
+  0% {
+    stroke-dashoffset: 1000;
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes dendrite-growth {
+  0% {
+    transform: scaleX(0) translateZ(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: scaleX(1) translateZ(0);
+    opacity: 0;
+  }
+}
+
+@keyframes neuron-cluster {
+  0%, 100% {
+    transform: scale(1) translateZ(0);
+    filter: brightness(1) hue-rotate(0deg);
+  }
+  25% {
+    transform: scale(1.05) translateZ(0);
+    filter: brightness(1.3) hue-rotate(20deg);
+  }
+  50% {
+    transform: scale(0.95) translateZ(0);
+    filter: brightness(0.8) hue-rotate(-20deg);
+  }
+  75% {
+    transform: scale(1.08) translateZ(0);
+    filter: brightness(1.5) hue-rotate(40deg);
+  }
+}
+
+.neural-synapse {
+  position: relative;
+  will-change: transform, opacity, filter;
+}
+
+.synapse-fire {
+  animation: synapse-fire 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+}
+
+.neural-active {
+  animation: neuron-cluster 3s ease-in-out infinite;
+  will-change: transform, filter;
+}
+
+/* ========================================
+   SYSTEM 2: AI-EMOTION HOLOAURA
+   Chat + Terminal glow based on AI "mood"
+   ======================================== */
+
+@keyframes emotion-curious {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px rgba(0, 255, 255, 0.3),
+      0 0 40px rgba(0, 255, 255, 0.2),
+      inset 0 0 30px rgba(0, 255, 255, 0.1);
+    filter: hue-rotate(0deg) brightness(1);
+  }
+  50% {
+    box-shadow: 
+      0 0 30px rgba(0, 255, 255, 0.5),
+      0 0 60px rgba(0, 255, 255, 0.3),
+      inset 0 0 40px rgba(0, 255, 255, 0.2);
+    filter: hue-rotate(15deg) brightness(1.2);
+  }
+}
+
+@keyframes emotion-thinking {
+  0%, 100% {
+    box-shadow: 
+      0 0 25px rgba(138, 43, 226, 0.4),
+      0 0 50px rgba(138, 43, 226, 0.3),
+      inset 0 0 35px rgba(138, 43, 226, 0.15);
+    filter: hue-rotate(0deg) brightness(1);
+  }
+  33% {
+    box-shadow: 
+      0 0 35px rgba(138, 43, 226, 0.6),
+      0 0 70px rgba(138, 43, 226, 0.4),
+      inset 0 0 45px rgba(138, 43, 226, 0.25);
+    filter: hue-rotate(-20deg) brightness(1.3);
+  }
+  66% {
+    box-shadow: 
+      0 0 20px rgba(138, 43, 226, 0.3),
+      0 0 40px rgba(138, 43, 226, 0.2),
+      inset 0 0 30px rgba(138, 43, 226, 0.1);
+    filter: hue-rotate(20deg) brightness(0.9);
+  }
+}
+
+@keyframes emotion-excited {
+  0%, 100% {
+    box-shadow: 
+      0 0 30px rgba(255, 215, 0, 0.5),
+      0 0 60px rgba(255, 215, 0, 0.4),
+      0 0 90px rgba(255, 215, 0, 0.3),
+      inset 0 0 40px rgba(255, 215, 0, 0.2);
+    transform: scale(1) translateZ(0);
+    filter: hue-rotate(0deg) brightness(1.2);
+  }
+  25% {
+    box-shadow: 
+      0 0 40px rgba(255, 215, 0, 0.7),
+      0 0 80px rgba(255, 215, 0, 0.5),
+      0 0 120px rgba(255, 215, 0, 0.4),
+      inset 0 0 50px rgba(255, 215, 0, 0.3);
+    transform: scale(1.02) translateZ(0);
+    filter: hue-rotate(30deg) brightness(1.5);
+  }
+  50% {
+    transform: scale(0.98) translateZ(0);
+    filter: hue-rotate(-30deg) brightness(1);
+  }
+  75% {
+    transform: scale(1.03) translateZ(0);
+    filter: hue-rotate(40deg) brightness(1.6);
+  }
+}
+
+@keyframes emotion-confused {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px rgba(255, 0, 255, 0.3),
+      0 0 40px rgba(0, 255, 255, 0.3),
+      inset 0 0 30px rgba(255, 0, 255, 0.1);
+    filter: hue-rotate(0deg) blur(0px);
+  }
+  25% {
+    box-shadow: 
+      0 0 30px rgba(0, 255, 255, 0.4),
+      0 0 60px rgba(255, 0, 255, 0.3),
+      inset 0 0 40px rgba(0, 255, 255, 0.15);
+    filter: hue-rotate(90deg) blur(0.5px);
+  }
+  50% {
+    box-shadow: 
+      0 0 25px rgba(255, 0, 255, 0.5),
+      0 0 50px rgba(0, 255, 255, 0.4),
+      inset 0 0 35px rgba(255, 0, 255, 0.2);
+    filter: hue-rotate(180deg) blur(1px);
+  }
+  75% {
+    box-shadow: 
+      0 0 35px rgba(0, 255, 255, 0.5),
+      0 0 70px rgba(255, 0, 255, 0.4),
+      inset 0 0 45px rgba(0, 255, 255, 0.2);
+    filter: hue-rotate(270deg) blur(0.5px);
+  }
+}
+
+@keyframes emotion-confident {
+  0%, 100% {
+    box-shadow: 
+      0 0 35px rgba(0, 255, 127, 0.6),
+      0 0 70px rgba(0, 255, 127, 0.4),
+      inset 0 0 45px rgba(0, 255, 127, 0.2);
+    filter: brightness(1.3);
+  }
+  50% {
+    box-shadow: 
+      0 0 45px rgba(0, 255, 127, 0.8),
+      0 0 90px rgba(0, 255, 127, 0.6),
+      inset 0 0 55px rgba(0, 255, 127, 0.3);
+    filter: brightness(1.6);
+  }
+}
+
+.ai-emotion-curious {
+  animation: emotion-curious 4s ease-in-out infinite;
+  will-change: box-shadow, filter;
+}
+
+.ai-emotion-thinking {
+  animation: emotion-thinking 5s ease-in-out infinite;
+  will-change: box-shadow, filter;
+}
+
+.ai-emotion-excited {
+  animation: emotion-excited 2s ease-in-out infinite;
+  will-change: box-shadow, filter, transform;
+}
+
+.ai-emotion-confused {
+  animation: emotion-confused 6s ease-in-out infinite;
+  will-change: box-shadow, filter;
+}
+
+.ai-emotion-confident {
+  animation: emotion-confident 3s ease-in-out infinite;
+  will-change: box-shadow, filter;
+}
+
+/* ========================================
+   SYSTEM 3: GRAVITY-WARP TRANSITIONS
+   Space-bending page changes
+   ======================================== */
+
+@keyframes gravity-warp-in {
+  0% {
+    transform: scale(0.5) perspective(1000px) rotateX(45deg) translateZ(-500px);
+    opacity: 0;
+    filter: blur(20px) brightness(0.3);
+  }
+  60% {
+    transform: scale(1.05) perspective(1000px) rotateX(-5deg) translateZ(50px);
+    filter: blur(2px) brightness(1.2);
+  }
+  100% {
+    transform: scale(1) perspective(1000px) rotateX(0deg) translateZ(0);
+    opacity: 1;
+    filter: blur(0px) brightness(1);
+  }
+}
+
+@keyframes gravity-warp-out {
+  0% {
+    transform: scale(1) perspective(1000px) rotateX(0deg) translateZ(0);
+    opacity: 1;
+    filter: blur(0px) brightness(1);
+  }
+  40% {
+    transform: scale(1.05) perspective(1000px) rotateX(5deg) translateZ(50px);
+    filter: blur(2px) brightness(1.2);
+  }
+  100% {
+    transform: scale(0.5) perspective(1000px) rotateX(-45deg) translateZ(-500px);
+    opacity: 0;
+    filter: blur(20px) brightness(0.3);
+  }
+}
+
+@keyframes spacetime-distortion {
+  0%, 100% {
+    clip-path: ellipse(100% 100% at 50% 50%);
+    filter: hue-rotate(0deg);
+  }
+  25% {
+    clip-path: ellipse(105% 95% at 45% 50%);
+    filter: hue-rotate(15deg);
+  }
+  50% {
+    clip-path: ellipse(95% 105% at 55% 50%);
+    filter: hue-rotate(-15deg);
+  }
+  75% {
+    clip-path: ellipse(105% 95% at 50% 45%);
+    filter: hue-rotate(15deg);
+  }
+}
+
+.gravity-warp-enter {
+  animation: gravity-warp-in 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform, opacity, filter;
+  transform-style: preserve-3d;
+}
+
+.gravity-warp-exit {
+  animation: gravity-warp-out 0.6s cubic-bezier(0.36, 0, 0.66, -0.56);
+  will-change: transform, opacity, filter;
+  transform-style: preserve-3d;
+}
+
+.spacetime-bend {
+  animation: spacetime-distortion 4s ease-in-out infinite;
+  will-change: clip-path, filter;
+}
+
+/* ========================================
+   SYSTEM 4: TEMPORAL DISPLACEMENT FX
+   Time-based distortion pulses
+   ======================================== */
+
+@keyframes temporal-pulse {
+  0%, 100% {
+    transform: scale(1) translateZ(0);
+    filter: hue-rotate(0deg) brightness(1);
+    opacity: 1;
+  }
+  10% {
+    transform: scale(1.02) translateZ(0);
+    filter: hue-rotate(180deg) brightness(1.3);
+    opacity: 0.95;
+  }
+  20% {
+    transform: scale(0.98) translateZ(0);
+    filter: hue-rotate(360deg) brightness(0.7);
+    opacity: 0.9;
+  }
+  30% {
+    transform: scale(1.01) translateZ(0);
+    filter: hue-rotate(540deg) brightness(1.1);
+    opacity: 0.95;
+  }
+  40% {
+    transform: scale(0.99) translateZ(0);
+    filter: hue-rotate(720deg) brightness(0.9);
+    opacity: 1;
+  }
+}
+
+@keyframes time-fragment {
+  0%, 100% {
+    transform: translateX(0) translateZ(0);
+    opacity: 0;
+  }
+  10%, 90% {
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateX(var(--fragment-offset, 10px)) translateZ(0);
+    opacity: 0.6;
+  }
+}
+
+@keyframes chrono-distort {
+  0%, 100% {
+    transform: skewX(0deg) translateZ(0);
+    filter: blur(0px);
+  }
+  25% {
+    transform: skewX(2deg) translateZ(0);
+    filter: blur(0.5px);
+  }
+  50% {
+    transform: skewX(-2deg) translateZ(0);
+    filter: blur(1px);
+  }
+  75% {
+    transform: skewX(1deg) translateZ(0);
+    filter: blur(0.5px);
+  }
+}
+
+@keyframes temporal-echo {
+  0% {
+    transform: scale(1) translateZ(0);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.5) translateZ(0);
+    opacity: 0;
+  }
+}
+
+.temporal-pulse {
+  animation: temporal-pulse 8s ease-in-out infinite;
+  will-change: transform, filter, opacity;
+}
+
+.time-fragment {
+  animation: time-fragment 1.5s ease-in-out;
+  will-change: transform, opacity;
+}
+
+.chrono-distort {
+  animation: chrono-distort 3s ease-in-out infinite;
+  will-change: transform, filter;
+}
+
+.temporal-echo {
+  position: absolute;
+  pointer-events: none;
+  animation: temporal-echo 1s ease-out forwards;
+  will-change: transform, opacity;
+}
+
+/* ========================================
+   SYSTEM 5: QUANTUM RIPPLE PROPAGATION
+   Charts + signals react with ripples
+   ======================================== */
+
+@keyframes ripple-propagate {
+  0% {
+    transform: scale(0) translateZ(0);
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(4) translateZ(0);
+    opacity: 0;
+  }
+}
+
+@keyframes ripple-wave {
+  0% {
+    transform: scale(1) translateZ(0);
+    box-shadow: 
+      0 0 0 0 rgba(0, 255, 255, 0.7),
+      0 0 0 0 rgba(0, 255, 255, 0.5),
+      0 0 0 0 rgba(0, 255, 255, 0.3);
+  }
+  50% {
+    box-shadow: 
+      0 0 0 10px rgba(0, 255, 255, 0),
+      0 0 0 20px rgba(0, 255, 255, 0),
+      0 0 0 30px rgba(0, 255, 255, 0);
+  }
+  100% {
+    transform: scale(1.5) translateZ(0);
+    box-shadow: 
+      0 0 0 40px rgba(0, 255, 255, 0),
+      0 0 0 80px rgba(0, 255, 255, 0),
+      0 0 0 120px rgba(0, 255, 255, 0);
+  }
+}
+
+@keyframes ripple-cascade {
+  0% {
+    clip-path: circle(0% at var(--ripple-x, 50%) var(--ripple-y, 50%));
+    filter: brightness(2);
+  }
+  100% {
+    clip-path: circle(150% at var(--ripple-x, 50%) var(--ripple-y, 50%));
+    filter: brightness(1);
+  }
+}
+
+@keyframes signal-ripple {
+  0% {
+    transform: scale(1) translateZ(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.5) translateZ(0);
+    opacity: 0;
+  }
+}
+
+.ripple-origin {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 255, 255, 0.8);
+  animation: ripple-propagate 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+.ripple-pulse {
+  animation: ripple-wave 1s ease-out;
+  will-change: transform, box-shadow;
+}
+
+.ripple-cascade {
+  animation: ripple-cascade 0.8s ease-out;
+  will-change: clip-path, filter;
+}
+
+.signal-ripple {
+  position: absolute;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 0, 255, 0.6);
+  animation: signal-ripple 1s ease-out;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+/* ========================================
+   SYSTEM 6: HALOFLUX LAYER
+   Global light simulation based on trading load
+   ======================================== */
+
+@keyframes haloflux-idle {
+  0%, 100% {
+    background: radial-gradient(
+      ellipse at 30% 20%,
+      rgba(0, 255, 255, 0.02) 0%,
+      transparent 50%
+    );
+  }
+  50% {
+    background: radial-gradient(
+      ellipse at 70% 80%,
+      rgba(138, 43, 226, 0.02) 0%,
+      transparent 50%
+    );
+  }
+}
+
+@keyframes haloflux-active {
+  0%, 100% {
+    background: radial-gradient(
+      ellipse at 50% 50%,
+      rgba(0, 255, 255, 0.08) 0%,
+      rgba(255, 0, 255, 0.05) 30%,
+      rgba(255, 215, 0, 0.03) 60%,
+      transparent 100%
+    );
+    opacity: 1;
+  }
+  33% {
+    background: radial-gradient(
+      ellipse at 30% 70%,
+      rgba(255, 0, 255, 0.08) 0%,
+      rgba(255, 215, 0, 0.05) 30%,
+      rgba(0, 255, 255, 0.03) 60%,
+      transparent 100%
+    );
+    opacity: 0.9;
+  }
+  66% {
+    background: radial-gradient(
+      ellipse at 70% 30%,
+      rgba(255, 215, 0, 0.08) 0%,
+      rgba(0, 255, 255, 0.05) 30%,
+      rgba(255, 0, 255, 0.03) 60%,
+      transparent 100%
+    );
+    opacity: 0.95;
+  }
+}
+
+@keyframes haloflux-intense {
+  0%, 100% {
+    background: radial-gradient(
+      ellipse at 50% 50%,
+      rgba(255, 215, 0, 0.15) 0%,
+      rgba(255, 0, 255, 0.10) 25%,
+      rgba(0, 255, 255, 0.08) 50%,
+      rgba(0, 255, 127, 0.05) 75%,
+      transparent 100%
+    );
+    transform: scale(1) translateZ(0);
+    filter: blur(80px) brightness(1.2);
+  }
+  25% {
+    transform: scale(1.05) translateZ(0);
+    filter: blur(100px) brightness(1.4);
+  }
+  50% {
+    background: radial-gradient(
+      ellipse at 30% 70%,
+      rgba(0, 255, 127, 0.15) 0%,
+      rgba(255, 215, 0, 0.10) 25%,
+      rgba(255, 0, 255, 0.08) 50%,
+      rgba(0, 255, 255, 0.05) 75%,
+      transparent 100%
+    );
+    transform: scale(0.95) translateZ(0);
+    filter: blur(90px) brightness(1);
+  }
+  75% {
+    transform: scale(1.08) translateZ(0);
+    filter: blur(110px) brightness(1.5);
+  }
+}
+
+.haloflux-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  will-change: background, opacity, transform, filter;
+  mix-blend-mode: screen;
+}
+
+.haloflux-idle {
+  animation: haloflux-idle 12s ease-in-out infinite;
+}
+
+.haloflux-active {
+  animation: haloflux-active 6s ease-in-out infinite;
+}
+
+.haloflux-intense {
+  animation: haloflux-intense 3s ease-in-out infinite;
+}
+
+/* ========================================
+   SYSTEM 7: EVENT-DRIVEN AURORA STREAMS
+   Live neon auras based on backend events
+   ======================================== */
+
+@keyframes aurora-flow {
+  0% {
+    transform: translateX(-100%) translateZ(0);
+    opacity: 0;
+  }
+  10%, 90% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateX(100%) translateZ(0);
+    opacity: 0;
+  }
+}
+
+@keyframes aurora-wave {
+  0%, 100% {
+    d: path("M0,50 Q25,30 50,50 T100,50");
+    opacity: 0.6;
+  }
+  50% {
+    d: path("M0,50 Q25,70 50,50 T100,50");
+    opacity: 0.9;
+  }
+}
+
+@keyframes aurora-burst {
+  0% {
+    transform: scale(0.5) translateZ(0);
+    opacity: 0;
+    filter: blur(10px);
+  }
+  50% {
+    transform: scale(1.5) translateZ(0);
+    opacity: 0.8;
+    filter: blur(5px);
+  }
+  100% {
+    transform: scale(3) translateZ(0);
+    opacity: 0;
+    filter: blur(20px);
+  }
+}
+
+@keyframes aurora-shimmer {
+  0%, 100% {
+    background-position: 0% 50%;
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    background-position: 100% 50%;
+    filter: hue-rotate(60deg);
+  }
+}
+
+.aurora-stream {
+  position: absolute;
+  height: 2px;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 255, 255, 0.8) 20%,
+    rgba(255, 0, 255, 0.8) 50%,
+    rgba(255, 215, 0, 0.8) 80%,
+    transparent 100%
+  );
+  animation: aurora-flow 3s ease-in-out;
+  will-change: transform, opacity;
+  pointer-events: none;
+  filter: blur(2px);
+}
+
+.aurora-burst {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(0, 255, 255, 0.8) 0%,
+    rgba(255, 0, 255, 0.4) 50%,
+    transparent 100%
+  );
+  animation: aurora-burst 1.5s ease-out;
+  will-change: transform, opacity, filter;
+  pointer-events: none;
+}
+
+.aurora-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    45deg,
+    rgba(0, 255, 255, 0.03),
+    rgba(255, 0, 255, 0.03),
+    rgba(255, 215, 0, 0.03),
+    rgba(0, 255, 127, 0.03)
+  );
+  background-size: 400% 400%;
+  animation: aurora-shimmer 20s ease-in-out infinite;
+  will-change: background-position, filter;
+  pointer-events: none;
+  z-index: -1;
+  mix-blend-mode: screen;
+}
+
+/* ========================================
+   SYSTEM 8: ADAPTIVE HUD SCALING
+   HUD reorganizes itself like Iron Man
+   ======================================== */
+
+@keyframes hud-scale-compact {
+  0% {
+    transform: scale(1) translateZ(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.85) translateY(-10px) translateZ(0);
+    opacity: 0.9;
+  }
+}
+
+@keyframes hud-scale-expand {
+  0% {
+    transform: scale(0.85) translateY(-10px) translateZ(0);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1) translateZ(0);
+    opacity: 1;
+  }
+}
+
+@keyframes hud-reorganize {
+  0% {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  100% {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@keyframes hud-priority-pulse {
+  0%, 100% {
+    transform: scale(1) translateZ(0);
+    z-index: 1;
+    filter: brightness(1);
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+  }
+  50% {
+    transform: scale(1.1) translateZ(0);
+    z-index: 10;
+    filter: brightness(1.5);
+    box-shadow: 0 0 40px rgba(0, 255, 255, 0.6);
+  }
+}
+
+@keyframes hud-slide-in {
+  0% {
+    transform: translateX(100%) translateZ(0);
+    opacity: 0;
+  }
+  60% {
+    transform: translateX(-10px) translateZ(0);
+  }
+  100% {
+    transform: translateX(0) translateZ(0);
+    opacity: 1;
+  }
+}
+
+@keyframes hud-slide-out {
+  0% {
+    transform: translateX(0) translateZ(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100%) translateZ(0);
+    opacity: 0;
+  }
+}
+
+.hud-compact {
+  animation: hud-scale-compact 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.hud-expand {
+  animation: hud-scale-expand 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.hud-priority {
+  animation: hud-priority-pulse 2s ease-in-out infinite;
+  will-change: transform, z-index, filter, box-shadow;
+  position: relative;
+}
+
+.hud-enter {
+  animation: hud-slide-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform, opacity;
+}
+
+.hud-exit {
+  animation: hud-slide-out 0.3s cubic-bezier(0.36, 0, 0.66, -0.56);
+  will-change: transform, opacity;
+}
+
+/* ========================================
+   ACCESSIBILITY & PERFORMANCE
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .aurora-background,
+  .haloflux-layer {
+    animation: none !important;
+    opacity: 0.1 !important;
+  }
+}
+
+/* GPU acceleration hints */
+.neural-synapse,
+.temporal-pulse,
+.gravity-warp-enter,
+.gravity-warp-exit,
+.haloflux-layer,
+.aurora-stream,
+.hud-priority {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* High DPI optimization */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .aurora-stream,
+  .temporal-echo,
+  .ripple-origin {
+    will-change: transform;
+    transform: translateZ(0) scale(0.99);
+  }
+}
+
+/* Performance containment */
+.haloflux-layer,
+.aurora-background {
+  contain: layout style paint;
+}
+
+.neural-synapse,
+.hud-priority,
+.temporal-pulse {
+  contain: layout paint;
+}

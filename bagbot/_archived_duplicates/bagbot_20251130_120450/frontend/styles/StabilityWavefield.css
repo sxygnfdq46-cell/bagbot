@@ -1,0 +1,681 @@
+/**
+ * LEVEL 12.3 — STABILITY WAVEFIELD CSS
+ * 
+ * GPU harmonics for stability, coherence gradients,
+ * pulse-lock visualizations, resonant glow compression.
+ * 
+ * Features:
+ * - GPU-accelerated harmonic animations
+ * - Stability coherence gradient filters
+ * - Pulse-lock visual indicators
+ * - Resonant glow compression effects
+ * - Drift-cancel shimmer overlays
+ * - Grounding gradient modes
+ * - Multi-axis stability visualizations
+ * - Emergency stability visuals
+ * 
+ * ~700 lines
+ * Zero data storage (ephemeral CSS only)
+ */
+
+/* ================================ */
+/* CSS CUSTOM PROPERTIES            */
+/* ================================ */
+
+:root {
+  /* Stability Wavefield Properties */
+  --stability-harmonic-phase: 0deg;
+  --stability-coherence-score: 100;
+  --stability-pulse-rate: 1s;
+  --stability-drift-magnitude: 0;
+  --stability-anchor-strength: 100;
+  --stability-glow-intensity: 0.8;
+  --stability-shimmer-opacity: 0.3;
+  --stability-gradient-angle: 45deg;
+
+  /* Stability Colors */
+  --stability-primary: hsl(180, 70%, 60%);
+  --stability-secondary: hsl(200, 60%, 55%);
+  --stability-tertiary: hsl(220, 50%, 50%);
+  --stability-glow: hsla(180, 100%, 70%, 0.6);
+  --stability-drift-warning: hsla(30, 90%, 60%, 0.7);
+  --stability-anchor: hsla(120, 80%, 50%, 0.8);
+
+  /* Stability Gradients */
+  --stability-gradient-stable: linear-gradient(
+    var(--stability-gradient-angle),
+    hsl(180, 70%, 60%),
+    hsl(200, 60%, 55%)
+  );
+  --stability-gradient-drift: linear-gradient(
+    var(--stability-gradient-angle),
+    hsl(30, 90%, 60%),
+    hsl(20, 80%, 55%)
+  );
+  --stability-gradient-anchored: linear-gradient(
+    var(--stability-gradient-angle),
+    hsl(120, 80%, 50%),
+    hsl(140, 70%, 45%)
+  );
+
+  /* GPU Acceleration Hints */
+  --stability-transform: translateZ(0);
+  --stability-will-change: transform, opacity, filter;
+}
+
+/* ================================ */
+/* STABILITY WAVEFIELD BASE         */
+/* ================================ */
+
+.stability-wavefield {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  transform: var(--stability-transform);
+  will-change: var(--stability-will-change);
+}
+
+.stability-wavefield::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--stability-gradient-stable);
+  opacity: calc(var(--stability-coherence-score) / 200);
+  animation: stability-pulse var(--stability-pulse-rate) ease-in-out infinite;
+  filter: blur(20px);
+  transform: var(--stability-transform);
+}
+
+.stability-wavefield::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 50% 50%,
+    var(--stability-glow) 0%,
+    transparent 70%
+  );
+  opacity: var(--stability-glow-intensity);
+  animation: stability-glow-pulse 2s ease-in-out infinite;
+  mix-blend-mode: screen;
+  transform: var(--stability-transform);
+}
+
+/* ================================ */
+/* HARMONIC ANIMATIONS              */
+/* ================================ */
+
+@keyframes stability-pulse {
+  0%, 100% {
+    opacity: calc(var(--stability-coherence-score) / 200);
+    transform: scale(1);
+  }
+  50% {
+    opacity: calc(var(--stability-coherence-score) / 150);
+    transform: scale(1.05);
+  }
+}
+
+@keyframes stability-glow-pulse {
+  0%, 100% {
+    opacity: var(--stability-glow-intensity);
+    filter: blur(20px);
+  }
+  50% {
+    opacity: calc(var(--stability-glow-intensity) * 1.2);
+    filter: blur(25px);
+  }
+}
+
+@keyframes stability-harmonic-wave {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateX(5px) translateY(-5px) rotate(2deg);
+  }
+  50% {
+    transform: translateX(0) translateY(-10px) rotate(0deg);
+  }
+  75% {
+    transform: translateX(-5px) translateY(-5px) rotate(-2deg);
+  }
+  100% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+}
+
+@keyframes stability-phase-shift {
+  0% {
+    --stability-harmonic-phase: 0deg;
+  }
+  100% {
+    --stability-harmonic-phase: 360deg;
+  }
+}
+
+/* ================================ */
+/* COHERENCE GRADIENTS              */
+/* ================================ */
+
+.stability-coherence-high {
+  background: var(--stability-gradient-stable);
+  filter: saturate(1.2) brightness(1.1);
+}
+
+.stability-coherence-medium {
+  background: linear-gradient(
+    var(--stability-gradient-angle),
+    hsl(180, 50%, 50%),
+    hsl(200, 40%, 45%)
+  );
+  filter: saturate(0.9) brightness(0.95);
+}
+
+.stability-coherence-low {
+  background: linear-gradient(
+    var(--stability-gradient-angle),
+    hsl(180, 30%, 40%),
+    hsl(200, 20%, 35%)
+  );
+  filter: saturate(0.7) brightness(0.8);
+}
+
+.stability-coherence-locked {
+  background: var(--stability-gradient-anchored);
+  filter: saturate(1.3) brightness(1.2);
+  box-shadow: 0 0 30px var(--stability-anchor);
+  animation: stability-lock-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes stability-lock-pulse {
+  0%, 100% {
+    box-shadow: 0 0 30px var(--stability-anchor);
+  }
+  50% {
+    box-shadow: 0 0 50px var(--stability-anchor);
+  }
+}
+
+/* ================================ */
+/* PULSE-LOCK VISUALIZATIONS        */
+/* ================================ */
+
+.stability-pulse-lock {
+  position: relative;
+  overflow: visible;
+}
+
+.stability-pulse-lock::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  border: 2px solid var(--stability-anchor);
+  border-radius: 8px;
+  opacity: 0.8;
+  animation: stability-lock-ring 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes stability-lock-ring {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.4;
+  }
+}
+
+.stability-pulse-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--stability-anchor);
+  animation: stability-pulse-blink 1s ease-in-out infinite;
+}
+
+@keyframes stability-pulse-blink {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+}
+
+/* ================================ */
+/* RESONANT GLOW COMPRESSION        */
+/* ================================ */
+
+.stability-resonant-glow {
+  position: relative;
+  filter: drop-shadow(0 0 10px var(--stability-glow));
+  animation: stability-resonance 3s ease-in-out infinite;
+}
+
+@keyframes stability-resonance {
+  0%, 100% {
+    filter: drop-shadow(0 0 10px var(--stability-glow));
+  }
+  33% {
+    filter: drop-shadow(0 0 20px var(--stability-glow));
+  }
+  66% {
+    filter: drop-shadow(0 0 15px var(--stability-glow));
+  }
+}
+
+.stability-glow-compressed {
+  position: relative;
+}
+
+.stability-glow-compressed::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    var(--stability-glow) 0%,
+    transparent 60%
+  );
+  opacity: 0.6;
+  animation: stability-compression 2s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+
+@keyframes stability-compression {
+  0%, 100% {
+    transform: scale(1, 1);
+  }
+  50% {
+    transform: scale(0.95, 1.1);
+  }
+}
+
+/* ================================ */
+/* DRIFT-CANCEL SHIMMER             */
+/* ================================ */
+
+.stability-drift-active {
+  position: relative;
+}
+
+.stability-drift-active::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--stability-gradient-drift);
+  opacity: calc(var(--stability-drift-magnitude) / 100);
+  animation: stability-drift-shimmer 1s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes stability-drift-shimmer {
+  0%, 100% {
+    opacity: calc(var(--stability-drift-magnitude) / 100);
+    transform: translateX(0);
+  }
+  50% {
+    opacity: calc(var(--stability-drift-magnitude) / 80);
+    transform: translateX(2px);
+  }
+}
+
+.stability-drift-cancel {
+  position: relative;
+  animation: stability-cancel-shake 0.5s ease-in-out;
+}
+
+@keyframes stability-cancel-shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-3px);
+  }
+  75% {
+    transform: translateX(3px);
+  }
+}
+
+.stability-drift-correcting {
+  position: relative;
+}
+
+.stability-drift-correcting::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--stability-primary) 50%,
+    transparent 100%
+  );
+  opacity: 0.3;
+  animation: stability-correction-sweep 1.5s ease-in-out infinite;
+}
+
+@keyframes stability-correction-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ================================ */
+/* GROUNDING GRADIENT MODES         */
+/* ================================ */
+
+.stability-grounded {
+  background: linear-gradient(
+    180deg,
+    var(--stability-anchor) 0%,
+    transparent 50%
+  );
+  opacity: 0.4;
+}
+
+.stability-grounding-active {
+  position: relative;
+  overflow: hidden;
+}
+
+.stability-grounding-active::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    var(--stability-anchor) 100%
+  );
+  opacity: 0.6;
+  animation: stability-ground-rise 2s ease-in-out infinite;
+}
+
+@keyframes stability-ground-rise {
+  0%, 100% {
+    transform: translateY(10px);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(0);
+    opacity: 0.8;
+  }
+}
+
+.stability-anchor-visualization {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 40px;
+  background: linear-gradient(
+    180deg,
+    var(--stability-anchor) 0%,
+    transparent 100%
+  );
+  opacity: calc(var(--stability-anchor-strength) / 100);
+  animation: stability-anchor-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes stability-anchor-pulse {
+  0%, 100% {
+    height: 40px;
+    opacity: calc(var(--stability-anchor-strength) / 100);
+  }
+  50% {
+    height: 50px;
+    opacity: calc(var(--stability-anchor-strength) / 80);
+  }
+}
+
+/* ================================ */
+/* MULTI-AXIS STABILITY             */
+/* ================================ */
+
+.stability-12-axis-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.stability-axis-indicator {
+  position: relative;
+  width: 100%;
+  height: 20px;
+  background: linear-gradient(
+    90deg,
+    hsl(0, 70%, 50%) 0%,
+    hsl(60, 80%, 60%) 50%,
+    hsl(120, 80%, 50%) 100%
+  );
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.stability-axis-indicator::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--axis-stability-percent, 50%);
+  background: var(--stability-primary);
+  transition: width 0.3s ease-in-out;
+}
+
+.stability-axis-label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+/* ================================ */
+/* EMERGENCY STABILITY VISUALS      */
+/* ================================ */
+
+.stability-emergency {
+  position: relative;
+  animation: stability-emergency-flash 0.5s ease-in-out infinite;
+}
+
+@keyframes stability-emergency-flash {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.3);
+  }
+}
+
+.stability-emergency::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 3px solid hsl(0, 90%, 60%);
+  border-radius: 8px;
+  opacity: 0.8;
+  animation: stability-emergency-pulse 1s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes stability-emergency-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.4;
+  }
+}
+
+.stability-recovery-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    hsl(0, 90%, 60%) 0%,
+    hsl(60, 90%, 60%) 50%,
+    hsl(120, 90%, 60%) 100%
+  );
+  opacity: 0.8;
+}
+
+.stability-recovery-progress::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--recovery-progress, 0%);
+  background: hsl(120, 90%, 60%);
+  transition: width 0.3s ease-in-out;
+}
+
+/* ================================ */
+/* PERFORMANCE OPTIMIZATIONS        */
+/* ================================ */
+
+.stability-gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform, opacity, filter;
+}
+
+.stability-reduced-motion {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stability-wavefield,
+  .stability-wavefield::before,
+  .stability-wavefield::after,
+  .stability-pulse-lock::before,
+  .stability-pulse-indicator,
+  .stability-resonant-glow,
+  .stability-drift-active::before,
+  .stability-drift-correcting::after,
+  .stability-grounding-active::before,
+  .stability-anchor-visualization,
+  .stability-emergency,
+  .stability-emergency::before {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ================================ */
+/* UTILITY CLASSES                  */
+/* ================================ */
+
+.stability-hidden {
+  display: none;
+}
+
+.stability-visible {
+  display: block;
+}
+
+.stability-fade-in {
+  animation: stability-fade-in 0.5s ease-in-out;
+}
+
+@keyframes stability-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.stability-fade-out {
+  animation: stability-fade-out 0.5s ease-in-out;
+}
+
+@keyframes stability-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.stability-slide-in {
+  animation: stability-slide-in 0.5s ease-in-out;
+}
+
+@keyframes stability-slide-in {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ================================ */
+/* RESPONSIVE ADJUSTMENTS           */
+/* ================================ */
+
+@media (max-width: 768px) {
+  .stability-12-axis-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stability-wavefield::before,
+  .stability-wavefield::after {
+    filter: blur(10px);
+  }
+
+  .stability-glow-intensity {
+    --stability-glow-intensity: 0.5;
+  }
+}
+
+@media (max-width: 480px) {
+  .stability-12-axis-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stability-axis-indicator {
+    height: 16px;
+  }
+
+  .stability-axis-label {
+    font-size: 8px;
+  }
+}

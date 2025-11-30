@@ -19,7 +19,7 @@ def resolve_strategy(name: str) -> Optional[object]:
         Never raises exceptions - returns None on any error.
         Logs error messages when strategy cannot be resolved.
     """
-    from bagbot.worker.brain.strategy_router import get_strategy
+    from worker.brain.strategy_router import get_strategy
     
     try:
         strategy = get_strategy(name)

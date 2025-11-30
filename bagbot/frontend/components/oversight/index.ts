@@ -30,15 +30,14 @@ export type {
   RiskLevel,
   StabilityZone,
   SystemHealthSnapshot,
-  LoadMetrics,
-  EmotionalMetrics,
-  CongestionMetrics,
-  DriftMetrics,
-  FatigueMetrics,
+  SystemLoadMetrics,
+  EmotionalStabilityMetrics,
+  FlowCongestionMetrics,
+  StateDriftMetrics,
+  LongChainFatigueMetrics,
   TrendProjection,
   InstabilitySignature,
-  WarningMessage,
-  MonitoringConfig
+  HealthThresholds
 } from './StrategicStateMonitor';
 
 // Multi-Path Forecast Engine
@@ -46,12 +45,11 @@ export type {
   ExecutionPath,
   PathOutcome,
   PathRisk,
-  PathBlocker,
   ImpactGradient,
   SystemTemperature,
   StabilityCurve,
   ForecastScenario,
-  ForecastContext
+  PathComparison
 } from './MultiPathForecastEngine';
 
 // Intent Clarification Matrix
@@ -59,14 +57,13 @@ export type {
   CommandIntent,
   ParsedCommand,
   Ambiguity,
-  AmbiguityType,
   IntentConflict,
   ConflictType,
   IntentAlignment,
+  Misalignment,
   ClarificationRequest,
   ClarificationQuestion,
-  IntentValidation,
-  CommandHistoryEntry
+  IntentValidation
 } from './IntentClarificationMatrix';
 
 // Risk Map Generator

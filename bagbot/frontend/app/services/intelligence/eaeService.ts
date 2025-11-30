@@ -19,7 +19,7 @@
 
 'use client';
 
-import { getExecutionAlignmentEngine } from '@/app/lib/eae/ExecutionAlignmentEngine';
+import { getExecutionAlignmentEngine } from '../../../app/lib/eae/ExecutionAlignmentEngine';
 import type {
   EAETiming,
   EAEConfig,
@@ -30,7 +30,7 @@ import type {
   LiquidityPulse,
   CandleData,
   OrderbookData,
-} from '@/app/lib/eae/types';
+} from '../../../app/lib/eae/types';
 
 // ============================================================================
 // GLOBAL STATE
@@ -313,7 +313,7 @@ export function createMockContext(
   return {
     dplDecision: {
       allowTrade: true,
-      action: signal,
+      action: signal === 'NEUTRAL' ? 'WAIT' : signal,
       confidence: 75,
     },
     fusionResult: {
