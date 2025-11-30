@@ -19,7 +19,7 @@ app.prepare()
     server.use("/_next/static", express.static(path.join(__dirname, ".next/static")));
 
     // Fallback for all Next.js routes
-    server.all("*", (req, res) => {
+    server.get("*", (req, res) => {
       return handle(req, res);
     });
 
