@@ -2,7 +2,7 @@
 
 import pytest
 from datetime import datetime
-from bagbot.trading.news_anchor import NewsAnchor, MarketBias, FundamentalGrade
+from worker.news.news_anchor import NewsAnchor, MarketBias, FundamentalGrade
 
 
 def test_news_anchor_initialization():
@@ -58,7 +58,7 @@ def test_news_anchor_register_source():
 @pytest.mark.skip(reason="Requires MarketAdapter base class fixes")
 def test_tradingview_adapter():
     """Test TradingView adapter webhook processing."""
-    from bagbot.trading.markets.tradingview_adapter import TradingViewAdapter
+    from worker.markets.tradingview_adapter import TradingViewAdapter
     
     adapter = TradingViewAdapter()
     
@@ -79,7 +79,7 @@ def test_tradingview_adapter():
 @pytest.mark.skip(reason="Requires HTM module structure fixes")
 def test_htm_adapter_direction_bias():
     """Test HTM adapter direction bias calculation."""
-    from bagbot.trading.markets.htm.htm_adapter import HTMAdapter, TimeFrame
+    from worker.markets.htm.htm_adapter import HTMAdapter, TimeFrame
     
     adapter = HTMAdapter()
     
@@ -100,7 +100,7 @@ def test_htm_adapter_direction_bias():
 @pytest.mark.skip(reason="Requires MarketAdapter base class compatibility")
 def test_oanda_adapter_symbol_formatting():
     """Test Oanda adapter symbol formatting."""
-    from bagbot.trading.markets.forex.oanda_adapter import OandaAdapter
+    from worker.markets.forex.oanda_adapter import OandaAdapter
     
     adapter = OandaAdapter(
         name="oanda",
@@ -122,7 +122,7 @@ def test_oanda_adapter_symbol_formatting():
 @pytest.mark.skip(reason="Requires MarketAdapter base class compatibility")
 def test_generic_rest_adapter_configuration():
     """Test Generic REST adapter endpoint configuration."""
-    from bagbot.trading.markets.generic_rest_adapter import GenericRESTAdapter
+    from worker.markets.generic_rest_adapter import GenericRESTAdapter
     
     adapter = GenericRESTAdapter(
         name="generic",
@@ -143,7 +143,7 @@ def test_generic_rest_adapter_configuration():
 @pytest.mark.skip(reason="OrderBlockStrategy tested in test_phase4_strategies.py")
 def test_order_block_strategy():
     """Test Order Block strategy detection."""
-    from bagbot.trading.strategies.order_block_strategy import OrderBlockStrategy
+    from worker.strategies.order_block_strategy import OrderBlockStrategy
     
     strategy = OrderBlockStrategy()
     

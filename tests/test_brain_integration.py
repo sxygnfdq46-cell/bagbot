@@ -1,9 +1,9 @@
 # tests/test_brain_integration.py
 import pytest
-from bagbot.worker.queue import JobQueue
-from bagbot.worker.tasks import JobType
-from bagbot.worker.brain.brain import Brain
-from bagbot.worker.strategies.registry import register_strategy, unregister_all_strategies
+from worker.queue import JobQueue
+from worker.tasks import JobType
+from worker.brain.brain import Brain
+from worker.strategies.registry import register_strategy, unregister_all_strategies
 
 class SpyStrategy:
     def __init__(self):

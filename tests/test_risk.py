@@ -3,7 +3,7 @@
 import pytest
 import os
 from unittest.mock import patch
-from bagbot.trading.risk import check_order_limits, RiskLimitError, get_risk_limits
+from worker.risk.risk import check_order_limits, RiskLimitError, get_risk_limits
 
 
 class TestCheckOrderLimits:

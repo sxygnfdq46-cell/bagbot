@@ -23,7 +23,7 @@ sys.modules['worker.queue'] = Mock()
 sys.modules['worker.tasks'] = Mock()
 
 from backend.main import app
-from api.admin_routes import load_trading_state, save_trading_state, STATE_FILE
+from backend.api.admin_routes import load_trading_state, save_trading_state, STATE_FILE
 
 
 @pytest.fixture

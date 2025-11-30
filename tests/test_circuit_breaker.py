@@ -4,7 +4,7 @@ Tests for Circuit Breaker
 
 import pytest
 from pathlib import Path
-from bagbot.trading.circuit_breaker import CircuitBreaker, get_circuit_breaker
+from worker.safety.circuit_breaker import CircuitBreaker, get_circuit_breaker
 
 
 @pytest.fixture

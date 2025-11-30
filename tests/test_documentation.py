@@ -175,7 +175,7 @@ def test_ui_api_map_includes_frontend_usage():
 
 def test_brain_blueprint_documents_actual_methods():
     """Test that documented TradingBrain methods exist in code."""
-    from bagbot.worker.brain.brain import TradingBrain
+    from worker.brain.brain import TradingBrain
     
     # Methods documented in blueprint
     expected_methods = [
@@ -191,7 +191,7 @@ def test_brain_blueprint_documents_actual_methods():
 
 def test_brain_blueprint_documents_actual_attributes():
     """Test that documented TradingBrain attributes exist."""
-    from bagbot.worker.brain.brain import TradingBrain
+    from worker.brain.brain import TradingBrain
     
     brain = TradingBrain()
     

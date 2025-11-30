@@ -8,9 +8,9 @@ through risk management to order execution.
 import pytest
 from datetime import datetime
 from pathlib import Path
-from bagbot.trading.mindset_engine import MindsetEngine, EmotionalState
-from bagbot.trading.circuit_breaker import CircuitBreaker
-from bagbot.worker.decisions.schema import Signal, signal_buy, signal_sell, signal_hold
+from worker.mindset.mindset_engine import MindsetEngine, EmotionalState
+from worker.safety.circuit_breaker import CircuitBreaker
+from worker.decisions.schema import Signal, signal_buy, signal_sell, signal_hold
 
 
 @pytest.fixture

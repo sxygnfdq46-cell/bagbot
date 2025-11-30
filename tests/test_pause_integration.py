@@ -11,14 +11,14 @@ import asyncio
 from pathlib import Path
 from unittest.mock import patch, Mock
 
-from trading.mindset import TradingMindset, ActionType
-from trading.scheduler import DailyCycleScheduler
+from worker.mindset.mindset import TradingMindset, ActionType
+from worker.scheduler import DailyCycleScheduler
 from backend.trading_state import (
     is_trading_paused,
     get_trading_state,
     STATE_FILE
 )
-from api.admin_routes import save_trading_state
+from backend.api.admin_routes import save_trading_state
 
 
 @pytest.fixture

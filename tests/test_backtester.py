@@ -3,7 +3,7 @@
 import pytest
 import pandas as pd
 from datetime import datetime
-from bagbot.backtester import BacktestEngine, MockConnector, Position, Trade
+from backtest.engine import BacktestEngine, MockConnector, Position, Trade
 
 
 @pytest.fixture

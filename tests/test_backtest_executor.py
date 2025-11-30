@@ -3,7 +3,7 @@
 
 def test_executor_processes_candles():
     """Test executor calls strategy and updates equity history."""
-    from bagbot.backtest.executor import BacktestExecutor
+    from backtest.executor import BacktestExecutor
     
     class MockAccount:
         def __init__(self):
@@ -38,7 +38,7 @@ def test_executor_processes_candles():
 
 def test_executor_handles_execute_order_decision():
     """Test executor forwards EXECUTE_ORDER decisions to account."""
-    from bagbot.backtest.executor import BacktestExecutor
+    from backtest.executor import BacktestExecutor
     
     class MockAccount:
         def __init__(self):

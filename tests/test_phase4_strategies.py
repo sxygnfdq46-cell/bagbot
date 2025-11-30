@@ -1,13 +1,13 @@
 """Tests for Phase 4 strategies."""
 
 import pytest
-from bagbot.trading.strategies.fvg_strategy import FVGStrategy
-from bagbot.trading.strategies.breaker_block_strategy import BreakerBlockStrategy
-from bagbot.trading.strategies.liquidity_sweep_strategy import LiquiditySweepStrategy
-from bagbot.trading.strategies.mean_reversion_strategy import MeanReversionStrategy
-from bagbot.trading.strategies.supply_demand_strategy import SupplyDemandStrategy
-from bagbot.trading.strategies.volatility_breakout_strategy import VolatilityBreakoutStrategy
-from bagbot.trading.strategies.trend_continuation_strategy import TrendContinuationStrategy
+from worker.strategies.fvg_strategy import FVGStrategy
+from worker.strategies.breaker_block_strategy import BreakerBlockStrategy
+from worker.strategies.liquidity_sweep_strategy import LiquiditySweepStrategy
+from worker.strategies.mean_reversion_strategy import MeanReversionStrategy
+from worker.strategies.supply_demand_strategy import SupplyDemandStrategy
+from worker.strategies.volatility_breakout_strategy import VolatilityBreakoutStrategy
+from worker.strategies.trend_continuation_strategy import TrendContinuationStrategy
 
 
 def test_fvg_strategy_bullish():

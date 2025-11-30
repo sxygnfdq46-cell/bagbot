@@ -15,7 +15,7 @@ import json
 def test_optimizer_deterministic_with_seed():
     """Test that optimizer produces identical results with same seed."""
     from bagbot.optimizer.genetic_optimizer import run_ga, Genome
-    from bagbot.backtest.loader import load_candles
+    from backtest.loader import load_candles
     
     # Create sample CSV
     csv_content = """timestamp,open,high,low,close,volume
@@ -58,7 +58,7 @@ def test_optimizer_deterministic_with_seed():
 def test_optimizer_dual_objective_scoring():
     """Test that dual-objective returns proper breakdown."""
     from bagbot.optimizer.genetic_optimizer import evaluate_genome, random_genome
-    from bagbot.backtest.loader import load_candles
+    from backtest.loader import load_candles
     import random
     
     # Create sample CSV
@@ -101,7 +101,7 @@ def test_optimizer_dual_objective_scoring():
 def test_optimizer_sharpe_objective():
     """Test that sharpe objective returns float."""
     from bagbot.optimizer.genetic_optimizer import evaluate_genome, random_genome
-    from bagbot.backtest.loader import load_candles
+    from backtest.loader import load_candles
     import random
     
     csv_content = """timestamp,open,high,low,close,volume
@@ -132,7 +132,7 @@ def test_optimizer_sharpe_objective():
 def test_optimizer_equity_objective():
     """Test that equity objective returns final equity."""
     from bagbot.optimizer.genetic_optimizer import evaluate_genome, random_genome
-    from bagbot.backtest.loader import load_candles
+    from backtest.loader import load_candles
     import random
     
     csv_content = """timestamp,open,high,low,close,volume
@@ -204,7 +204,7 @@ def test_genome_to_config_mapping():
 def test_dual_objective_deterministic():
     """Test that dual objective evaluation is deterministic."""
     from bagbot.optimizer.genetic_optimizer import evaluate_genome, Genome
-    from bagbot.backtest.loader import load_candles
+    from backtest.loader import load_candles
     
     csv_content = """timestamp,open,high,low,close,volume
 2024-01-01T00:00:00,100.0,101.0,99.0,100.0,1000.0
@@ -258,7 +258,7 @@ def test_dual_objective_deterministic():
 def test_dual_objective_penalty_factor():
     """Test that penalty factor affects dual objective score correctly."""
     from bagbot.optimizer.genetic_optimizer import evaluate_genome, Genome
-    from bagbot.backtest.loader import load_candles
+    from backtest.loader import load_candles
     
     csv_content = """timestamp,open,high,low,close,volume
 2024-01-01T00:00:00,100.0,101.0,99.0,100.0,1000.0

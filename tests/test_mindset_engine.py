@@ -4,7 +4,7 @@ Tests for Mindset Engine v2
 
 import pytest
 from datetime import datetime, timedelta
-from bagbot.trading.mindset_engine import (
+from worker.mindset.mindset_engine import (
     MindsetEngine,
     EmotionalState,
     PerformanceGrade,

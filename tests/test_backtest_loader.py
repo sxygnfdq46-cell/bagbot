@@ -1,7 +1,7 @@
 """Tests for backtest CSV loader parsing and range slice."""
 import tempfile
 import os
-from bagbot.backtest.loader import load_candles, slice_by_range
+from backtest.loader import load_candles, slice_by_range
 
 
 def test_load_candles_valid_csv():

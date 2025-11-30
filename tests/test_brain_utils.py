@@ -1,7 +1,7 @@
 """Unit tests for brain utility functions."""
 import pytest
-from bagbot.worker.brain.utils import resolve_strategy
-from bagbot.worker.strategies.registry import register_strategy, unregister_all_strategies
+from worker.brain.utils import resolve_strategy
+from worker.strategies.registry import register_strategy, unregister_all_strategies
 
 
 def teardown_function(fn):
@@ -14,7 +14,7 @@ def teardown_function(fn):
 
 def test_resolve_strategy_returns_strategy_when_exists():
     """Test that resolve_strategy returns strategy instance when it exists."""
-    from bagbot.worker.strategies.ai_fusion import AIFusionStrategy
+    from worker.strategies.ai_fusion import AIFusionStrategy
     
     # Register a known strategy
     register_strategy("test_strategy", AIFusionStrategy)

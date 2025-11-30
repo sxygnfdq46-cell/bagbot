@@ -1,4 +1,4 @@
-from bagbot.worker.decisions.schema import Signal, signal_buy, signal_hold
+from worker.decisions.schema import Signal, signal_buy, signal_hold
 
 def test_signal_create():
     s = signal_buy(confidence=0.5, size=10.0, reason="test")

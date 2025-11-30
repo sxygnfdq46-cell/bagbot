@@ -12,8 +12,8 @@ from unittest.mock import patch, MagicMock, AsyncMock
 from pathlib import Path
 from datetime import datetime
 
-from bagbot.trading.scheduler import DailyCycleScheduler, run_daily_cycle
-from bagbot.trading.mindset import TradingMindset, TradingAction, ActionType, EODAction
+from worker.scheduler import DailyCycleScheduler, run_daily_cycle
+from worker.mindset.mindset import TradingMindset, TradingAction, ActionType, EODAction
 
 
 @pytest.fixture
@@ -36,7 +36,7 @@ def mock_mindset():
     mindset.daily_mission.return_value = []
     
     # Mock eod_routine
-    from bagbot.trading.mindset import EODReport
+    from worker.mindset.mindset import EODReport
     eod_report = EODReport(
         total_pnl=0.0,
         total_pnl_percent=0.0,
@@ -272,7 +272,7 @@ class TestDailyCycleScheduler:
             priority=60
         )
         
-        from bagbot.trading.mindset import EODReport
+        from worker.mindset.mindset import EODReport
         eod_report = EODReport(
             total_pnl=-1000.0,
             total_pnl_percent=-1.0,

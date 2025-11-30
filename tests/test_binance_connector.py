@@ -9,7 +9,7 @@ import os
 from unittest.mock import patch, AsyncMock, MagicMock
 import ccxt.async_support as ccxt
 
-from trading.connectors.binance_connector import BinanceConnector
+from worker.connectors.binance_connector import BinanceConnector
 
 
 class TestBinanceConnectorInstantiation:

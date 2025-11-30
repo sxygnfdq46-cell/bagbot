@@ -20,7 +20,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from backend.models import Base, Order, get_db
-from api.tradingview_routes import router as tradingview_router
+from backend.api.tradingview_routes import router as tradingview_router
 
 
 # Test database setup
@@ -353,7 +353,7 @@ class TestWebhookOrderRouting:
         """Test webhook handles risk check failures."""
         with patch.dict(os.environ, {"TRADINGVIEW_SECRET": test_secret}):
             with patch("api.tradingview_routes.route_order") as mock:
-                from trading.order_router import RiskCheckError
+                from worker.executor.order_router import RiskCheckError
                 mock.side_effect = RiskCheckError("Order exceeds max quantity")
                 
                 payload = {
@@ -372,7 +372,7 @@ class TestWebhookOrderRouting:
         """Test webhook handles connector errors."""
         with patch.dict(os.environ, {"TRADINGVIEW_SECRET": test_secret}):
             with patch("api.tradingview_routes.route_order") as mock:
-                from trading.order_router import ConnectorNotFoundError
+                from worker.executor.order_router import ConnectorNotFoundError
                 mock.side_effect = ConnectorNotFoundError("Connector not found")
                 
                 payload = {

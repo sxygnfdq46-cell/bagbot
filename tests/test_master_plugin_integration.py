@@ -1,8 +1,8 @@
 # tests/test_master_plugin_integration.py
 import pytest
-from bagbot.worker.strategies.plugin_registry import register_plugin
-from bagbot.worker.strategies.master import MasterStrategy
-from bagbot.worker.strategies.plugins.sample_plugin import SamplePlugin
+from worker.strategies.plugin_registry import register_plugin
+from worker.strategies.master import MasterStrategy
+from worker.strategies.plugins.sample_plugin import SamplePlugin
 
 def test_master_strategy_with_sample_plugin():
     # register sample plugin if not already

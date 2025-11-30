@@ -1,8 +1,8 @@
 # tests/test_queue_and_runner.py
 import pytest
-from bagbot.worker.queue import JobQueue
-from bagbot.worker.tasks import JobType
-from bagbot.worker.runner import run_once_or_process_all  # if runner provides such; otherwise import worker.runner and call its main function in a way that processes the provided JobQueue (use public API; do not alter runner.py for the test).
+from worker.queue import JobQueue
+from worker.tasks import JobType
+from worker.runner import run_once_or_process_all  # if runner provides such; otherwise import worker.runner and call its main function in a way that processes the provided JobQueue (use public API; do not alter runner.py for the test).
 
 def test_runner_processes_three_jobs():
     q = JobQueue()

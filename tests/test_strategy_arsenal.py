@@ -4,7 +4,7 @@ Tests for Strategy Arsenal and Micro Trend Follower
 
 import pytest
 from datetime import datetime
-from bagbot.trading.strategy_arsenal import (
+from worker.strategies.arsenal import (
     StrategyArsenal,
     BaseStrategy,
     StrategyMetadata,
@@ -14,7 +14,7 @@ from bagbot.trading.strategy_arsenal import (
     TimeFrame,
     MarketType
 )
-from bagbot.trading.strategies.micro_trend_follower import MicroTrendFollower
+from worker.strategies.micro_trend_follower import MicroTrendFollower
 
 
 @pytest.fixture

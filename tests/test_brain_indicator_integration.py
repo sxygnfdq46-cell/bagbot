@@ -1,6 +1,6 @@
-from bagbot.worker.queue import JobQueue
-from bagbot.worker.brain.brain import TradingBrain
-from bagbot.worker.brain.strategy_router import StrategyRouter
+from worker.queue import JobQueue
+from worker.brain.brain import TradingBrain
+from worker.brain.strategy_router import StrategyRouter
 
 
 def test_brain_get_indicator_value_valid():

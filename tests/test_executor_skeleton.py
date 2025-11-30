@@ -1,5 +1,5 @@
-from bagbot.worker.decisions.schema import signal_buy, signal_hold
-from bagbot.worker.executor.execution_router import ExecutionRouter
+from worker.decisions.schema import signal_buy, signal_hold
+from worker.executor.execution_router import ExecutionRouter
 
 def test_execute_hold_returns_simulated_message():
     router = ExecutionRouter()

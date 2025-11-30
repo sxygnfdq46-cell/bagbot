@@ -16,7 +16,7 @@ from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 
 from backend.models import Base, Order
-from trading.order_router import (
+from worker.executor.order_router import (
     route_order,
     load_connector,
     check_risk_limits,

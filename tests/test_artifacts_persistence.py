@@ -17,7 +17,7 @@ from pathlib import Path
 def test_artifacts_directory_created():
     """Test that artifacts directory structure is created."""
     from bagbot.optimizer.genetic_optimizer import run_ga
-    from bagbot.backtest.loader import load_candles
+    from backtest.loader import load_candles
     
     # Load candles from actual test data file (before changing directory)
     test_data_path = Path(__file__).parent / "data" / "BTCSTUSDT-1h-merged.csv"

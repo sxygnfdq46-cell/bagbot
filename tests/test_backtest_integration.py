@@ -5,9 +5,9 @@ import os
 
 def test_backtest_integration():
     """Integration test with sample CSV and strategy stub."""
-    from bagbot.backtest.loader import load_candles
-    from bagbot.backtest.replay import ReplayEngine
-    from bagbot.backtest.executor import BacktestExecutor
+    from backtest.loader import load_candles
+    from backtest.replay import ReplayEngine
+    from backtest.executor import BacktestExecutor
     
     # Create sample CSV
     csv_content = """timestamp,open,high,low,close,volume

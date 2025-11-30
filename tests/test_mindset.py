@@ -7,7 +7,7 @@ Tests defensive behaviors, risk management, and disciplined trading psychology.
 import os
 import pytest
 from unittest.mock import patch
-from bagbot.trading.mindset import (
+from worker.mindset.mindset import (
     TradingMindset,
     TradingAction,
     ActionType,

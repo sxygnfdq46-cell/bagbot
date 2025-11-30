@@ -13,7 +13,7 @@ from typing import List, Dict
 
 def test_replay_deterministic_multiple_runs():
     """Test that replay produces identical results across multiple runs."""
-    from bagbot.backtest.replay import ReplayEngine
+    from backtest.replay import ReplayEngine
     
     candles = [
         {"timestamp": "1", "close": 100.0, "symbol": "BTCUSDT"},
@@ -46,7 +46,7 @@ def test_replay_deterministic_multiple_runs():
 
 def test_replay_adapter_routes_to_brain():
     """Test that create_brain_adapter correctly routes candles to brain."""
-    from bagbot.backtest.replay import ReplayEngine, create_brain_adapter
+    from backtest.replay import ReplayEngine, create_brain_adapter
     
     # Create mock brain that tracks calls
     class MockBrain:
@@ -89,8 +89,8 @@ def test_replay_adapter_routes_to_brain():
 
 def test_replay_with_brain_deterministic_decisions():
     """Test that brain + replay produces deterministic trading decisions."""
-    from bagbot.backtest.replay import ReplayEngine
-    from bagbot.worker.brain.brain import TradingBrain
+    from backtest.replay import ReplayEngine
+    from worker.brain.brain import TradingBrain
     
     # Create simple test strategy that tracks calls deterministically
     class DeterministicStrategy:
@@ -111,7 +111,7 @@ def test_replay_with_brain_deterministic_decisions():
     ]
     
     # Run 1
-    from bagbot.worker.strategies.registry import register_strategy, unregister_all_strategies
+    from worker.strategies.registry import register_strategy, unregister_all_strategies
     
     unregister_all_strategies()
     strategy1 = DeterministicStrategy()
@@ -162,8 +162,8 @@ def test_replay_with_brain_deterministic_decisions():
 
 def test_replay_from_csv_deterministic():
     """Test that loading from CSV and replaying produces deterministic results."""
-    from bagbot.backtest.loader import load_candles
-    from bagbot.backtest.replay import ReplayEngine
+    from backtest.loader import load_candles
+    from backtest.replay import ReplayEngine
     
     # Create temp CSV
     csv_content = """timestamp,open,high,low,close,volume
@@ -200,7 +200,7 @@ def test_replay_from_csv_deterministic():
 
 def test_replay_subset_deterministic():
     """Test that run_from_to produces deterministic subset results."""
-    from bagbot.backtest.replay import ReplayEngine
+    from backtest.replay import ReplayEngine
     
     candles = [
         {"timestamp": "1", "close": 100.0},
@@ -230,7 +230,7 @@ def test_replay_subset_deterministic():
 
 def test_brain_adapter_handles_execute_order():
     """Test that brain adapter correctly handles EXECUTE_ORDER decisions."""
-    from bagbot.backtest.replay import create_brain_adapter
+    from backtest.replay import create_brain_adapter
     
     # Mock brain that returns EXECUTE_ORDER
     class MockBrain:

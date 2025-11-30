@@ -4,7 +4,7 @@ Tests for Subscription Manager
 
 import pytest
 from datetime import datetime, timedelta
-from bagbot.backend.subscription_manager import (
+from backend.subscription_manager import (
     SubscriptionManager,
     SubscriptionTier,
     TokenStatus,

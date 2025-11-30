@@ -3,7 +3,7 @@
 import pytest
 import tempfile
 from pathlib import Path
-from bagbot.trading.knowledge_ingestion_engine import KnowledgeIngestionEngine, Concept
+from worker.knowledge.knowledge_ingestion_engine import KnowledgeIngestionEngine, Concept
 
 
 def test_knowledge_engine_initialization():

@@ -1,8 +1,8 @@
 # tests/test_virtual_executor.py
 import pytest
-from bagbot.worker.executor.account import VirtualAccount
-from bagbot.worker.executor.position import VirtualPosition
-from bagbot.worker.executor.executor import VirtualExecutor
+from worker.executor.account import VirtualAccount
+from worker.executor.position import VirtualPosition
+from worker.executor.executor import VirtualExecutor
 
 def test_account_initialization():
     account = VirtualAccount(starting_balance=10000.0)

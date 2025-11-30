@@ -14,7 +14,7 @@ import os
 def test_dual_objective_returns_dict():
     """Test that dual objective returns dict with all required fields."""
     from bagbot.optimizer.genetic_optimizer import evaluate_genome, Genome
-    from bagbot.backtest.loader import load_candles
+    from backtest.loader import load_candles
     
     candles = load_candles('tests/data/BTCSTUSDT-1h-merged.csv')[:50]
     
@@ -48,7 +48,7 @@ def test_dual_objective_returns_dict():
 def test_optimizer_deterministic_with_seed():
     """Test that optimizer produces identical results with same seed."""
     from bagbot.optimizer.genetic_optimizer import run_ga
-    from bagbot.backtest.loader import load_candles
+    from backtest.loader import load_candles
     
     candles = load_candles('tests/data/BTCSTUSDT-1h-merged.csv')[:100]
     
@@ -83,7 +83,7 @@ def test_optimizer_deterministic_with_seed():
 def test_optimizer_different_seeds_differ():
     """Test that different seeds produce different results."""
     from bagbot.optimizer.genetic_optimizer import run_ga
-    from bagbot.backtest.loader import load_candles
+    from backtest.loader import load_candles
     
     candles = load_candles('tests/data/BTCSTUSDT-1h-merged.csv')[:100]
     
@@ -115,7 +115,7 @@ def test_optimizer_different_seeds_differ():
 def test_penalty_factor_affects_score():
     """Test that penalty factor correctly modifies the score calculation."""
     from bagbot.optimizer.genetic_optimizer import evaluate_genome, Genome
-    from bagbot.backtest.loader import load_candles
+    from backtest.loader import load_candles
     
     candles = load_candles('tests/data/BTCSTUSDT-1h-merged.csv')[:50]
     
@@ -153,7 +153,7 @@ def test_penalty_factor_affects_score():
 def test_sharpe_objective_still_works():
     """Test that regular Sharpe objective still returns float."""
     from bagbot.optimizer.genetic_optimizer import evaluate_genome, Genome
-    from bagbot.backtest.loader import load_candles
+    from backtest.loader import load_candles
     
     candles = load_candles('tests/data/BTCSTUSDT-1h-merged.csv')[:50]
     
@@ -176,7 +176,7 @@ def test_sharpe_objective_still_works():
 def test_equity_objective_still_works():
     """Test that equity objective still returns float."""
     from bagbot.optimizer.genetic_optimizer import evaluate_genome, Genome
-    from bagbot.backtest.loader import load_candles
+    from backtest.loader import load_candles
     
     candles = load_candles('tests/data/BTCSTUSDT-1h-merged.csv')[:50]
     
@@ -201,7 +201,7 @@ def test_equity_objective_still_works():
 def test_dual_objective_handles_no_trades():
     """Test that dual objective handles genomes with no trades gracefully."""
     from bagbot.optimizer.genetic_optimizer import evaluate_genome, Genome
-    from bagbot.backtest.loader import load_candles
+    from backtest.loader import load_candles
     
     candles = load_candles('tests/data/BTCSTUSDT-1h-merged.csv')[:20]
     
