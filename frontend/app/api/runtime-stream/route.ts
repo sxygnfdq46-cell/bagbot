@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { eventBus } from "../../../app/lib/runtime/eventBus";
 
+// Mark this route as dynamic (cannot be statically exported)
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const stream = new ReadableStream({
     start(controller) {
