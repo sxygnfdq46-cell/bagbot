@@ -1,8 +1,9 @@
 {
   "name": "bagbot-frontend",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "scripts": {
+    "prebuild": "rm -rf .next",
     "dev": "next dev",
     "build": "next build",
     "start": "next start -p 10000",
