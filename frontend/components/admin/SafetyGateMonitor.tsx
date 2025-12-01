@@ -148,7 +148,7 @@ export default function SafetyGateMonitor() {
         {gates.map(gate => (
           <div
             key={gate.id}
-            className="bg-purple-950/20 border border-purple-800/30 rounded-lg p-3 safety-gate-card"
+            className="gpu-accelerated bg-deep-void/40 border border-purple-800/30 rounded-lg p-3 safety-gate-card hover-lift transition-smooth backdrop-blur-sm pulse-glow-magenta"
           >
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-purple-200 font-medium">{gate.name}</span>

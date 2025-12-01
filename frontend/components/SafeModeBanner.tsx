@@ -100,7 +100,7 @@ export default function SafeModeBanner() {
           <span className="text-xs opacity-75">
             {safeModeStatus.reason}
           </span>
-          <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+          <div className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(0,246,255,0.8)]"></div>
         </div>
       </div>
     </div>

@@ -130,18 +130,18 @@ export default function ThreadInspector() {
     <div className="space-y-4">
       {/* Summary Stats */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-purple-950/30 border border-purple-800/30 rounded-lg p-3">
-          <div className="text-xs text-purple-400 mb-1">Total Threads</div>
-          <div className="text-2xl font-bold text-purple-200">{threads.length}</div>
+        <div className="gpu-accelerated bg-deep-void/60 border border-neon-cyan/30 rounded-lg p-3 hover-lift transition-smooth backdrop-blur-sm">
+          <div className="text-xs text-cyan-400 mb-1">Total Threads</div>
+          <div className="text-2xl font-bold text-cyan-200">{threads.length}</div>
         </div>
-        <div className="bg-purple-950/30 border border-purple-800/30 rounded-lg p-3">
-          <div className="text-xs text-purple-400 mb-1">Avg Health</div>
+        <div className="gpu-accelerated bg-deep-void/60 border border-neon-magenta/30 rounded-lg p-3 hover-lift transition-smooth backdrop-blur-sm">
+          <div className="text-xs text-magenta-400 mb-1">Avg Health</div>
           <div className={`text-2xl font-bold ${getHealthColor(avgHealth)}`}>
             {avgHealth.toFixed(0)}%
           </div>
         </div>
-        <div className="bg-purple-950/30 border border-purple-800/30 rounded-lg p-3">
-          <div className="text-xs text-purple-400 mb-1">Bottlenecks</div>
+        <div className="gpu-accelerated bg-deep-void/60 border border-neon-green/30 rounded-lg p-3 hover-lift transition-smooth backdrop-blur-sm pulse-glow-cyan">
+          <div className="text-xs text-green-400 mb-1">Bottlenecks</div>
           <div className={`text-2xl font-bold ${bottlenecks.length > 0 ? 'text-red-400' : 'text-green-400'}`}>
             {bottlenecks.length}
           </div>
@@ -159,7 +159,7 @@ export default function ThreadInspector() {
             <div
               key={thread.id}
               onClick={() => setSelectedThread(thread)}
-              className={`bg-purple-950/20 border border-purple-800/30 rounded-lg p-3 hover:border-purple-500/50 transition-all duration-240 cursor-pointer thread-card ${healthGlow}`}
+              className={`gpu-accelerated bg-deep-void/40 border border-purple-800/30 rounded-lg p-3 hover:border-purple-500/50 hover-lift transition-smooth cursor-pointer thread-card backdrop-blur-sm ${healthGlow}`}
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2 flex-1 min-w-0">

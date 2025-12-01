@@ -5,6 +5,7 @@ from pydantic import BaseModel
 import os
 import logging
 import time
+import asyncio
 from backend.api.routes import router as api_router
 from backend.api.backtest_routes import router as backtest_router
 from backend.api.optimizer_routes import router as optimizer_router
@@ -125,6 +126,11 @@ async def safe_mode_middleware(request: Request, call_next):
     return response
 
 
+# Import new routers for frontend
+from backend.api.market import router as market_router
+from backend.api.trading import router as trading_router
+from backend.api.system_status import router as status_router
+
 # Mount all routers
 app.include_router(api_router)
 app.include_router(backtest_router)
@@ -139,6 +145,9 @@ app.include_router(admin_router)
 app.include_router(strategy_arsenal_router)
 app.include_router(risk_engine_router)
 app.include_router(systems_router)
+app.include_router(market_router)
+app.include_router(trading_router)
+app.include_router(status_router)
 
 
 # 🛡️ SAFE MODE API ENDPOINTS
@@ -285,6 +294,15 @@ async def health_check():
         "service": "bagbot-backend",
         "version": "2.0.0"
     }
+
+
+# Temporary WebSocket stub until full WS engine is ready
+@app.websocket("/ws")
+async def ws_stub(websocket):
+    """Temporary WebSocket endpoint stub."""
+    await websocket.accept()
+    await websocket.send_json({"message": "connected"})
+    await asyncio.sleep(99999)
 
 
 @app.post("/jobs")

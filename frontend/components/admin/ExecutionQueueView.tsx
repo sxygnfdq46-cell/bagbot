@@ -151,7 +151,7 @@ export default function ExecutionQueueView() {
   return (
     <div className="space-y-4">
       {/* Time-Reversal Slider */}
-      <div className="bg-purple-950/30 border border-purple-800/30 rounded-lg p-4 time-reversal-panel">
+      <div className="gpu-accelerated bg-deep-void/60 border border-neon-cyan/30 rounded-lg p-4 time-reversal-panel hover-lift transition-smooth backdrop-blur-sm">
         <div className="flex items-center justify-between mb-3">
           <div className="text-sm font-medium text-purple-300 flex items-center gap-2">
             <span>⏮️</span>
@@ -178,7 +178,7 @@ export default function ExecutionQueueView() {
       {/* Queue Summary */}
       <div className="grid grid-cols-4 gap-2">
         {(['ready', 'waiting', 'requires-approval', 'blocked'] as const).map(status => (
-          <div key={status} className="bg-purple-950/30 border border-purple-800/30 rounded-lg p-2">
+          <div key={status} className="gpu-accelerated bg-deep-void/60 border border-neon-magenta/30 rounded-lg p-2 hover-lift transition-smooth backdrop-blur-sm">
             <div className="text-xs text-purple-400 mb-1 capitalize">{status.replace('-', ' ')}</div>
             <div className="text-lg font-bold text-purple-200">
               {filteredTasks.filter(t => t.status === status).length}
@@ -192,7 +192,7 @@ export default function ExecutionQueueView() {
         {filteredTasks.map(task => (
           <div
             key={task.id}
-            className={`bg-purple-950/20 border border-purple-800/30 rounded-lg p-4 hover:border-purple-500/50 transition-all duration-240 ${
+            className={`gpu-accelerated bg-deep-void/40 border border-purple-800/30 rounded-lg p-4 hover:border-purple-500/50 hover-lift transition-smooth backdrop-blur-sm ${
               task.completedAt ? 'opacity-70' : ''
             }`}
           >
@@ -218,23 +218,23 @@ export default function ExecutionQueueView() {
 
             {/* 4D Metadata Grid */}
             <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
-              <div className="bg-purple-950/30 rounded p-2">
-                <div className="text-purple-400">⏱ Time</div>
-                <div className="text-purple-200 font-medium">{task.metadata.time}</div>
+              <div className="bg-deep-void/60 border border-cyan-500/20 rounded p-2 backdrop-blur-sm">
+                <div className="text-cyan-400">⏱ Time</div>
+                <div className="text-cyan-200 font-medium">{task.metadata.time}</div>
               </div>
-              <div className="bg-purple-950/30 rounded p-2">
-                <div className="text-purple-400">📦 Scope</div>
-                <div className="text-purple-200 font-medium truncate">{task.metadata.scope}</div>
+              <div className="bg-deep-void/60 border border-magenta-500/20 rounded p-2 backdrop-blur-sm">
+                <div className="text-magenta-400">📦 Scope</div>
+                <div className="text-magenta-200 font-medium truncate">{task.metadata.scope}</div>
               </div>
-              <div className="bg-purple-950/30 rounded p-2">
-                <div className="text-purple-400">⚠️ Impact</div>
+              <div className="bg-deep-void/60 border border-orange-500/20 rounded p-2 backdrop-blur-sm">
+                <div className="text-orange-400">⚠️ Impact</div>
                 <div className={`font-medium ${getImpactColor(task.metadata.impact)}`}>
                   {task.metadata.impact}
                 </div>
               </div>
-              <div className="bg-purple-950/30 rounded p-2">
-                <div className="text-purple-400">⚙️ Mode</div>
-                <div className="text-purple-200 font-medium">{task.metadata.mode}</div>
+              <div className="bg-deep-void/60 border border-green-500/20 rounded p-2 backdrop-blur-sm">
+                <div className="text-green-400">⚙️ Mode</div>
+                <div className="text-green-200 font-medium">{task.metadata.mode}</div>
               </div>
             </div>
 
@@ -257,10 +257,10 @@ export default function ExecutionQueueView() {
             {/* Action Buttons */}
             {task.status === 'requires-approval' && (
               <div className="flex gap-2 mt-3">
-                <button className="flex-1 px-3 py-2 text-xs bg-green-500/20 border border-green-500/50 text-green-400 rounded hover:bg-green-500/30 transition-colors">
+                <button className="gpu-accelerated flex-1 px-3 py-2 text-xs bg-green-500/20 border border-neon-green text-green-400 rounded hover-lift hover-glow transition-smooth">
                   Approve
                 </button>
-                <button className="flex-1 px-3 py-2 text-xs bg-red-500/20 border border-red-500/50 text-red-400 rounded hover:bg-red-500/30 transition-colors">
+                <button className="gpu-accelerated flex-1 px-3 py-2 text-xs bg-red-500/20 border border-red-500/50 text-red-400 rounded hover-lift hover-glow transition-smooth">
                   Reject
                 </button>
               </div>

@@ -1,0 +1,1056 @@
+.
+./.env.local
+./.env.local.example
+./.env.production 2.example
+./.env.production.example
+./.github
+./.github/workflows
+./.github/workflows 2
+./.github/workflows/ci.yml
+./.github/workflows/deploy-dryrun.yml
+./.gitignore
+./.gitignore 2
+./.next
+./.pre-commit-config 2.yaml
+./.pre-commit-config.yaml
+./.python-version
+./.python-version 2
+./AI_HELPER_UI_GUIDE 2.md
+./AI_HELPER_UI_GUIDE.md
+./API_ENDPOINT_MAP 2.md
+./API_ENDPOINT_MAP.md
+./app
+./app/admin
+./app/admin/page.tsx
+./app/api
+./app/api/runtime
+./app/api/runtime-stream
+./app/api/runtime-stream/route.ts
+./app/api/runtime/route.ts
+./app/backtest
+./app/backtest/page.tsx
+./app/bot-dashboard
+./app/bot-dashboard/page.tsx
+./app/charts
+./app/charts/page.tsx
+./app/chat
+./app/chat/page.tsx
+./app/ClientLayoutWrapper.tsx
+./app/components
+./app/components/diagnostics
+./app/components/diagnostics/DivergencePanel.tsx
+./app/components/hedge
+./app/components/hedge/HedgeModeIndicator.tsx
+./app/components/hypervision
+./app/components/hypervision/HypervisionPanel.tsx
+./app/components/intel
+./app/components/intel/DailyTradingIndicator.tsx
+./app/components/intel/StrategyWeightIndicator.tsx
+./app/components/intel/ThreatInfluenceIndicator.tsx
+./app/components/intel/ThreatMemoryIndicator.tsx
+./app/components/intel/ThreatReactivePanel.tsx
+./app/components/intro
+./app/components/intro/GodModeIntro.tsx
+./app/components/navigation
+./app/components/navigation/Navigation.tsx
+./app/components/reaction
+./app/components/reaction/ReactionModeIndicator.tsx
+./app/components/reactor
+./app/components/reactor/reactor.css
+./app/components/reactor/ReactorCore.tsx
+./app/components/risk
+./app/components/risk/RiskCurveIndicator.tsx
+./app/components/shield
+./app/components/shield/ShieldFusionIndicator.tsx
+./app/components/stabilizer
+./app/components/stabilizer/RDSIndicator.tsx
+./app/components/strategy
+./app/components/strategy/ShieldStrategyIndicator.tsx
+./app/components/threat
+./app/components/threat/ThreatOverlay.tsx
+./app/components/threat/ThreatReactivePanel.tsx
+./app/components/threat/ThreatSyncDashboard.tsx
+./app/dashboard
+./app/dashboard/page.tsx
+./app/engine
+./app/engine/bic
+./app/engine/bic/BehaviorCore.ts
+./app/engine/bic/behaviorMap.ts
+./app/engine/bic/BehaviorProvider.tsx
+./app/engine/bic/index.ts
+./app/engine/cognitive
+./app/engine/cognitive/CognitiveFusion.ts
+./app/engine/cognitive/CognitiveFusionProvider.tsx
+./app/engine/cognitive/index.ts
+./app/engine/entity
+./app/engine/entity/AttentionStream.ts
+./app/engine/entity/BehaviorGenome.ts
+./app/engine/entity/CognitiveWeights.ts
+./app/engine/entity/entity-bio.css
+./app/engine/entity/EntityCore.ts
+./app/engine/entity/EntityMemory.ts
+./app/engine/entity/EntityProvider.tsx
+./app/engine/entity/EvolutionClock.ts
+./app/engine/entity/ExpressionCore.ts
+./app/engine/entity/HarmonicLimiter.ts
+./app/engine/entity/IdentityAnchor.ts
+./app/engine/entity/IdentityRing.ts
+./app/engine/entity/index.ts
+./app/engine/entity/MemoryImprintProvider.tsx
+./app/engine/entity/ResonanceMatrix.ts
+./app/engine/entity/RippleEngine.ts
+./app/engine/entity/SelfHeal.ts
+./app/engine/entity/SoulLinkCore.ts
+./app/engine/entity/StabilityCore.ts
+./app/engine/environmental
+./app/engine/environmental/AmbientMarketPulse.ts
+./app/engine/environmental/EnvironmentalConsciousnessCore.tsx
+./app/engine/environmental/FlowFieldMapper.ts
+./app/engine/environmental/index.ts
+./app/engine/environmental/LiquidityThermostat.ts
+./app/engine/environmental/MarketWeatherEngine.ts
+./app/engine/environmental/MicroburstSensor.ts
+./app/engine/environmental/MomentumStormAnalyzer.ts
+./app/engine/environmental/TrendJetstreamDetector.ts
+./app/engine/environmental/VolumeGravityDetector.ts
+./app/engine/fusion
+./app/engine/fusion/AdaptiveMoodClimateEngine.ts
+./app/engine/fusion/CrossSystemHarmonizer.ts
+./app/engine/fusion/EnvironmentalEmotionMapper.ts
+./app/engine/fusion/EnvironmentalFusionProvider.tsx
+./app/engine/fusion/EnvironmentalMemoryLayer.ts
+./app/engine/fusion/index.ts
+./app/engine/fusion/MarketClimateVFXBlend.ts
+./app/engine/holographic
+./app/engine/holographic/AdaptiveLightIntelligence.ts
+./app/engine/holographic/EmotionalResonance.ts
+./app/engine/holographic/HolographicForecast.ts
+./app/engine/holographic/HolographicModeProvider.tsx
+./app/engine/holographic/HoloSkin.ts
+./app/engine/holographic/index.ts
+./app/engine/holographic/PanelManager.ts
+./app/engine/holographic/PresenceEffectV2.ts
+./app/engine/reflex
+./app/engine/reflex/index.ts
+./app/engine/reflex/ReflexEngine.ts
+./app/engine/reflex/ReflexMapper.ts
+./app/engine/reflex/StabilityFieldCore.ts
+./app/engine/reflex/StabilityProvider.tsx
+./app/engines
+./app/engines/RealityDivergenceScanner.ts
+./app/fusion
+./app/fusion/components
+./app/fusion/components.tsx
+./app/fusion/components/DivergenceHUD.tsx
+./app/fusion/components/DivergencePanel.tsx
+./app/fusion/components/DivergenceWaveChart.tsx
+./app/fusion/fusion.css
+./app/fusion/FusionTelemetryBars.tsx
+./app/fusion/intelligence-pipeline
+./app/fusion/intelligence-pipeline/page.tsx
+./app/fusion/IntelligencePipelinePanel.tsx
+./app/fusion/layout.tsx
+./app/fusion/page.tsx
+./app/fusion/README.md
+./app/globals.css
+./app/landing.css
+./app/layout.tsx
+./app/lib
+./app/lib/aeg
+./app/lib/aeg/AutonomousExecutionGovernor.ts
+./app/lib/aeg/types.ts
+./app/lib/analytics
+./app/lib/analytics/AnalyticsBridge.ts
+./app/lib/analytics/DivergenceController.ts
+./app/lib/analytics/DivergenceInsightBridge.ts
+./app/lib/analytics/DivergenceInsightController.ts
+./app/lib/analytics/DivergenceOrchestrator.ts
+./app/lib/analytics/DivergenceRuntime.ts
+./app/lib/analytics/DivergenceThreatClassifier.ts
+./app/lib/analytics/DivergenceThreatModel.ts
+./app/lib/analytics/DivergenceUIController.ts
+./app/lib/analytics/DivergenceUIFormatter.ts
+./app/lib/arl
+./app/lib/arl/AutonomousResponseLoop.ts
+./app/lib/avrs
+./app/lib/avrs/ReactorSyncEngine.ts
+./app/lib/conductor
+./app/lib/conductor/AutoTradingConductor.ts
+./app/lib/conductor/ConductorRules.ts
+./app/lib/consciousness
+./app/lib/consciousness/ConsciousnessMetrics.ts
+./app/lib/consciousness/TradingConsciousnessLoop.ts
+./app/lib/decision
+./app/lib/decision/DecisionEngine.ts
+./app/lib/decision/GDSRouter.ts
+./app/lib/decision/GDSTopology.ts
+./app/lib/dpl
+./app/lib/dpl/DecisionPrecisionLayer.ts
+./app/lib/dpl/types.ts
+./app/lib/dpl/validators.ts
+./app/lib/eae
+./app/lib/eae/ExecutionAlignmentEngine.ts
+./app/lib/eae/liquidityPulse.ts
+./app/lib/eae/rhythm.ts
+./app/lib/eae/types.ts
+./app/lib/engine
+./app/lib/engine/AutonomousHedgePathwayEngine.ts
+./app/lib/engine/DynamicReactionPathwayEngine.ts
+./app/lib/engine/HedgeIntegration.ts
+./app/lib/engine/ReactionIntegration.ts
+./app/lib/engine/ShieldBrainSyncLayer.ts
+./app/lib/engine/ShieldFusionIntegration.ts
+./app/lib/engine/ShieldFusionSynchronizer.ts
+./app/lib/engine/TradingPipelineCore.ts
+./app/lib/erf
+./app/lib/erf/ExecutionRealityFilter.ts
+./app/lib/erf/types.ts
+./app/lib/execution
+./app/lib/execution/ExecutionOverride.ts
+./app/lib/execution/ExecutionPrecisionCore.ts
+./app/lib/execution/ExecutionSurvivalMatrix.ts
+./app/lib/execution/overrideRules.ts
+./app/lib/exo
+./app/lib/exo/ExecutionOrchestrator.ts
+./app/lib/exo/mergeSignals.ts
+./app/lib/exo/rules.ts
+./app/lib/exo/types.ts
+./app/lib/fusion
+./app/lib/fusion/DeepExecutionFusion.ts
+./app/lib/fusion/FullSpectrumSync.ts
+./app/lib/fusion/fusionRules.ts
+./app/lib/fusion/types.ts
+./app/lib/harmonizer
+./app/lib/harmonizer/ShieldNetworkHarmonizer.ts
+./app/lib/harmonizer/SystemHarmonizer.ts
+./app/lib/harmonizer/types.ts
+./app/lib/hypervision
+./app/lib/hypervision/HypervisionCore.ts
+./app/lib/intel
+./app/lib/intel/DailyTradingHarmonizer.ts
+./app/lib/intel/DailyTradingIntegration.ts
+./app/lib/intel/FusionThreatBridge.ts
+./app/lib/intel/TemporalThreatMemory.ts
+./app/lib/intel/ThreatStrategyIntegration.ts
+./app/lib/intel/ThreatWeightedStrategy.ts
+./app/lib/intelligence
+./app/lib/intelligence/flowCalculators.ts
+./app/lib/intelligence/flowTypes.ts
+./app/lib/intelligence/FusionCore.ts
+./app/lib/intelligence/fusionMatrix.ts
+./app/lib/intelligence/fusionWeights.ts
+./app/lib/intelligence/IntelligencePipelineCoordinator.ts
+./app/lib/intelligence/MarketFlowAnticipation.ts
+./app/lib/intelligence/pulsar
+./app/lib/intelligence/pulsar/PulsarRuntime.ts
+./app/lib/intelligence/pulsar/PulsarScanner.ts
+./app/lib/intelligence/VolatilityBehaviorEngine.ts
+./app/lib/intelligence/volatilityModels.ts
+./app/lib/intelligence/volatilityTypes.ts
+./app/lib/learning
+./app/lib/learning/learningRules.ts
+./app/lib/learning/ReinforcementCore.ts
+./app/lib/learning/stateMemory.ts
+./app/lib/monitoring
+./app/lib/monitoring/RealTimeExecutionMonitor.ts
+./app/lib/msfe
+./app/lib/msfe/StrategyFusionEngine.ts
+./app/lib/msfe/types.ts
+./app/lib/msfe/weights.ts
+./app/lib/net
+./app/lib/net/NeuralExecutionTranslator.ts
+./app/lib/net/types.ts
+./app/lib/patterns
+./app/lib/patterns/patternMemory.ts
+./app/lib/patterns/patternRules.ts
+./app/lib/patterns/PatternSyncEngine.ts
+./app/lib/refinement
+./app/lib/refinement/StrategicRefinementLattice.ts
+./app/lib/risk
+./app/lib/risk/RiskIntegration.ts
+./app/lib/risk/ShieldRiskCurveEngine.ts
+./app/lib/runtime
+./app/lib/runtime/ContinuousRuntimeLoop.ts
+./app/lib/runtime/eventBus.ts
+./app/lib/runtime/SafetyManager.ts
+./app/lib/sentience
+./app/lib/sentience/SentienceEngine.ts
+./app/lib/sentience/sentienceMath.ts
+./app/lib/simulation
+./app/lib/simulation/MarketSimulationEngine.ts
+./app/lib/stabilizers
+./app/lib/stabilizers/RealityDistortionStabilizer.ts
+./app/lib/strategy
+./app/lib/strategy/AdaptiveShieldStrategySelector.ts
+./app/lib/strategy/ShieldStrategyLink.ts
+./app/lib/strategy/StrategyIntegration.ts
+./app/lib/trading
+./app/lib/trading/ShieldSyncIntegration.ts
+./app/lib/trading/TradingBrainCore.ts
+./app/lib/xreactor
+./app/lib/xreactor/reactorRules.ts
+./app/lib/xreactor/runtimeMonitors.ts
+./app/lib/xreactor/types.ts
+./app/lib/xreactor/XReactor.ts
+./app/login
+./app/login/page.tsx
+./app/logs
+./app/logs/page.tsx
+./app/page.tsx
+./app/page.tsx.backup
+./app/providers.tsx
+./app/sci-fi-shell.tsx
+./app/services
+./app/services/conductor
+./app/services/conductor/conductorService.ts
+./app/services/consciousness
+./app/services/consciousness/consciousnessService.ts
+./app/services/decision
+./app/services/decision/gdsService.ts
+./app/services/execution
+./app/services/execution/overrideService.ts
+./app/services/intelligence
+./app/services/intelligence/aegService.ts
+./app/services/intelligence/deFusionService.ts
+./app/services/intelligence/dplService.ts
+./app/services/intelligence/dvbeService.ts
+./app/services/intelligence/eaeService.ts
+./app/services/intelligence/erfService.ts
+./app/services/intelligence/exoService.ts
+./app/services/intelligence/fusionService.ts
+./app/services/intelligence/mfaeService.ts
+./app/services/intelligence/msfeService.ts
+./app/services/intelligence/netService.ts
+./app/services/intelligence/snhlService.ts
+./app/services/intelligence/xReactorService.ts
+./app/services/learning
+./app/services/learning/learningService.ts
+./app/services/patterns
+./app/services/patterns/patternService.ts
+./app/services/sentience
+./app/services/sentience/sentienceService.ts
+./app/settings
+./app/settings/page.tsx
+./app/signals
+./app/signals/page.tsx
+./app/state
+./app/state/conductorState.ts
+./app/state/consciousnessState.ts
+./app/state/dvbeState.ts
+./app/state/executionFusionState.ts
+./app/state/fusionState.ts
+./app/state/gdsState.ts
+./app/state/learningState.ts
+./app/state/mfaeState.ts
+./app/state/overrideState.ts
+./app/state/patternState.ts
+./app/state/sentienceState.ts
+./app/strategies
+./app/strategies/page.tsx
+./app/systems
+./app/systems/page.tsx
+./app/terminal
+./app/terminal/page.tsx
+./app/test-connection
+./app/test-connection/page.tsx
+./app/threat-center
+./app/threat-center/page.tsx
+./app/ui
+./app/ui/runtime
+./app/ui/runtime/CommandCenter.tsx
+./app/ui/runtime/RuntimeControls.tsx
+./app/ui/runtime/RuntimeStatus.tsx
+./artifacts
+./artifacts/README 2.md
+./artifacts/README.md
+./AUDIT_SUMMARY 2.md
+./AUDIT_SUMMARY.md
+./AUTH_UI_GUIDE 2.md
+./AUTH_UI_GUIDE.md
+./backtest_example 2.py
+./backtest_example.py
+./BACKTESTER_QUICK_REF 2.md
+./BACKTESTER_QUICK_REF.md
+./BAGBOT_PHASE_5_COMPLETE 2.md
+./BAGBOT_PHASE_5_COMPLETE.md
+./bagbot.db
+./best_genome_dual 2.json
+./best_genome_dual.json
+./BIC_INTEGRATION_EXAMPLE 2.md
+./BIC_INTEGRATION_EXAMPLE.md
+./BRAIN_ARCHITECTURE 2.md
+./BRAIN_ARCHITECTURE.md
+./brain_demo 2.py
+./brain_demo.py
+./build_output 2.txt
+./build_output.txt
+./build-log 2.txt
+./build-log.txt
+./CI_UPDATE_QUICK_REF 2.md
+./CI_UPDATE_QUICK_REF.md
+./components
+./components/admin
+./components/admin 2
+./components/admin/controlhub.css
+./components/admin/diagnostics.css
+./components/admin/EventLogStream.ts
+./components/admin/ExecutionQueueView.tsx
+./components/admin/IntegrityScanner.ts
+./components/admin/OperationalControlHub.tsx
+./components/admin/purpleTechwave.css
+./components/admin/ResourceMatrix.tsx
+./components/admin/SafetyGateMonitor.tsx
+./components/admin/SystemDiagnosticsPanel.tsx
+./components/admin/SystemOverviewDeck.tsx
+./components/admin/ThreadInspector.tsx
+./components/admin/UplinkDiagnostics.tsx
+./components/admin/UserIntelligenceBoard.tsx
+./components/AnimatedCard 2.tsx
+./components/AnimatedCard.tsx
+./components/AnimatedText 2.tsx
+./components/AnimatedText.tsx
+./components/ascendant
+./components/ascendant 2
+./components/ascendant/AscendantIdentityOverlay.tsx
+./components/ascendant/AscendantSignatureEngine.ts
+./components/ascendant/IdentitySkeletonEngine.ts
+./components/ascendant/index.ts
+./components/ascendant/MemorylessPersonalityEngine.ts
+./components/ascendant/PresenceStabilizerEngine.ts
+./components/ascension
+./components/ascension 2
+./components/ascension/AscensionEffects.tsx
+./components/autobalance
+./components/autobalance 2
+./components/autobalance/AutoBalanceCore.ts
+./components/autobalance/CognitiveLoadRegulator.ts
+./components/autobalance/EmotionStabilityPipeline.ts
+./components/autobalance/IdentityAnchorEngine.ts
+./components/autobalance/index.ts
+./components/autobalance/ReflexRecoveryLoop.ts
+./components/autobalance/Sovereign12Kernel.ts
+./components/awareness
+./components/awareness 2
+./components/awareness/IntentAwarenessLayer.ts
+./components/awareness/MLASSafetyGuardrail.ts
+./components/awareness/MultiLayerAwarenessSystem.ts
+./components/awareness/StateAwarenessLayer.ts
+./components/awareness/TaskAwarenessLayer.ts
+./components/collective
+./components/collective 2
+./components/collective/CollectiveFieldEngine.ts
+./components/collective/CollectiveIntelligenceHub.tsx
+./components/collective/ConsensusMemoryEcho.ts
+./components/collective/index.ts
+./components/collective/IntentVectorSynthesizer.ts
+./components/DataSpark 2.tsx
+./components/DataSpark.tsx
+./components/emergence
+./components/emergence 2
+./components/emergence/AdaptiveExpressionMatrix.ts
+./components/emergence/AuraSyncEngine.ts
+./components/emergence/EmergenceSignatureCore.ts
+./components/emergence/EmotionalTrajectoryEngine.ts
+./components/emergence/IdentityResonanceHub.tsx
+./components/emergence/index.ts
+./components/emergent
+./components/emergent 2
+./components/emergent/AdaptiveToneEngine.tsx
+./components/emergent/ContextualMemoryLayer.ts
+./components/emergent/IdentityDashboard.tsx
+./components/emergent/IdentityStabilityAnchor.ts
+./components/emergent/index.ts
+./components/emergent/PersonalityVectorEngine.ts
+./components/execution
+./components/execution 2
+./components/execution/ChainCompatibilityMatrix.ts
+./components/execution/ConditionalFlowResolver.ts
+./components/execution/DimensionalExecutionPathing.ts
+./components/execution/ExecutionApprovalGate.ts
+./components/execution/ExecutionStateTelemetry.tsx
+./components/execution/ImpactDimensionLayer.ts
+./components/execution/index.ts
+./components/execution/ModeDimensionLayer.ts
+./components/execution/multiflow.css
+./components/execution/MultiFlowHub.tsx
+./components/execution/ScopeDimensionLayer.ts
+./components/execution/SequentialFlowPlanner.ts
+./components/execution/TaskGraphEngine.ts
+./components/execution/TaskNode.ts
+./components/execution/TimeDimensionLayer.ts
+./components/fusion
+./components/fusion 2
+./components/fusion/EnvironmentPresenceMapper.ts
+./components/fusion/EnvTriPhaseAwareness.ts
+./components/fusion/FusionReflexBalancer.ts
+./components/fusion/HoloWorldMeshLayer.ts
+./components/fusion/index.ts
+./components/fusion/ParallelIntelligenceCore.ts
+./components/fusion/ReflexEngineV2.ts
+./components/fusion/SymbioticEnvironmentLink.ts
+./components/fusion/SymbioticFieldCore.ts
+./components/GlowingPanel 2.tsx
+./components/GlowingPanel.tsx
+./components/guardian
+./components/guardian 2
+./components/guardian/GuardianOrchestrationHub.ts
+./components/guardian/GuardianStateCore.ts
+./components/guardian/HarmonicBalanceEngine.ts
+./components/guardian/index.ts
+./components/guardian/ProtectionReflexMatrix.ts
+./components/guardian/StabilizationFlowEngine.ts
+./components/guardian/SymbioticGuardianProvider.tsx
+./components/HoverButton 2.tsx
+./components/HoverButton.tsx
+./components/IntroHoloSequence 2.tsx
+./components/IntroHoloSequence.tsx
+./components/LoadingSpinner 2.tsx
+./components/LoadingSpinner.tsx
+./components/memory
+./components/memory 2
+./components/memory/ContinuitySyncLayer.ts
+./components/memory/ImmediateContextLayer.ts
+./components/memory/index.ts
+./components/memory/IntentThreadTracker.ts
+./components/memory/LongArcPatternLayer.ts
+./components/memory/MemoryAuditGate.ts
+./components/memory/memoryflow.css
+./components/memory/MemoryReliabilityMatrix.ts
+./components/memory/MemorySafetyBoundary.ts
+./components/memory/MemoryVectorEngine.ts
+./components/memory/MultiLayerContextGrid.ts
+./components/memory/RollingMemoryCore.ts
+./components/memory/RollingMemoryUI.tsx
+./components/memory/SessionIntentLayer.ts
+./components/memory/TechnicalContextWeaver.ts
+./components/meta
+./components/meta 2
+./components/meta/index.ts
+./components/meta/LongHorizonThoughtEngine.ts
+./components/meta/MetaAwarenessEngine.ts
+./components/meta/MultiAgentDebateEngine.ts
+./components/meta/UltraFusionOverlay.tsx
+./components/oversight
+./components/oversight 2
+./components/oversight/index.ts
+./components/oversight/IntentClarificationMatrix.ts
+./components/oversight/MultiPathForecastEngine.ts
+./components/oversight/OversightRecommendationEngine.ts
+./components/oversight/PreExecutionAuditGate.ts
+./components/oversight/RiskMapGenerator.ts
+./components/oversight/strategic.css
+./components/oversight/StrategicStateMonitor.ts
+./components/oversight/StrategicUI.tsx
+./components/PageTransition 2.tsx
+./components/PageTransition.tsx
+./components/ParallaxContainer 2.tsx
+./components/ParallaxContainer.tsx
+./components/presence
+./components/presence 2
+./components/presence/ContinuityStabilityEngine.ts
+./components/presence/IdentityPersistenceLayer.tsx
+./components/presence/index.ts
+./components/presence/MultiSurfaceAwarenessMatrix.ts
+./components/presence/PresenceFieldCore.ts
+./components/presence/UnifiedPulseEngine.ts
+./components/quantum
+./components/quantum 2
+./components/quantum/QuantumEffects.tsx
+./components/refinement
+./components/refinement 2
+./components/refinement/DriftSuppressionMatrix.ts
+./components/refinement/EmotionalGradientFilter.ts
+./components/refinement/index.ts
+./components/refinement/SovereignRefinementOrchestrator.ts
+./components/refinement/StabilityRefinementCore.ts
+./components/SafeModeBanner 2.tsx
+./components/SafeModeBanner.tsx
+./components/shield
+./components/shield 2
+./components/shield/brain
+./components/shield/brain/CorrelationMatrix.ts
+./components/shield/brain/RiskScoringEngine.ts
+./components/shield/brain/RootCauseEngine.ts
+./components/shield/brain/ShieldBrainCore.ts
+./components/shield/EmotionalShield.ts
+./components/shield/ExecutionShield.ts
+./components/shield/MemoryIntegrityShield.ts
+./components/shield/ShieldCore.ts
+./components/shield/ShieldSyncLayer.tsx
+./components/sovereignty
+./components/sovereignty 2
+./components/sovereignty/AdaptivePresenceMatrix.ts
+./components/sovereignty/EmotionalFieldRegulator.ts
+./components/sovereignty/EmotionalRhythmController.ts
+./components/sovereignty/index.ts
+./components/sovereignty/SovereignBalanceEngine.ts
+./components/sovereignty/SovereignOrchestrationHub.ts
+./components/sovereignty/SovereignProvider.tsx
+./components/sovereignty/StateCoherenceDirector.ts
+./components/stability
+./components/stability 2
+./components/stability/EquilibriumPulseEngine.ts
+./components/stability/index.ts
+./components/stability/LongRangeIdentityAnchor.ts
+./components/stability/SovereignStabilityGrid.ts
+./components/stability/StatePrecisionRegulator.ts
+./components/stability/ToneCoherenceDirector.ts
+./components/stability/UnifiedStabilityOrchestrator.ts
+./components/TradeSignalSpark 2.tsx
+./components/TradeSignalSpark.tsx
+./components/ui
+./components/ui 2
+./components/ui/badge.tsx
+./components/ui/card.tsx
+./components/ui/DataPulseFeed.ts
+./components/ui/index.ts
+./components/ui/MultiLayerVisualComposer.tsx
+./components/ui/nextui.css
+./components/ui/ReactiveUIKernel.tsx
+./components/ui/separator.tsx
+./components/ui/SystemDashboardGrid.tsx
+./components/ui/UIIntentRouter.ts
+./components/ui/ViewportStreamEngine.ts
+./data
+./data/state
+./data/state 2
+./data/state/daily_metrics.json
+./data/state/mindset_state.json
+./data/state/strategy_confidence.json
+./deploy
+./deploy/backup 2.sh
+./deploy/backup.sh
+./deploy/deploy 2.sh
+./deploy/deploy.sh
+./deploy/deployment_diagnostic 2.sh
+./deploy/deployment_diagnostic.sh
+./deploy/full_deploy 2.sh
+./deploy/full_deploy.sh
+./deploy/health_check 2.sh
+./deploy/health_check.sh
+./deploy/nginx 2.conf
+./deploy/nginx.conf
+./deploy/pre_deploy_checklist 2.sh
+./deploy/pre_deploy_checklist.sh
+./deploy/provision_vps 2.sh
+./deploy/provision_vps.sh
+./deploy/rollback 2.sh
+./deploy/rollback.sh
+./DEPLOYMENT_GUIDE 2.md
+./DEPLOYMENT_GUIDE.md
+./DEPLOYMENT_QUICK_REF 2.md
+./DEPLOYMENT_QUICK_REF.md
+./DEPLOYMENT_QUICK_START 2.md
+./DEPLOYMENT_QUICK_START.md
+./deployment_structure_check 2.sh
+./deployment_structure_check.sh
+./design-system
+./design-system/components
+./design-system/components 2
+./design-system/components/buttons
+./design-system/components/buttons/HoloButton.tsx
+./design-system/components/cards
+./design-system/components/cards/HoloCard.tsx
+./design-system/components/hud
+./design-system/components/hud/HUDWidget.tsx
+./design-system/components/inputs
+./design-system/components/inputs/GlassInput.tsx
+./design-system/components/inputs/NeonSwitch.tsx
+./design-system/components/tabs
+./design-system/components/tabs/NeonTabs.tsx
+./design-system/index 2.ts
+./design-system/index.ts
+./design-system/primitives
+./design-system/primitives 2
+./design-system/primitives/glow.ts
+./design-system/primitives/grid.ts
+./design-system/primitives/shadows.ts
+./design-system/primitives/spacing.ts
+./design-system/primitives/typography.tsx
+./design-system/themes
+./design-system/themes 2
+./design-system/themes/holo-light.ts
+./design-system/themes/neon-dark.ts
+./docker-compose 2.yml
+./docker-compose.prod 2.yml
+./docker-compose.prod.yml
+./docker-compose.yml
+./docs
+./docs/api_contracts 2.json
+./docs/api_contracts.json
+./docs/brain_blueprint 2.md
+./docs/brain_blueprint.md
+./docs/deploy_key_instructions 2.md
+./docs/deploy_key_instructions.md
+./docs/dns_setup 2.md
+./docs/dns_setup.md
+./docs/ORDER_ROUTER_FLOW 2.md
+./docs/ORDER_ROUTER_FLOW.md
+./docs/PHASE_3_COMPLETE 2.md
+./docs/PHASE_3_COMPLETE.md
+./docs/PHASE_3_QUICK_REF 2.md
+./docs/PHASE_3_QUICK_REF.md
+./docs/PHASE_3_SUMMARY 2.md
+./docs/PHASE_3_SUMMARY.md
+./docs/PHASE_4_5_AI_HELPER 2.md
+./docs/PHASE_4_5_AI_HELPER.md
+./docs/PHASE_4_COMPLETE 2.md
+./docs/PHASE_4_COMPLETE.md
+./docs/PHASE_4_PROGRESS 2.md
+./docs/PHASE_4_PROGRESS.md
+./docs/PHASE_4_QUICK_REF 2.md
+./docs/PHASE_4_QUICK_REF.md
+./docs/STRIPE_QUICK_REF 2.md
+./docs/STRIPE_QUICK_REF.md
+./docs/STRIPE_SETUP 2.md
+./docs/STRIPE_SETUP.md
+./docs/TRADING_ARCHITECTURE 2.md
+./docs/TRADING_ARCHITECTURE.md
+./docs/TRADING_CONNECTOR_EXAMPLES 2.md
+./docs/TRADING_CONNECTOR_EXAMPLES.md
+./docs/ui_api_map 2.md
+./docs/ui_api_map.md
+./engines
+./engines/threat
+./engines/threat 2
+./engines/threat/ThreatSyncOrchestrator.ts
+./ENVIRONMENTAL_INTELLIGENCE_QUICK_REF 2.md
+./ENVIRONMENTAL_INTELLIGENCE_QUICK_REF.md
+./fix-imports 2.js
+./fix-imports.js
+./frontend_dir_structure.txt
+./frontend_structure.txt
+./FUSION_ENGINE_COMPLETE 2.md
+./FUSION_ENGINE_COMPLETE.md
+./hooks
+./hooks/useIntelligenceStream 2.ts
+./hooks/useIntelligenceStream.ts
+./INSTALLATION_GUIDE 2.md
+./INSTALLATION_GUIDE.md
+./INTEGRATION_FIXES 2.md
+./INTEGRATION_FIXES_COMPLETE 2.md
+./INTEGRATION_FIXES_COMPLETE.md
+./INTEGRATION_FIXES.md
+./INTEGRATION_REPORT 2.md
+./INTEGRATION_REPORT.md
+./LEVEL_10_COMPLETE 2.md
+./LEVEL_10_COMPLETE.md
+./LEVEL_11.2_COMPLETE 2.md
+./LEVEL_11.2_COMPLETE.md
+./LEVEL_11.3_COMPLETE 2.md
+./LEVEL_11.3_COMPLETE.md
+./LEVEL_11.4_COMPLETE 2.md
+./LEVEL_11.4_COMPLETE.md
+./LEVEL_11.5_COMPLETE 2.md
+./LEVEL_11.5_COMPLETE.md
+./LEVEL_12.1_COMPLETE 2.md
+./LEVEL_12.1_COMPLETE.md
+./LEVEL_12.2_COMPLETE 2.md
+./LEVEL_12.2_COMPLETE.md
+./LEVEL_12.3_COMPLETE 2.md
+./LEVEL_12.3_COMPLETE.md
+./LEVEL_12.4_COMPLETE 2.md
+./LEVEL_12.4_COMPLETE.md
+./LEVEL_12.5_COMPLETE 2.md
+./LEVEL_12.5_COMPLETE.md
+./LEVEL_13.1_COMPLETE 2.md
+./LEVEL_13.1_COMPLETE.md
+./LEVEL_13.2_COMPLETE 2.md
+./LEVEL_13.2_COMPLETE.md
+./LEVEL_13.3_COMPLETE 2.md
+./LEVEL_13.3_COMPLETE.md
+./LEVEL_13.5_COMPLETE 2.md
+./LEVEL_13.5_COMPLETE.md
+./LEVEL_14_COMPLETE 2.md
+./LEVEL_14_COMPLETE.md
+./LEVEL_15_COMPLETE 2.md
+./LEVEL_15_COMPLETE.md
+./LEVEL_16_COMPLETE 2.md
+./LEVEL_16_COMPLETE.md
+./LEVEL_17.1_COMPLETE 2.md
+./LEVEL_17.1_COMPLETE.md
+./LEVEL_17.2_COMPLETE 2.md
+./LEVEL_17.2_COMPLETE.md
+./LEVEL_19_WIRING_EXAMPLES 2.tsx
+./LEVEL_19_WIRING_EXAMPLES.tsx
+./LEVEL_20.4_COMPLETE 2.md
+./LEVEL_20.4_COMPLETE.md
+./LEVEL_22_BACKEND_INTEGRATION_COMPLETE 2.md
+./LEVEL_22_BACKEND_INTEGRATION_COMPLETE.md
+./LEVEL_6.1_BIC_COMPLETE 2.md
+./LEVEL_6.1_BIC_COMPLETE.md
+./LEVEL_6.1_BIC_FINAL_REPORT 2.md
+./LEVEL_6.1_BIC_FINAL_REPORT.md
+./LEVEL_6.2_COGNITIVE_FUSION_COMPLETE 2.md
+./LEVEL_6.2_COGNITIVE_FUSION_COMPLETE.md
+./LEVEL_7_SYMBIOTIC_ENTITY_COMPLETE 2.md
+./LEVEL_7_SYMBIOTIC_ENTITY_COMPLETE.md
+./LEVEL_7.2_COMPLETE 2.md
+./LEVEL_7.2_COMPLETE.md
+./LEVEL_7.3_COMPLETE 2.md
+./LEVEL_7.3_COMPLETE.md
+./LEVEL_9.2_COMPLETE 2.md
+./LEVEL_9.2_COMPLETE.md
+./lib
+./lib/api 2.ts
+./lib/api-client.ts
+./lib/api.ts
+./lib/connection-test.ts
+./lib/hooks
+./lib/hooks 2
+./lib/hooks/useAPI 2.ts
+./lib/hooks/useAPI.ts
+./lib/hooks/useWebSocket 2.ts
+./lib/hooks/useWebSocket.ts
+./lib/socket 2.ts
+./lib/socket.ts
+./lib/websocket-client.ts
+./Makefile
+./Makefile 2
+./MARKET_SIMULATION_INTEGRATION_COMPLETE 2.md
+./MARKET_SIMULATION_INTEGRATION_COMPLETE.md
+./MARKET_SIMULATION_QUICK_REF 2.md
+./MARKET_SIMULATION_QUICK_REF.md
+./mindset_example 2.py
+./mindset_example.py
+./MINDSET_QUICK_REF 2.md
+./MINDSET_QUICK_REF.md
+./NEURAL_SYNC_GRID_QUICK_REF 2.md
+./NEURAL_SYNC_GRID_QUICK_REF.md
+./next-env.d 2.ts
+./next-env.d.ts
+./next.config 2.js
+./next.config.js
+./nginx 2.conf
+./nginx.conf
+./node_modules
+./ORDER_ROUTER_SUMMARY 2.md
+./ORDER_ROUTER_SUMMARY.md
+./package 2.json
+./package-lock 2.json
+./package-lock.json
+./package.json
+./PHASE_2_COMPLETE 2.md
+./PHASE_2_COMPLETE.md
+./PHASE_2_QUICK_REF 2.md
+./PHASE_2_QUICK_REF.md
+./PHASE_2_README 2.md
+./PHASE_2_README.md
+./PHASE_2_SUMMARY 2.md
+./PHASE_2_SUMMARY.md
+./PHASE_3_COMPLETE 2.md
+./PHASE_3_COMPLETE.md
+./PHASE_3_PROGRESS 2.md
+./PHASE_3_PROGRESS.md
+./PHASE_4_5_COMPLETE 2.md
+./PHASE_4_5_COMPLETE.md
+./PHASE_4_6_COMPLETE 2.md
+./PHASE_4_6_COMPLETE.md
+./PHASE_4_6_SUMMARY 2.md
+./PHASE_4_6_SUMMARY.md
+./PHASE_4_6_UI_INTEGRATION_PLAN 2.md
+./PHASE_4_6_UI_INTEGRATION_PLAN.md
+./PHASE_4_ANIMATION_ENGINE 2.md
+./PHASE_4_ANIMATION_ENGINE.md
+./PHASE_4.8_COMPLETE 2.md
+./PHASE_4.8_COMPLETE.md
+./PHASE_4.8_FINAL_QA_REPORT 2.md
+./PHASE_4.8_FINAL_QA_REPORT.md
+./PHASE_5_COMPLETE 2.md
+./PHASE_5_COMPLETE.md
+./PHASE_5_COMPONENTS 2.md
+./PHASE_5_COMPONENTS.md
+./PHASE_5_IMPLEMENTATION_PLAN 2.md
+./PHASE_5_IMPLEMENTATION_PLAN.md
+./PHASE_5_OPTIMIZATION 2.md
+./PHASE_5_OPTIMIZATION.md
+./PHASE_5_QUICK_REF 2.md
+./PHASE_5_QUICK_REF.md
+./PHASE_5_READINESS 2.md
+./PHASE_5_READINESS.md
+./PHASE_5_SESSION_1_COMPLETE 2.md
+./PHASE_5_SESSION_1_COMPLETE.md
+./PHASE_5_SESSION_2_COMPLETE 2.md
+./PHASE_5_SESSION_2_COMPLETE.md
+./PHASE_5_SESSION_3_COMPLETE 2.md
+./PHASE_5_SESSION_3_COMPLETE.md
+./PHASE_6_SESSION_1_COMPLETE 2.md
+./PHASE_6_SESSION_1_COMPLETE.md
+./postcss.config 2.js
+./postcss.config.js
+./PRODUCTION_BUILD 2.md
+./PRODUCTION_BUILD.md
+./PRODUCTION_DEPLOYMENT 2.md
+./PRODUCTION_DEPLOYMENT.md
+./PRODUCTION_READY_CHECKLIST 2.md
+./PRODUCTION_READY_CHECKLIST.md
+./public
+./public/sfx
+./public/sfx 2
+./public/sfx/intro-whisper 2.mp3
+./public/sfx/intro-whisper.mp3
+./README 2.md
+./README.md
+./RISK_MANAGER_QUICK_REF 2.md
+./RISK_MANAGER_QUICK_REF.md
+./run_daily_cycle 2.py
+./run_daily_cycle.py
+./runtime 2.txt
+./runtime.txt
+./SAFE_MODE_ACTIVATION_COMPLETE 2.md
+./SAFE_MODE_ACTIVATION_COMPLETE.md
+./SAFE_MODE_QUICK_REF 2.md
+./SAFE_MODE_QUICK_REF.md
+./scripts
+./scripts/check_api_contracts 2.py
+./scripts/check_api_contracts.py
+./scripts/keys
+./scripts/keys 2
+./scripts/keys/deploy_key
+./scripts/keys/deploy_key.pub
+./services
+./services/ai 2.ts
+./services/ai.ts
+./services/auth.ts
+./services/backtest 2.ts
+./services/backtest.ts
+./services/bot.ts
+./services/dashboard 2.ts
+./services/dashboard.ts
+./services/index 2.ts
+./services/index.ts
+./services/logs 2.ts
+./services/logs.ts
+./services/market 2.ts
+./services/market.ts
+./services/settings 2.ts
+./services/settings.ts
+./services/signals 2.ts
+./services/signals.ts
+./services/strategies 2.ts
+./services/strategies.ts
+./services/system 2.ts
+./services/system.ts
+./services/terminal 2.ts
+./services/terminal.ts
+./SETTINGS_UI_GUIDE 2.md
+./SETTINGS_UI_GUIDE.md
+./src
+./src/components
+./src/components 2
+./src/components/intel
+./src/components/intel/CognitivePulseEngine.tsx
+./src/components/intel/DecisionMemoryCore.tsx
+./src/components/intel/NeuralSyncGrid.tsx
+./src/components/vision
+./src/components/vision/FutureArcs.tsx
+./src/components/vision/index.tsx
+./src/components/vision/PredictionHalo.tsx
+./src/components/vision/ProbabilityWave.tsx
+./src/engine
+./src/engine 2
+./src/engine/fusion
+./src/engine/fusion/filters.ts
+./src/engine/fusion/FusionEngine.ts
+./src/engine/fusion/FusionStabilizer.ts
+./src/engine/fusion/FusionTypes.ts
+./src/engine/fusion/metrics.ts
+./src/engine/stability-shield
+./src/engine/stability-shield/RiskScoringEngine.ts
+./src/engine/stability-shield/ShieldIntelligenceAPI_OLD.ts.bak
+./src/engine/stability-shield/ShieldIntelligenceAPI.ts
+./src/engine/stability-shield/ShieldOrchestrator.ts
+./src/engine/stability-shield/ThreatClusterEngine.ts
+./src/engine/stability-shield/types.ts
+./src/engine/stability-shield/vectorMath.ts
+./STEP_18_FUSION_TELEMETRY_COMPLETE 2.md
+./STEP_18_FUSION_TELEMETRY_COMPLETE.md
+./STEP_19_NEURAL_SYNC_GRID_COMPLETE 2.md
+./STEP_19_NEURAL_SYNC_GRID_COMPLETE.md
+./STEP_20_COGNITIVE_PULSE_ENGINE_COMPLETE 2.md
+./STEP_20_COGNITIVE_PULSE_ENGINE_COMPLETE.md
+./STEP_24.14_COMPLETE 2.md
+./STEP_24.14_COMPLETE.md
+./styles
+./styles/animations 2.css
+./styles/animations.css
+./styles/ascendant-identity 2.css
+./styles/ascendant-identity.css
+./styles/ascension 2.css
+./styles/ascension.css
+./styles/cognitive-fusion 2.css
+./styles/cognitive-fusion.css
+./styles/CollectiveAuraOverlay 2.css
+./styles/CollectiveAuraOverlay.css
+./styles/entity-drift 2.css
+./styles/entity-drift.css
+./styles/entity-expression 2.css
+./styles/entity-expression.css
+./styles/entity-mode 2.css
+./styles/entity-mode.css
+./styles/globals 2.css
+./styles/globals.css
+./styles/glow-refinement 2.css
+./styles/glow-refinement.css
+./styles/guardian 2.css
+./styles/guardian.css
+./styles/harmony-pulse 2.css
+./styles/harmony-pulse.css
+./styles/meta-awareness 2.css
+./styles/meta-awareness.css
+./styles/parallel-intelligence 2.css
+./styles/parallel-intelligence.css
+./styles/persona-effects 2.css
+./styles/persona-effects.css
+./styles/PresenceLayer 2.css
+./styles/PresenceLayer.css
+./styles/quantum-holo 2.css
+./styles/quantum-holo.css
+./styles/reflex-visual 2.css
+./styles/reflex-visual.css
+./styles/responsive 2.css
+./styles/responsive.css
+./styles/shadow-refinement 2.css
+./styles/shadow-refinement.css
+./styles/StabilityWavefield 2.css
+./styles/StabilityWavefield.css
+./styles/symbiotic-environment 2.css
+./styles/symbiotic-environment.css
+./styles/theme 2.css
+./styles/theme-new.css
+./styles/theme.css
+./styles/ToneStabilityPulse 2.css
+./styles/ToneStabilityPulse.css
+./styles/ultra-fusion 2.css
+./styles/ultra-fusion.css
+./styles/ultra-wide 2.css
+./styles/ultra-wide.css
+./styles/UnifiedPresence 2.css
+./styles/UnifiedPresence.css
+./styles/world-mesh 2.css
+./styles/world-mesh.css
+./SYSTEM_ARCHITECTURE_DIAGRAM 2.md
+./SYSTEM_ARCHITECTURE_DIAGRAM.md
+./tailwind.config 2.js
+./tailwind.config.js
+./task_3_summary 2.txt
+./task_3_summary.txt
+./task_3.6_summary 2.txt
+./task_3.6_summary.txt
+./TEST_EXECUTION_REPORT 2.md
+./TEST_EXECUTION_REPORT.md
+./TEST_FIXES_SUMMARY 2.md
+./TEST_FIXES_SUMMARY.md
+./test_output_after_fix.txt
+./test_output_final.txt
+./test_safe_mode 2.py
+./test_safe_mode.py
+./TESTING 2.md
+./TESTING.md
+./tests_baseline.txt
+./TRADING_CONNECTOR_SUMMARY 2.md
+./TRADING_CONNECTOR_SUMMARY.md
+./tsconfig 2.json
+./tsconfig 2.tsbuildinfo
+./tsconfig.json
+./tsconfig.tsbuildinfo

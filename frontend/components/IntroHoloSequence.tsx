@@ -327,7 +327,7 @@ function StatusLine({ label, active, complete, delay }: StatusLineProps) {
             animate={{ scale: 1 }}
             transition={{ type: 'spring', stiffness: 300, damping: 15 }}
             viewBox="0 0 16 16"
-            className="absolute inset-0 w-full h-full text-black"
+            className="absolute inset-0 w-full h-full text-cyan-900"
           >
             <path
               d="M 3 8 L 6 11 L 13 4"

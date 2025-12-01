@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "level": "simulation",
+  "reason": "Default configuration - system protection active",
+  "activated_at": 1704067200.0,
+  "activated_by": "system",
+  "allow_paper_trading": true,
+  "allow_backtesting": true,
+  "block_real_orders": true,
+  "block_exchange_writes": true,
+  "mock_exchange_data": false,
+  "log_blocked_operations": true,
+  "status": "ACTIVE"
+}

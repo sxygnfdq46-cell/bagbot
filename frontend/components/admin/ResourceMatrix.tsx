@@ -121,7 +121,7 @@ export default function ResourceMatrix() {
         const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
         return (
-          <div key={index} className="bg-purple-950/20 border border-purple-800/30 rounded-lg p-4 ring-meter-card">
+          <div key={index} className="gpu-accelerated bg-deep-void/60 border border-neon-cyan/30 rounded-lg p-4 ring-meter-card hover-lift transition-smooth backdrop-blur-sm pulse-glow-cyan">
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
               <span className="text-2xl">{resource.icon}</span>

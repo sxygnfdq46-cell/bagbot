@@ -222,6 +222,117 @@ body::after {
 }
 
 /* =============================================
+   UTILITY CLASSES
+   ============================================= */
+
+/* GPU Acceleration */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform;
+}
+
+/* Hover Effects */
+.hover-lift {
+  transition: transform 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+}
+
+.hover-glow {
+  transition: box-shadow 0.3s ease;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+}
+
+/* Click Feedback */
+.click-feedback:active {
+  transform: scale(0.95);
+}
+
+/* Transition Smooth */
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Pulse Glow Animations */
+.pulse-glow-cyan {
+  animation: pulseCyan 2s ease-in-out infinite;
+  border-color: var(--accent-cyan);
+}
+
+.pulse-glow-magenta {
+  animation: pulseMagenta 2s ease-in-out infinite;
+  border-color: var(--accent-purple);
+}
+
+.pulse-glow-green {
+  animation: pulseGreen 2s ease-in-out infinite;
+  border-color: var(--accent-green);
+}
+
+@keyframes pulseCyan {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(0, 208, 255, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(0, 208, 255, 0.8);
+  }
+}
+
+@keyframes pulseMagenta {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(188, 75, 255, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(188, 75, 255, 0.8);
+  }
+}
+
+@keyframes pulseGreen {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(61, 255, 147, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(61, 255, 147, 0.8);
+  }
+}
+
+/* Neon Color Classes */
+.border-neon-cyan {
+  border-color: var(--accent-cyan);
+}
+
+.border-neon-magenta {
+  border-color: var(--accent-purple);
+}
+
+.border-neon-green {
+  border-color: var(--accent-green);
+}
+
+.text-neon-cyan {
+  color: var(--accent-cyan);
+}
+
+.text-neon-magenta {
+  color: var(--accent-purple);
+}
+
+.text-neon-green {
+  color: var(--accent-green);
+}
+
+.bg-deep-void {
+  background-color: var(--bg-main);
+}
+
+/* =============================================
    RESPONSIVE
    ============================================= */
 

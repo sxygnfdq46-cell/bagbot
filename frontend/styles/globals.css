@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* PHASE 4: ANIMATION ENGINE */
+@import './animations.css';
+
 /* LEVEL 4: QUANTUM HOLOENGINE */
 @import './quantum-holo.css';
 @import './ascension.css';
