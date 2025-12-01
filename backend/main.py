@@ -37,7 +37,10 @@ try:
 except ImportError:
     # Fallback if config not available
     class Config:
-        ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
+        ALLOWED_ORIGINS = os.getenv(
+            "ALLOWED_ORIGINS",
+            "http://localhost:3000,https://bagbot-frontend.onrender.com,https://bagbot2-frontend.onrender.com"
+        ).split(",")
         DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 
 # Configure logging (never log secrets)
@@ -296,13 +299,24 @@ async def health_check():
     }
 
 
-# Temporary WebSocket stub until full WS engine is ready
+# WebSocket endpoint with proper ping/pong handling
+from fastapi import WebSocket, WebSocketDisconnect
+
 @app.websocket("/ws")
-async def ws_stub(websocket):
-    """Temporary WebSocket endpoint stub."""
+async def websocket_endpoint(websocket: WebSocket):
+    """WebSocket endpoint with proper connection handling."""
     await websocket.accept()
-    await websocket.send_json({"message": "connected"})
-    await asyncio.sleep(99999)
+    try:
+        await websocket.send_text("ping")
+        while True:
+            data = await websocket.receive_text()
+            if data == "ping":
+                await websocket.send_text("pong")
+            else:
+                # Echo back for now
+                await websocket.send_json({"message": "received", "data": data})
+    except WebSocketDisconnect:
+        pass
 
 
 @app.post("/jobs")

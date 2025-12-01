@@ -4,8 +4,8 @@
  */
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL 
-  ? `${process.env.NEXT_PUBLIC_WS_URL}/bot`
-  : 'ws://localhost:8000/ws/bot';
+  ? process.env.NEXT_PUBLIC_WS_URL
+  : 'ws://localhost:8000/ws';
 
 const RECONNECT_DELAY = 3000;
 const MAX_RECONNECT_ATTEMPTS = 10;
