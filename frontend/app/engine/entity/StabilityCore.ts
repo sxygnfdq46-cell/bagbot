@@ -105,7 +105,7 @@ export class StabilityCore {
   private previousGenome: GenomeSnapshot | null = null;
   
   constructor() {
-    this.loadFromStorage();
+    if (typeof window !== 'undefined') this.loadFromStorage();
   }
   
   // ============================================
@@ -653,6 +653,7 @@ export class StabilityCore {
   // ============================================
   
   private saveToStorage(): void {
+    if (typeof window === 'undefined') return;
     try {
       const state = {
         emotionalDrift: this.emotionalDrift,
@@ -668,6 +669,7 @@ export class StabilityCore {
   }
   
   private loadFromStorage(): void {
+    if (typeof window === 'undefined') return;
     try {
       const stored = localStorage.getItem(this.storageKey);
       if (stored) {

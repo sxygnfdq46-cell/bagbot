@@ -78,7 +78,7 @@ export class SoulLinkCore {
   private lastFlowCheck: number = Date.now();
   
   constructor() {
-    this.loadFromStorage();
+    if (typeof window !== 'undefined') this.loadFromStorage();
   }
   
   // ============================================
@@ -414,6 +414,7 @@ export class SoulLinkCore {
   // ============================================
   
   private saveToStorage(): void {
+    if (typeof window === 'undefined') return;
     try {
       const data = {
         scores: this.scores,
@@ -426,6 +427,7 @@ export class SoulLinkCore {
   }
   
   private loadFromStorage(): void {
+    if (typeof window === 'undefined') return;
     try {
       const stored = localStorage.getItem(this.storageKey);
       if (stored) {

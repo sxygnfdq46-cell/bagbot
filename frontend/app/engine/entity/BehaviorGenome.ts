@@ -117,7 +117,7 @@ export class BehaviorGenome {
   private readonly EVOLUTION_INTERVAL = 24 * 60 * 60 * 1000;
   
   constructor() {
-    this.loadFromStorage();
+    if (typeof window !== 'undefined') this.loadFromStorage();
   }
   
   // ============================================
@@ -415,6 +415,7 @@ export class BehaviorGenome {
   // ============================================
   
   private saveToStorage(): void {
+    if (typeof window === 'undefined') return;
     try {
       const data = {
         parameters: this.parameters,
@@ -431,6 +432,7 @@ export class BehaviorGenome {
   }
   
   private loadFromStorage(): void {
+    if (typeof window === 'undefined') return;
     try {
       const stored = localStorage.getItem(this.storageKey);
       if (stored) {

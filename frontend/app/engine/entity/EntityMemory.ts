@@ -165,7 +165,7 @@ export class EntityMemory {
   private lastInteraction: number = Date.now();
   
   constructor() {
-    this.loadFromStorage();
+    if (typeof window !== 'undefined') this.loadFromStorage();
     this.startSessionTracking();
   }
   
@@ -466,6 +466,7 @@ export class EntityMemory {
   // ============================================
   
   private saveToStorage(): void {
+    if (typeof window === 'undefined') return;
     try {
       const snapshot = this.getMemorySnapshot();
       localStorage.setItem(this.storageKey, JSON.stringify(snapshot));
@@ -482,6 +483,7 @@ export class EntityMemory {
   }
   
   private loadFromStorage(): void {
+    if (typeof window === 'undefined') return;
     try {
       const stored = localStorage.getItem(this.storageKey);
       if (stored) {

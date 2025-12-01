@@ -69,7 +69,7 @@ export class ResonanceMatrix {
   private readonly ANALYSIS_INTERVAL = 24 * 60 * 60 * 1000;
   
   constructor() {
-    this.loadFromStorage();
+    if (typeof window !== 'undefined') this.loadFromStorage();
   }
   
   // ============================================
@@ -359,6 +359,7 @@ export class ResonanceMatrix {
   // ============================================
   
   private saveToStorage(): void {
+    if (typeof window === 'undefined') return;
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(this.metrics));
     } catch (error) {
@@ -367,6 +368,7 @@ export class ResonanceMatrix {
   }
   
   private loadFromStorage(): void {
+    if (typeof window === 'undefined') return;
     try {
       const stored = localStorage.getItem(this.storageKey);
       if (stored) {

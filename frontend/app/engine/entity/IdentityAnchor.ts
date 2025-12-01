@@ -82,7 +82,7 @@ export class IdentityAnchor {
   private readonly UPDATE_INTERVAL = 7 * 24 * 60 * 60 * 1000;
   
   constructor() {
-    this.loadFromStorage();
+    if (typeof window !== 'undefined') this.loadFromStorage();
   }
   
   // ============================================
@@ -409,6 +409,7 @@ export class IdentityAnchor {
   // ============================================
   
   private saveToStorage(): void {
+    if (typeof window === 'undefined') return;
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(this.identity));
     } catch (error) {
@@ -417,6 +418,7 @@ export class IdentityAnchor {
   }
   
   private loadFromStorage(): void {
+    if (typeof window === 'undefined') return;
     try {
       const stored = localStorage.getItem(this.storageKey);
       if (stored) {

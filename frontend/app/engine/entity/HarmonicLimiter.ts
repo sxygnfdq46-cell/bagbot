@@ -69,7 +69,7 @@ export class HarmonicLimiter {
   };
   
   constructor() {
-    this.loadFromStorage();
+    if (typeof window !== 'undefined') this.loadFromStorage();
   }
   
   // ============================================
@@ -282,6 +282,7 @@ export class HarmonicLimiter {
   // ============================================
   
   private saveToStorage(): void {
+    if (typeof window === 'undefined') return;
     try {
       const data = {
         limits: this.limits,
@@ -294,6 +295,7 @@ export class HarmonicLimiter {
   }
   
   private loadFromStorage(): void {
+    if (typeof window === 'undefined') return;
     try {
       const stored = localStorage.getItem(this.storageKey);
       if (stored) {

@@ -56,7 +56,7 @@ export class CognitiveWeights {
   private readonly BALANCE_TOLERANCE = 20;
   
   constructor() {
-    this.loadFromStorage();
+    if (typeof window !== 'undefined') this.loadFromStorage();
   }
   
   // ============================================
@@ -209,6 +209,7 @@ export class CognitiveWeights {
   // ============================================
   
   private saveToStorage(): void {
+    if (typeof window === 'undefined') return;
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(this.weights));
     } catch (error) {
@@ -217,6 +218,7 @@ export class CognitiveWeights {
   }
   
   private loadFromStorage(): void {
+    if (typeof window === 'undefined') return;
     try {
       const stored = localStorage.getItem(this.storageKey);
       if (stored) {

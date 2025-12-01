@@ -75,7 +75,7 @@ export class EvolutionClock {
   private lastLongTermUpdate = Date.now();
   
   constructor() {
-    this.loadFromStorage();
+    if (typeof window !== 'undefined') this.loadFromStorage();
   }
   
   // ============================================
@@ -372,6 +372,7 @@ export class EvolutionClock {
   // ============================================
   
   private saveToStorage(): void {
+    if (typeof window === 'undefined') return;
     try {
       const data = {
         shortTerm: this.shortTermTrends.slice(-360), // Last 30 hours
@@ -390,6 +391,7 @@ export class EvolutionClock {
   }
   
   private loadFromStorage(): void {
+    if (typeof window === 'undefined') return;
     try {
       const stored = localStorage.getItem(this.storageKey);
       if (stored) {
