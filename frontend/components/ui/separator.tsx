@@ -2,19 +2,19 @@ import React from 'react';
 
 export interface SeparatorProps extends React.HTMLAttributes<HTMLDivElement> {
   orientation?: 'horizontal' | 'vertical';
-  glowColor?: 'cyan' | 'magenta' | 'green';
+  glowColor?: 'green' | 'yellow' | 'default';
 }
 
 export function Separator({ 
   className = '', 
   orientation = 'horizontal',
-  glowColor = 'cyan',
+  glowColor = 'default',
   ...props 
 }: SeparatorProps) {
   const glowClasses = {
-    cyan: 'bg-neon-cyan/30 shadow-[0_0_10px_rgba(0,246,255,0.5)]',
-    magenta: 'bg-neon-magenta/30 shadow-[0_0_10px_rgba(255,0,255,0.5)]',
-    green: 'bg-neon-green/30 shadow-[0_0_10px_rgba(0,255,0,0.5)]'
+    green: 'bg-primary/40 shadow-[0_0_8px_rgba(74,222,128,0.4)]',
+    yellow: 'bg-accent/40 shadow-[0_0_8px_rgba(253,224,71,0.4)]',
+    default: 'bg-cream border-cream'
   };
 
   return (

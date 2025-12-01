@@ -1,19 +1,19 @@
 import React from 'react';
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  glowColor?: 'cyan' | 'magenta' | 'green';
+  glowColor?: 'green' | 'yellow' | 'default';
 }
 
-export function Card({ className = '', glowColor = 'cyan', ...props }: CardProps) {
+export function Card({ className = '', glowColor = 'default', ...props }: CardProps) {
   const glowClasses = {
-    cyan: 'border-neon-cyan pulse-glow-cyan',
-    magenta: 'border-neon-magenta pulse-glow-magenta',
-    green: 'border-neon-green pulse-glow-green'
+    green: 'border-primary hover-glow-green',
+    yellow: 'border-accent hover-glow-yellow',
+    default: 'border-cream'
   };
 
   return (
     <div
-      className={`gpu-accelerated rounded-lg border bg-deep-void/80 backdrop-blur-sm text-card-foreground shadow-lg hover-lift transition-smooth ${glowClasses[glowColor]} ${className}`}
+      className={`card-clean-hover ${glowClasses[glowColor]} ${className}`}
       {...props}
     />
   );
@@ -28,7 +28,7 @@ export function CardContent({ className = '', ...props }: CardContentProps) {
 export interface CardHeaderProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export function CardHeader({ className = '', ...props }: CardHeaderProps) {
-  return <div className={`flex flex-col space-y-1.5 p-6 border-b border-neon-cyan/20 ${className}`} {...props} />;
+  return <div className={`flex flex-col space-y-1.5 p-6 border-b border-cream ${className}`} {...props} />;
 }
 
 export interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {}
@@ -36,7 +36,7 @@ export interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement>
 export function CardTitle({ className = '', ...props }: CardTitleProps) {
   return (
     <h3
-      className={`text-2xl font-semibold leading-none tracking-tight text-neon-cyan ${className}`}
+      className={`text-2xl font-semibold leading-none tracking-tight text-primary ${className}`}
       {...props}
     />
   );
