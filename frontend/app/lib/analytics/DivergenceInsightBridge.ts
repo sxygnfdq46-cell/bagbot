@@ -1,5 +1,5 @@
 import DivergenceUIController from "./DivergenceUIController";
-import { getFusionEngine } from "../../../src/engine/fusion/FusionEngine";
+import { getFusionEngine } from "../../engine/fusion/FusionEngine";
 import { getMarketSimulationEngine } from "../simulation/MarketSimulationEngine";
 
 // Type stub for divergence signals (MarketSimulationEngine doesn't export this yet)

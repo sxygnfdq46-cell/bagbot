@@ -1,8 +1,8 @@
 // app/lib/intel/FusionThreatBridge.ts
 // Step 24.8 — Threat → Fusion Influence Link
 
-import { threatSyncOrchestrator } from "../../../engines/threat/ThreatSyncOrchestrator";
-import { getFusionEngine } from "../../../src/engine/fusion/FusionEngine";
+import { threatSyncOrchestrator } from "../../engine/threat/ThreatSyncOrchestrator";
+import { getFusionEngine } from "../../engine/fusion/FusionEngine";
 
 class FusionThreatBridge {
   private threatModifier: number = 1.0;

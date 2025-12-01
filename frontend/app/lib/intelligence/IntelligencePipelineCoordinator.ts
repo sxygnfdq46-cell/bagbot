@@ -25,7 +25,7 @@
  */
 
 import { getMarketSimulationEngine } from '../simulation/MarketSimulationEngine';
-import { threatSyncOrchestrator } from '../../../engines/threat/ThreatSyncOrchestrator';
+import { threatSyncOrchestrator } from '../../engine/threat/ThreatSyncOrchestrator';
 
 // ─────────────────────────────────────────────────────────────────
 // TYPES

@@ -6,8 +6,8 @@ import {
   FusionOutput,
   StabilizedFusion,
   StabilizerConfig,
-} from '../../../src/engine/fusion/FusionTypes';
-import { smooth, clamp, ema, zscore } from '../../../src/engine/fusion/filters';
+} from './FusionTypes';
+import { smooth, clamp, ema, zscore } from './filters';
 
 export class FusionStabilizer {
   private static instance: FusionStabilizer;

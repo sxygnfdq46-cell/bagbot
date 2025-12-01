@@ -10,10 +10,10 @@ import {
   FusionSignal,
   RiskClass,
   StabilizedFusion,
-} from '../../../src/engine/fusion/FusionTypes';
-import { smooth, clamp, trend } from '../../../src/engine/fusion/filters';
-import { calculateVolatilityScore, calculateStrengthScore } from '../../../src/engine/fusion/metrics';
-import { getFusionStabilizer } from '../../../src/engine/fusion/FusionStabilizer';
+} from './FusionTypes';
+import { smooth, clamp, trend } from './filters';
+import { calculateVolatilityScore, calculateStrengthScore } from './metrics';
+import { getFusionStabilizer } from './FusionStabilizer';
 
 export class FusionEngine {
   private static instance: FusionEngine;

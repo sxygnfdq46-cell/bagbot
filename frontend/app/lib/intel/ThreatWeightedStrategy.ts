@@ -1,7 +1,7 @@
 // app/lib/intel/ThreatWeightedStrategy.ts
 // Step 24.9 — Threat-Weighted Strategy Prioritizer
 
-import { threatSyncOrchestrator } from "../../../engines/threat/ThreatSyncOrchestrator";
+import { threatSyncOrchestrator } from "../../engine/threat/ThreatSyncOrchestrator";
 
 interface StrategyWeights {
   neural: number;

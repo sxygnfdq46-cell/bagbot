@@ -18,7 +18,7 @@ import type {
 
 import type {
   DivergenceScanResult,
-} from '../../engines/RealityDivergenceScanner';
+} from '../../engine/RealityDivergenceScanner';
 
 import type {
   CorrelationResult,

@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useUIKernel } from '../../components/ui';
 import { useIntelligenceStream } from '../../hooks/useIntelligenceStream';
-import { IntelligenceAPI } from '../../src/engine/stability-shield/ShieldIntelligenceAPI';
+import { IntelligenceAPI } from '../../app/engine/stability-shield/ShieldIntelligenceAPI';
 
 /**
  * ═══════════════════════════════════════════════════════════════════

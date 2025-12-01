@@ -12,7 +12,7 @@ import RealityDivergenceScanner, {
   MarketMeta,
   ExpectedModel,
   DivergenceScanResult,
-} from '../../engines/RealityDivergenceScanner';
+} from '../../engine/RealityDivergenceScanner';
 
 interface DivergencePanelProps {
   backtestData: BacktestData;

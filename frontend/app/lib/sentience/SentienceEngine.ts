@@ -7,7 +7,7 @@
  */
 
 import { PatternSyncEngine, MasterPattern } from '../../../app/lib/patterns/PatternSyncEngine';
-import { FusionEngine } from '../../../src/engine/fusion/FusionEngine';
+import { FusionEngine } from '../../engine/fusion/FusionEngine';
 import { ReinforcementCore } from '../../../app/lib/learning/ReinforcementCore';
 import * as SentienceMath from './sentienceMath';
 

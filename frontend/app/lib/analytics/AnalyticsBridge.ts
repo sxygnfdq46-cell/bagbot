@@ -17,7 +17,7 @@ import type {
   LiveData,
   MarketMeta,
   DivergenceScanResult,
-} from '../../engines/RealityDivergenceScanner';
+} from '../../engine/RealityDivergenceScanner';
 
 // ============================================================================
 // Type Definitions
@@ -113,7 +113,7 @@ export default class AnalyticsBridge {
     try {
       // Lazy-load scanner
       if (!this.scannerCache) {
-        const module = await import('../../engines/RealityDivergenceScanner');
+        const module = await import('../../engine/RealityDivergenceScanner');
         this.scannerCache = module.default;
       }
 

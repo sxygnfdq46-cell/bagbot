@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { threatSyncOrchestrator, ThreatSeverity } from "../../../engines/threat/ThreatSyncOrchestrator";
+import { threatSyncOrchestrator, ThreatSeverity } from "../../engine/threat/ThreatSyncOrchestrator";
 
 // Convert severity string to number for UI calculations
 const severityToNumber = (severity: ThreatSeverity): number => {

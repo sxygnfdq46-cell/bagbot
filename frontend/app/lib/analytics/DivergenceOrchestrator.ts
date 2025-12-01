@@ -28,7 +28,7 @@ import type {
   LiveData,
   MarketMeta,
   DivergenceScanResult,
-} from '../../engines/RealityDivergenceScanner';
+} from '../../engine/RealityDivergenceScanner';
 
 // ============================================================================
 // Type Definitions

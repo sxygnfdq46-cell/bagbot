@@ -3,7 +3,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { threatSyncOrchestrator } from "../../../engines/threat/ThreatSyncOrchestrator";
+import { threatSyncOrchestrator } from "../../engine/threat/ThreatSyncOrchestrator";
 
 export default function ThreatSyncDashboard() {
   const [feed, setFeed] = useState<any>(null);

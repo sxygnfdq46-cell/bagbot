@@ -1,7 +1,7 @@
 // app/lib/intel/DailyTradingHarmonizer.ts
 // Step 24.10 — Daily Trading Harmonizer
 
-import { threatSyncOrchestrator } from "../../../engines/threat/ThreatSyncOrchestrator";
+import { threatSyncOrchestrator } from "../../engine/threat/ThreatSyncOrchestrator";
 import { temporalThreatMemory } from "./TemporalThreatMemory";
 
 interface TradingConfig {

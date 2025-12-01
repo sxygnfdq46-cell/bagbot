@@ -21,8 +21,8 @@
 
 import { useState, useEffect } from 'react';
 import { useIntelligenceStream } from '../../hooks/useIntelligenceStream';
-import { getFusionEngine } from '../../src/engine/fusion/FusionEngine';
-import type { FusionOutput, StabilizedFusion } from '../../src/engine/fusion/FusionTypes';
+import { getFusionEngine } from '../engine/fusion/FusionEngine';
+import type { FusionOutput, StabilizedFusion } from '../engine/fusion/FusionTypes';
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // TYPES

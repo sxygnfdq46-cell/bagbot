@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { threatSyncOrchestrator } from "../../../engines/threat/ThreatSyncOrchestrator";
+import { threatSyncOrchestrator } from "../../engine/threat/ThreatSyncOrchestrator";
 
 export default function ThreatOverlay() {
   const [activeThreats, setActiveThreats] = useState(0);

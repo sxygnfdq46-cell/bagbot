@@ -5,7 +5,7 @@ import EventLogStream from './EventLogStream';
 import IntegrityScanner from './IntegrityScanner';
 import type { SystemState, SubsystemStatus } from './IntegrityScanner';
 import { useIntelligenceStream } from '../../hooks/useIntelligenceStream';
-import { IntelligenceAPI } from '../../src/engine/stability-shield/ShieldIntelligenceAPI';
+import { IntelligenceAPI } from '../../app/engine/stability-shield/ShieldIntelligenceAPI';
 
 /**
  * ═══════════════════════════════════════════════════════════════════

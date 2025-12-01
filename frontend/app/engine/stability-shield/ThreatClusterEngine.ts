@@ -3,8 +3,8 @@
 // 0 autonomous actions — analysis only
 // All logic runs only when invoked by ShieldOrchestrator
 
-import { CorrelationEvent, ThreatRecord, ShieldType } from '../../../src/engine/stability-shield/types';
-import { dot, magnitude } from '../../../src/engine/stability-shield/vectorMath';
+import { CorrelationEvent, ThreatRecord, ShieldType } from './types';
+import { dot, magnitude } from './vectorMath';
 
 export interface ClusterResult {
   clusterId: string;

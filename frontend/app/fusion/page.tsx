@@ -18,10 +18,10 @@ import {
   DivergenceWaveChart
 } from './components';
 import FusionTelemetryBars from './FusionTelemetryBars';
-import NeuralSyncGrid from '../../src/components/intel/NeuralSyncGrid';
-import CognitivePulseEngine from '../../src/components/intel/CognitivePulseEngine';
-import DecisionMemoryCore from '../../src/components/intel/DecisionMemoryCore';
-import PredictiveVisionHalo from '../../src/components/vision';
+import NeuralSyncGrid from '../../components/intel/NeuralSyncGrid';
+import CognitivePulseEngine from '../../components/intel/CognitivePulseEngine';
+import DecisionMemoryCore from '../../components/intel/DecisionMemoryCore';
+import PredictiveVisionHalo from '../../components/vision';
 import ThreatReactivePanel from '../components/intel/ThreatReactivePanel';
 import ThreatInfluenceIndicator from '../components/intel/ThreatInfluenceIndicator';
 import StrategyWeightIndicator from '../components/intel/StrategyWeightIndicator';

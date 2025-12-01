@@ -28,7 +28,7 @@ import type {
   BacktestData,
   LiveData,
   MarketMeta,
-} from '../../engines/RealityDivergenceScanner';
+} from '../../engine/RealityDivergenceScanner';
 
 // ============================================================================
 // Type Definitions

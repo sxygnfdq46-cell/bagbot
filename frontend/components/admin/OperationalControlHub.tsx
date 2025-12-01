@@ -7,7 +7,7 @@ import SafetyGateMonitor from './SafetyGateMonitor';
 import ExecutionQueueView from './ExecutionQueueView';
 import UplinkDiagnostics from './UplinkDiagnostics';
 import { useIntelligenceStream } from '../../hooks/useIntelligenceStream';
-import { IntelligenceAPI } from '../../src/engine/stability-shield/ShieldIntelligenceAPI';
+import { IntelligenceAPI } from '../../app/engine/stability-shield/ShieldIntelligenceAPI';
 
 /**
  * ═══════════════════════════════════════════════════════════════════
