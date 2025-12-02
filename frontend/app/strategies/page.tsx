@@ -1,218 +1,182 @@
 'use client';
 
-import { SciFiShell } from '../sci-fi-shell';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { useAPI, useAPIMutation } from '../../lib/hooks/useAPI';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import Card from '@/components/ui/card';
+import Button from '@/components/ui/button';
+import Skeleton from '@/components/ui/skeleton';
+import { strategies as strategiesApi, type Strategy } from '@/lib/api/strategies';
+import { useToast } from '@/components/ui/toast-provider';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import Tag from '@/components/ui/tag';
 
 export default function StrategiesPage() {
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [strategies, setStrategies] = useState<Strategy[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  const { notify } = useToast();
 
-  // Fetch strategies list
-  const { data: strategiesData, loading: strategiesLoading, refetch } = useAPI<any[]>('/api/strategies');
+  useEffect(() => {
+    const fetchStrategies = async () => {
+      try {
+        const data = await strategiesApi.list();
+        setStrategies(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error');
+        notify({ title: 'Strategies unavailable', description: 'Failed to fetch strategy list', variant: 'error' });
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Strategy action mutations
-  const startStrategy = useAPIMutation('/api/strategies/start', 'POST');
-  const stopStrategy = useAPIMutation('/api/strategies/stop', 'POST');
-  const pauseStrategy = useAPIMutation('/api/strategies/pause', 'POST');
+    fetchStrategies();
+  }, [notify]);
 
-  // Handle strategy actions
-  const handleStrategyAction = async (strategyId: string, action: 'start' | 'stop' | 'pause') => {
-    setActionLoading(strategyId);
+  const toggleStrategy = async (strategy: Strategy) => {
     try {
-      if (action === 'start') await startStrategy({ strategy_id: strategyId });
-      else if (action === 'stop') await stopStrategy({ strategy_id: strategyId });
-      else if (action === 'pause') await pauseStrategy({ strategy_id: strategyId });
-      await refetch();
-    } catch (error) {
-      console.error('Strategy action failed:', error);
-    } finally {
-      setActionLoading(null);
+      setPendingId(strategy.id);
+      setStrategies((prev) => prev.map((item) => (item.id === strategy.id ? { ...item, enabled: !item.enabled } : item)));
+      await strategiesApi.toggle({ id: strategy.id, enabled: !strategy.enabled });
+      notify({
+        title: `${strategy.name} ${strategy.enabled ? 'disabled' : 'enabled'}`,
+        description: strategy.enabled ? 'Strategy removed from execution stack' : 'Strategy handed execution privileges',
+        variant: 'success'
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Toggle failed');
+      setStrategies((prev) => prev.map((item) => (item.id === strategy.id ? { ...item, enabled: strategy.enabled } : item)));
+      notify({ title: 'Toggle failed', description: 'Unable to sync with orchestration core', variant: 'error' });
     }
+    setPendingId(null);
   };
 
-  const strategies = strategiesData ?? [
-    {
-      id: 'demo1',
-      name: 'Neural Momentum Alpha',
-      status: 'active',
-      profit24h: '+$4,821',
-      winRate: '78.4%',
-      positions: 5,
-      risk: 'LOW',
-    },
-    {
-      id: 'demo2',
-      name: 'Mean Reversion Pro',
-      status: 'active',
-      profit24h: '+$3,247',
-      winRate: '81.2%',
-      positions: 3,
-      risk: 'MEDIUM',
-    },
-    {
-      id: 'demo3',
-      name: 'Breakout Hunter',
-      status: 'active',
-      profit24h: '+$2,891',
-      winRate: '71.8%',
-      positions: 4,
-      risk: 'HIGH',
-    },
-    {
-      id: 'demo4',
-      name: 'Grid Trading Bot',
-      status: 'paused',
-      profit24h: '+$1,456',
-      winRate: '88.9%',
-      positions: 0,
-      risk: 'LOW',
-    },
-  ];
+  const statsSummary = useMemo(() => {
+    const enabled = strategies.filter((s) => s.enabled);
+    const avgWinRate =
+      enabled.reduce((acc, strategy) => acc + (strategy.stats?.winRate ?? 0), 0) /
+      Math.max(enabled.length, 1);
+    const totalPnl = enabled.reduce((acc, strategy) => acc + (strategy.stats?.pnl ?? 0), 0);
+    return { enabled: enabled.length, avgWinRate, totalPnl };
+  }, [strategies]);
 
   return (
-    <SciFiShell>
-      <div className="p-8 space-y-8 bg-cream">
-        {/* Page Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold text-primary mb-2">
-              Strategy Arsenal
-            </h1>
-            <p className="text-secondary">
-              Manage and monitor your algorithmic trading strategies
+    <ProtectedRoute>
+      <div className="stack-gap-lg">
+        <div className="stack-gap-xxs">
+          <p className="metric-label text-[color:var(--accent-gold)]">Strategy Control</p>
+          <div className="stack-gap-xxs">
+            <h1 className="text-3xl font-semibold">Choreograph the execution fabric</h1>
+            <p className="muted-premium max-w-2xl">
+              Apply capital only to disciplined systems. Toggle, audit, and export your stack within a single refined surface.
             </p>
           </div>
-          <button className="btn-primary">
-            + Deploy New Strategy
-          </button>
         </div>
 
-        {/* Strategy Stats */}
-        <div className="grid-auto-fit">
-          {[
-            { label: 'Active Strategies', value: '3', variant: 'success' },
-            { label: 'Total Positions', value: '12', variant: 'info' },
-            { label: '24H Combined P&L', value: '+$11,959', variant: 'success' },
-            { label: 'Avg Win Rate', value: '79.8%', variant: 'info' },
-          ].map((stat) => (
-            <Card key={stat.label} glowColor="green">
-              <CardContent className="pt-6">
-                <div className="text-sm mb-2 text-muted">
-                  {stat.label}
-                </div>
-                <div className="text-2xl font-bold text-primary">
-                  {stat.value}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <Card title="Summary" subtitle="Activated intelligence footprint">
+          <div className="grid-premium sm:grid-cols-2 md:grid-cols-3">
+            <SummaryStat label="Enabled" value={statsSummary.enabled.toString()} accent="var(--accent-green)" loading={loading} />
+            <SummaryStat
+              label="Avg Win"
+              value={`${statsSummary.avgWinRate.toFixed(1)}%`}
+              accent="var(--accent-gold)"
+              loading={loading}
+            />
+            <SummaryStat
+              label="PnL"
+              value={`$${statsSummary.totalPnl.toLocaleString()}`}
+              accent="var(--accent-violet)"
+              loading={loading}
+            />
+          </div>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button variant="secondary">Export Report</Button>
+            <Button>Optimize Stack</Button>
+          </div>
+        </Card>
 
-        {/* Strategies List */}
-        <div className="space-y-4">
-          {strategies.map((strategy: any) => (
-            <Card
-              key={strategy.id}
-              glowColor={strategy.status === 'active' || strategy.status === 'running' ? 'green' : 'yellow'}
-            >
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  {/* Left: Strategy Info */}
-                  <div className="flex items-center gap-6">
-                    <div>
-                      <h3 className="text-xl font-bold mb-2 text-primary">
-                        {strategy.name}
-                      </h3>
-                      <div className="flex items-center gap-4">
-                        <Badge variant={strategy.status === 'active' ? 'success' : 'warning'}>
-                          {strategy.status.toUpperCase()}
-                        </Badge>
-                        <span className="text-sm text-secondary">
-                          Risk: <span className={`font-semibold ${
-                            strategy.risk === 'LOW' ? 'text-green' : 
-                            strategy.risk === 'MEDIUM' ? 'text-yellow' : 
-                            'text-red-500'
-                          }`}>
-                            {strategy.risk}
-                          </span>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Center: Metrics */}
-                  <div className="flex items-center gap-8">
-                    <div className="text-center">
-                      <div className="text-sm mb-1 text-muted">
-                        24H P&L
-                      </div>
-                      <div className="text-xl font-bold text-green">
-                        {strategy.profit24h}
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-sm mb-1 text-muted">
-                        Win Rate
-                      </div>
-                      <div className="text-xl font-bold text-primary">
-                        {strategy.winRate}
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-sm mb-1 text-muted">
-                        Positions
-                      </div>
-                      <div className="text-xl font-bold text-yellow">
-                        {strategy.positions}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right: Controls */}
-                  <div className="flex items-center gap-4">
-                    <button
-                      className={`btn-${strategy.status === 'active' ? 'accent' : 'primary'} transition-smooth`}
-                      onClick={() => {
-                        const action = strategy.status === 'active' || strategy.status === 'running' ? 'pause' : 'start';
-                        handleStrategyAction(strategy.id, action);
-                      }}
-                      disabled={actionLoading === strategy.id}
-                    >
-                      {actionLoading === strategy.id ? '⏳' : strategy.status === 'active' ? 'Pause' : 'Start'}
-                    </button>
-                    <button className="btn-outline">
-                      ⚙️
-                    </button>
-                    <button className="btn-outline">
-                      📊
-                    </button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Strategy Performance Chart */}
-        <Card glowColor="green">
-          <CardHeader>
-            <CardTitle>Combined Performance</CardTitle>
-            <p className="text-sm text-muted">Last 7 days</p>
-          </CardHeader>
-          <CardContent>
-            <div className="h-64 flex items-center justify-center bg-elevated rounded-lg">
-              <div className="text-center">
-                <div className="text-6xl mb-4">📈</div>
-                <p className="text-muted">
-                  Performance chart visualization will load here
-                </p>
-              </div>
+        <Card title="Strategy Stack" subtitle="Enable only what deserves capital">
+          {loading && (
+            <div className="grid-premium sm:grid-cols-2">
+              {[0, 1, 2, 3].map((index) => (
+                <Skeleton key={index} className="h-36 w-full" />
+              ))}
             </div>
-          </CardContent>
+          )}
+          {error && <p className="text-sm text-red-400">{error}</p>}
+          {!loading && strategies.length === 0 && (
+            <p className="text-sm muted-premium">No strategies returned from the core.</p>
+          )}
+          {!loading && strategies.length > 0 && (
+            <div className="grid-premium sm:grid-cols-2">
+              {strategies.map((strategy) => (
+                <div
+                  key={strategy.id}
+                  className="data-soft-fade rounded-[0.75rem] border border-[color:var(--border-soft)] bg-base/70 p-5"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="min-w-[200px] flex-1 space-y-2">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <h4 className="text-xl font-semibold">{strategy.name}</h4>
+                        <Tag variant={strategy.enabled ? 'success' : 'warning'}>
+                          {strategy.enabled ? 'Enabled' : 'Standby'}
+                        </Tag>
+                      </div>
+                      <p className="text-sm muted-premium">{strategy.description}</p>
+                    </div>
+                    <button
+                      onClick={() => toggleStrategy(strategy)}
+                      className={`toggle-premium ${pendingId === strategy.id ? 'opacity-60' : ''}`}
+                      data-enabled={strategy.enabled}
+                      aria-pressed={strategy.enabled}
+                      aria-label={`Toggle ${strategy.name}`}
+                      disabled={pendingId === strategy.id}
+                    >
+                      <span
+                        className={`toggle-premium__thumb inline-block h-5 w-5 rounded-full bg-white shadow-card transition ${
+                          strategy.enabled ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                  <dl className="mt-5 grid-premium sm:grid-cols-3">
+                    <div>
+                      <dt className="metric-label">Win rate</dt>
+                      <dd className="metric-value" data-variant="success">
+                        {strategy.stats?.winRate ? `${strategy.stats.winRate.toFixed(1)}%` : '--'}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="metric-label">PnL</dt>
+                      <dd className="metric-value">
+                        {strategy.stats?.pnl ? `$${strategy.stats.pnl.toLocaleString()}` : '--'}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="metric-label">Sharpe</dt>
+                      <dd className="metric-value">
+                        {strategy.stats?.sharpe ? strategy.stats.sharpe.toFixed(2) : '--'}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              ))}
+            </div>
+          )}
         </Card>
       </div>
-    </SciFiShell>
+    </ProtectedRoute>
+  );
+}
+
+function SummaryStat({ label, value, accent, loading }: { label: string; value: string; accent: string; loading: boolean }) {
+  return (
+    <div className="stack-gap-xxs">
+      <p className="metric-label" style={{ color: accent }}>
+        {label}
+      </p>
+      <p className="metric-value text-3xl" data-variant="muted">
+        {loading ? <Skeleton className="h-8 w-24" /> : <span className="data-soft-fade">{value}</span>}
+      </p>
+    </div>
   );
 }

@@ -1,0 +1,132 @@
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --dark-950: #020309;
+  --dark-900: #06080f;
+  --dark-850: #070c16;
+  --dark-800: #0b1220;
+  --dark-700: #111a2c;
+  --bg-main: #050914;
+  --card-bg: rgba(9, 14, 26, 0.92);
+  --bg-card: var(--card-bg);
+  --text-primary: #f2f5ff;
+  --text-secondary: #b8c2d8;
+  --text-muted: #7f899f;
+  --text-main: var(--text-primary);
+  --accent-gold: #d4af37;
+  --accent-green: #30f2d1;
+  --accent-cyan: #4fe4ff;
+  --accent-blue: #00b6ff;
+  --accent-violet: #b49bff;
+  --border-soft: rgba(255, 255, 255, 0.08);
+  --card-border: rgba(255, 255, 255, 0.06);
+  --glow-primary: rgba(48, 242, 209, 0.45);
+  --glow-secondary: rgba(212, 175, 55, 0.4);
+  --scrim: rgba(4, 8, 19, 0.84);
+}
+
+:root[data-theme="dark"] body {
+  background-image:
+    radial-gradient(circle at 16% 10%, rgba(0, 194, 255, 0.12), transparent 45%),
+    radial-gradient(circle at 82% 12%, rgba(212, 175, 55, 0.12), transparent 40%),
+    linear-gradient(180deg, rgba(4, 8, 19, 0.92), rgba(5, 10, 21, 0.98));
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+}
+
+:root[data-theme="dark"] .premium-card {
+  background: linear-gradient(140deg, rgba(6, 8, 15, 0.96), rgba(12, 20, 37, 0.92));
+  border-color: var(--card-border);
+  box-shadow:
+    0 30px 85px -65px rgba(0, 0, 0, 0.95),
+    0 25px 55px -45px rgba(15, 198, 255, 0.25);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+:root[data-theme="dark"] .premium-card::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: inherit;
+  background: radial-gradient(circle at 20% 0%, rgba(83, 228, 255, 0.12), transparent 55%);
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+@media (hover: hover) {
+  :root[data-theme="dark"] .premium-card:hover {
+    border-color: color-mix(in srgb, var(--accent-cyan) 45%, transparent);
+    box-shadow:
+      0 35px 95px -70px rgba(0, 0, 0, 0.95),
+      0 25px 65px -35px rgba(48, 242, 209, 0.35);
+  }
+}
+
+:root[data-theme="dark"] .btn-premium {
+  color: var(--text-primary);
+  border-color: transparent;
+}
+
+:root[data-theme="dark"] .btn-premium[data-variant="primary"] {
+  background: linear-gradient(120deg, var(--accent-gold), color-mix(in srgb, var(--accent-gold) 45%, var(--accent-cyan)));
+  color: #050505;
+  box-shadow: 0 18px 48px -24px rgba(212, 175, 55, 0.6);
+}
+
+:root[data-theme="dark"] .btn-premium[data-variant="secondary"] {
+  background: color-mix(in srgb, var(--card-bg) 94%, rgba(255, 255, 255, 0.03));
+  border-color: rgba(255, 255, 255, 0.16);
+  color: var(--text-primary);
+  opacity: 1;
+}
+
+:root[data-theme="dark"] .btn-premium[data-variant="secondary"]:hover {
+  border-color: color-mix(in srgb, var(--accent-cyan) 55%, transparent);
+  box-shadow: 0 18px 38px -28px rgba(83, 228, 255, 0.4);
+}
+
+:root[data-theme="dark"] .btn-premium[data-variant="ghost"] {
+  color: color-mix(in srgb, var(--text-primary) 80%, var(--accent-cyan) 20%);
+}
+
+:root[data-theme="dark"] .nav-shell,
+:root[data-theme="dark"] .sidebar-shell {
+  background: color-mix(in srgb, var(--dark-900) 88%, transparent);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 60px -50px rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+:root[data-theme="dark"] .nav-link {
+  color: color-mix(in srgb, var(--text-primary) 70%, var(--accent-cyan) 30%);
+}
+
+:root[data-theme="dark"] .nav-link--active {
+  color: var(--accent-gold);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--accent-gold) 60%, transparent);
+}
+
+:root[data-theme="dark"] .nav-pill {
+  color: color-mix(in srgb, var(--text-secondary) 80%, var(--accent-violet) 20%);
+}
+
+:root[data-theme="dark"] .nav-pill--active {
+  color: var(--text-primary);
+}
+
+:root[data-theme="dark"] .nav-overlay {
+  background: radial-gradient(circle at 10% 10%, rgba(68, 219, 255, 0.12), transparent 55%),
+    radial-gradient(circle at 85% 15%, rgba(212, 175, 55, 0.12), transparent 55%),
+    rgba(2, 5, 12, 0.85);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+:root[data-theme="dark"] .muted-premium {
+  color: color-mix(in srgb, var(--text-muted) 90%, transparent);
+}
+
+:root[data-theme="dark"] .metric-value {
+  text-shadow: 0 0 18px rgba(48, 242, 209, 0.25);
+}

@@ -1,238 +1,147 @@
-/**
- * Enhanced API Client with Authentication Support
- * Extends the base API client with auth token management
- */
+import { tokenStore } from '@/lib/token-store';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-const DEFAULT_TIMEOUT = 10000;
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? '').replace(/\/$/, '');
+const WS_BASE_URL = (process.env.NEXT_PUBLIC_WS_URL ?? '').replace(/\/$/, '');
 
-export class APIError extends Error {
-  constructor(
-    message: string,
-    public status?: number,
-    public code?: string,
-    public details?: any
-  ) {
+const isBrowser = typeof window !== 'undefined';
+
+export class ApiError extends Error {
+  status: number;
+  body: unknown;
+
+  constructor(message: string, status: number, body?: unknown) {
     super(message);
-    this.name = 'APIError';
+    this.name = 'ApiError';
+    this.status = status;
+    this.body = body;
   }
 }
 
-interface RequestOptions extends RequestInit {
-  timeout?: number;
-  retries?: number;
-  skipAuth?: boolean;
-}
-
-/**
- * Token management
- */
-class TokenManager {
-  private static TOKEN_KEY = 'auth_token';
-  private static REFRESH_KEY = 'refresh_token';
-
-  static getToken(): string | null {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem(this.TOKEN_KEY);
+export const authTokenStore = {
+  get(): string | null {
+    return tokenStore.getToken();
+  },
+  set(token: string) {
+    tokenStore.setToken(token);
+  },
+  clear() {
+    tokenStore.clearToken();
+  },
+  subscribe(listener: (token: string | null) => void) {
+    return tokenStore.subscribe(listener);
   }
-
-  static setToken(token: string): void {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(this.TOKEN_KEY, token);
-  }
-
-  static getRefreshToken(): string | null {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem(this.REFRESH_KEY);
-  }
-
-  static setRefreshToken(token: string): void {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(this.REFRESH_KEY, token);
-  }
-
-  static clearTokens(): void {
-    if (typeof window === 'undefined') return;
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.REFRESH_KEY);
-  }
-}
-
-/**
- * Core fetch wrapper with timeout and auth
- */
-async function fetchWithAuth(
-  url: string,
-  options: RequestOptions = {}
-): Promise<Response> {
-  const { timeout = DEFAULT_TIMEOUT, skipAuth = false, ...fetchOptions } = options;
-  
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-  // Add auth token if available
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(fetchOptions.headers as Record<string, string>),
-  };
-
-  if (!skipAuth) {
-    const token = TokenManager.getToken();
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-  }
-
-  try {
-    const response = await fetch(url, {
-      ...fetchOptions,
-      signal: controller.signal,
-      headers,
-    });
-
-    clearTimeout(timeoutId);
-
-    // Handle 401 - Unauthorized (token expired)
-    if (response.status === 401 && !skipAuth) {
-      const refreshed = await refreshAuthToken();
-      if (refreshed) {
-        // Retry request with new token
-        return fetchWithAuth(url, options);
-      } else {
-        // Refresh failed, clear tokens and throw
-        TokenManager.clearTokens();
-        throw new APIError('Authentication failed', 401, 'UNAUTHORIZED');
-      }
-    }
-
-    // Handle non-OK responses
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new APIError(
-        errorData.message || errorData.detail || `Request failed with status ${response.status}`,
-        response.status,
-        errorData.code,
-        errorData.details
-      );
-    }
-
-    return response;
-  } catch (error) {
-    clearTimeout(timeoutId);
-
-    if (error instanceof APIError) {
-      throw error;
-    }
-
-    if (error instanceof Error && error.name === 'AbortError') {
-      throw new APIError('Request timeout', 408, 'TIMEOUT');
-    }
-
-    throw new APIError('Network error', undefined, 'NETWORK_ERROR', error);
-  }
-}
-
-/**
- * Refresh auth token
- */
-async function refreshAuthToken(): Promise<boolean> {
-  const refreshToken = TokenManager.getRefreshToken();
-  if (!refreshToken) return false;
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh_token: refreshToken }),
-    });
-
-    if (!response.ok) return false;
-
-    const data = await response.json();
-    if (data.access_token) {
-      TokenManager.setToken(data.access_token);
-      return true;
-    }
-
-    return false;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * GET request
- */
-export async function get<T = any>(
-  endpoint: string,
-  options: RequestOptions = {}
-): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
-  const response = await fetchWithAuth(url, {
-    method: 'GET',
-    ...options,
-  });
-  return response.json();
-}
-
-/**
- * POST request
- */
-export async function post<T = any>(
-  endpoint: string,
-  data?: any,
-  options: RequestOptions = {}
-): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
-  const response = await fetchWithAuth(url, {
-    method: 'POST',
-    body: data ? JSON.stringify(data) : undefined,
-    ...options,
-  });
-  return response.json();
-}
-
-/**
- * PUT request
- */
-export async function put<T = any>(
-  endpoint: string,
-  data?: any,
-  options: RequestOptions = {}
-): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
-  const response = await fetchWithAuth(url, {
-    method: 'PUT',
-    body: data ? JSON.stringify(data) : undefined,
-    ...options,
-  });
-  return response.json();
-}
-
-/**
- * DELETE request
- */
-export async function del<T = any>(
-  endpoint: string,
-  options: RequestOptions = {}
-): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
-  const response = await fetchWithAuth(url, {
-    method: 'DELETE',
-    ...options,
-  });
-  return response.json();
-}
-
-/**
- * API client with convenience methods
- */
-export const apiClient = {
-  get,
-  post,
-  put,
-  delete: del,
-  tokens: TokenManager,
 };
 
-export default apiClient;
+export type ApiRequestOptions = Omit<RequestInit, 'body'> & {
+  skipAuth?: boolean;
+  query?: Record<string, string | number | boolean | undefined>;
+  body?: BodyInit | Record<string, unknown> | null;
+};
+
+export const resolveWsUrl = (path = '/ws') => {
+  const base = WS_BASE_URL;
+  if (!base) return path;
+  return `${base}${path}`;
+};
+
+const buildUrl = (path: string, query?: ApiRequestOptions['query']) => {
+  const cleanBase = API_BASE_URL || '';
+  const cleanPath = path.startsWith('http') ? path : `${cleanBase}${path}`;
+  if (!query || Object.keys(query).length === 0) return cleanPath;
+  const originFallback = typeof window === 'undefined' ? 'http://localhost' : cleanBase || window.location.origin;
+  const url = new URL(cleanPath, originFallback);
+  Object.entries(query).forEach(([key, value]) => {
+    if (value === undefined) return;
+    url.searchParams.set(key, String(value));
+  });
+  return url.toString();
+};
+
+const handleUnauthorized = () => {
+  authTokenStore.clear();
+  if (isBrowser && window.location.pathname !== '/login') {
+    window.location.href = '/login';
+  }
+};
+
+const parsePayload = async (response: Response) => {
+  const contentType = response.headers.get('content-type');
+  const isJson = contentType?.includes('application/json');
+  if (isJson) {
+    return response.json().catch(() => null);
+  }
+  return response.text().catch(() => null);
+};
+
+const request = async <T>(method: string, path: string, options: ApiRequestOptions = {}): Promise<T> => {
+  const { skipAuth, query, body, headers, ...rest } = options;
+  const url = buildUrl(path, query);
+  const finalHeaders = new Headers(headers);
+  const init: RequestInit = { ...rest, method, headers: finalHeaders };
+
+  if (!skipAuth) {
+    const token = authTokenStore.get();
+    if (token) {
+      finalHeaders.set('Authorization', `Bearer ${token}`);
+    }
+  }
+
+  if (body !== undefined && body !== null) {
+    if (body instanceof FormData) {
+      init.body = body;
+    } else if (typeof body === 'string') {
+      init.body = body;
+      if (!finalHeaders.has('Content-Type')) {
+        finalHeaders.set('Content-Type', 'application/json');
+      }
+    } else {
+      init.body = JSON.stringify(body);
+      finalHeaders.set('Content-Type', 'application/json');
+    }
+  }
+
+  try {
+    const response = await fetch(url, init);
+    const payload = await parsePayload(response);
+
+    if (response.status === 401 && !skipAuth) {
+      handleUnauthorized();
+      throw new ApiError('Session expired', response.status, payload);
+    }
+
+    if (!response.ok) {
+      const message = (payload as { message?: string })?.message ?? 'Request failed';
+      throw new ApiError(message, response.status, payload);
+    }
+
+    return (payload ?? null) as T;
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(error instanceof Error ? error.message : 'Unknown error', 500);
+  }
+};
+
+export const api = {
+  get: <T>(path: string, options?: ApiRequestOptions) => request<T>('GET', path, options),
+  post: <T>(path: string, options?: ApiRequestOptions) => request<T>('POST', path, options),
+  put: <T>(path: string, options?: ApiRequestOptions) => request<T>('PUT', path, options),
+  delete: <T>(path: string, options?: ApiRequestOptions) => request<T>('DELETE', path, options)
+};
+
+export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
+  const method = (options.method ?? 'GET').toUpperCase();
+  return request<T>(method, path, options);
+}
+
+export async function safeApiRequest<T>(path: string, options?: ApiRequestOptions): Promise<T | null> {
+  try {
+    return await apiRequest<T>(path, options);
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`[api] ${path} failed`, error);
+    }
+    return null;
+  }
+}

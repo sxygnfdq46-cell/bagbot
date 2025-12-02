@@ -1,136 +1,87 @@
 'use client';
 
-import { useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { login } from '@/services/auth';
-import { APIError } from '@/lib/api-client';
+import Button from '@/components/ui/button';
+import { authTokenStore } from '@/lib/api-client';
+import { auth } from '@/lib/api/auth';
+import { useToast } from '@/components/ui/toast-provider';
+import { useAuthToken } from '@/app/store/auth-store';
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [message, setMessage] = useState('');
+  const router = useRouter();
+  const { notify } = useToast();
+  const { token } = useAuthToken();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+  useEffect(() => {
+    if (!token) return;
+    router.replace('/dashboard');
+  }, [token, router]);
 
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setPending(true);
+    setMessage('');
     try {
-      await login({ email, password });
-      router.push('/dashboard');
-    } catch (err) {
-      if (err instanceof APIError) {
-        setError(err.message);
-      } else {
-        setError('Login failed. Please try again.');
+      const data = await auth.login({ email, password });
+      if (!data?.token) {
+        throw new Error('Missing token in response');
       }
+      authTokenStore.set(data.token);
+      setMessage('Access granted. Redirecting...');
+      notify({
+        title: 'Authenticated',
+        description: data.user?.name ? `Welcome back, ${data.user.name}` : 'Secure session established',
+        variant: 'success'
+      });
+    } catch (error) {
+      const description = error instanceof Error ? error.message : 'Login failed';
+      setMessage(description);
+      notify({ title: 'Login failed', description, variant: 'error' });
     } finally {
-      setLoading(false);
+      setPending(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-      <div className="max-w-md w-full space-y-8 p-8 bg-gray-800/50 backdrop-blur-lg rounded-xl border border-purple-500/30">
-        <div>
-          <h2 className="text-center text-3xl font-bold text-white">
-            Sign in to BAGBOT
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-400">
-            Institutional-grade AI trading platform
-          </p>
-        </div>
-
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-300 text-sm">
-              {error}
-            </div>
-          )}
-
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-900/50 border border-purple-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                placeholder="Enter your email"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-900/50 border border-purple-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                placeholder="Enter your password"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                className="h-4 w-4 rounded border-purple-500/30 bg-gray-900/50 text-purple-500 focus:ring-purple-500"
-              />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-400">
-                Remember me
-              </label>
-            </div>
-
-            <div className="text-sm">
-              <a href="#" className="font-medium text-purple-400 hover:text-purple-300">
-                Forgot password?
-              </a>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
-            {loading ? (
-              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            ) : (
-              'Sign in'
-            )}
-          </button>
-
-          <div className="text-center">
-            <p className="text-sm text-gray-400">
-              Don't have an account?{' '}
-              <a href="/register" className="font-medium text-purple-400 hover:text-purple-300">
-                Sign up
-              </a>
-            </p>
-          </div>
+    <section className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center px-4 sm:px-6">
+      <div className="data-soft-fade w-full max-w-md rounded-[2rem] border border-[color:var(--border-soft)] bg-card p-6 shadow-card sm:p-8 lg:p-10">
+        <p className="text-xs uppercase tracking-[0.4em] text-[color:var(--accent-gold)]">BagBot Access</p>
+        <h2 className="mt-3 text-3xl font-semibold">Authenticate</h2>
+        <p className="mt-2 text-sm text-[color:var(--text-main)] opacity-70">
+          Priority access channel for principals only.
+        </p>
+        <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+          <label className="flex flex-col gap-2 text-sm">
+            <span>Email</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(event: ChangeEvent<HTMLInputElement>) => setEmail(event.target.value)}
+              className="field-premium"
+              placeholder="you@fund.com"
+            />
+          </label>
+          <label className="flex flex-col gap-2 text-sm">
+            <span>Password</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(event: ChangeEvent<HTMLInputElement>) => setPassword(event.target.value)}
+              className="field-premium"
+              placeholder="••••••••"
+            />
+          </label>
+          <Button type="submit" className="w-full" isLoading={pending} loadingText="Verifying access...">
+            Enter Terminal
+          </Button>
         </form>
+        {message && <p className="mt-4 text-center text-sm text-[color:var(--accent-cyan)]">{message}</p>}
       </div>
-    </div>
+    </section>
   );
 }

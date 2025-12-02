@@ -1,313 +1,197 @@
-'use client';
+"use client";
 
-import { SciFiShell } from '../sci-fi-shell';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { useAPI, useAPIPoll } from '../../lib/hooks/useAPI';
-import { useWebSocket } from '../../lib/hooks/useWebSocket';
-import { useState, useEffect } from 'react';
+import { useEffect } from "react";
+import Card from "@/components/ui/card";
+import Button from "@/components/ui/button";
+import Skeleton from "@/components/ui/skeleton";
+import PriceChart from "@/components/ui/price-chart";
+import { useToast } from "@/components/ui/toast-provider";
+import { useDashboardData } from "./use-dashboard-data";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+
+const currency = (value: number) =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value ?? 0);
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState('overview');
+  const { loading, error, prices, positions, trades, status, portfolioValue, totalPnl, chartPoints, reload } =
+    useDashboardData();
+  const { notify } = useToast();
 
-  // Fetch dashboard metrics
-  const { data: metrics, error: metricsError, loading: metricsLoading } = useAPI<any>(
-    '/api/dashboard/metrics'
-  );
-
-  // Fetch recent trades with polling
-  const { data: recentTrades, loading: tradesLoading } = useAPIPoll<any[]>(
-    '/api/trading/recent?limit=10',
-    3000 // Poll every 3 seconds
-  );
-
-  // Fetch strategy statuses
-  const { data: strategies, loading: strategiesLoading } = useAPI<any[]>(
-    '/api/strategies/status'
-  );
-
-  // Fetch open positions
-  const { data: positions, loading: positionsLoading } = useAPI<any[]>(
-    '/api/trading/positions'
-  );
-
-  // WebSocket connection for real-time price updates
-  const { data: livePrice, isConnected: priceConnected } = useWebSocket<any>({
-    channel: 'prices',
-    filters: { symbol: 'BTCUSDT' },
-    enabled: true,
-    autoConnect: true,
-  });
-
-  // Format currency
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
-
-  // Format percentage
-  const formatPercent = (value: number) => {
-    return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
-  };
-
-  // Format timestamp
-  const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString('en-US', { 
-      hour12: false,
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
-  };
-
-  // Extract metrics with fallbacks
-  const portfolioValue = metrics?.total_equity ?? 0;
-  const dailyPnL = metrics?.daily_pnl ?? 0;
-  const activePositionsCount = positions?.length ?? 0;
-  const winRate = metrics?.win_rate ?? 0;
-  const dailyVolume = metrics?.daily_volume ?? 0;
+  useEffect(() => {
+    if (error) {
+      notify({ title: "Dashboard data issue", description: error, variant: "error" });
+    }
+  }, [error, notify]);
 
   return (
-    <SciFiShell>
-      <div className="p-8 space-y-8 bg-cream">
-        {/* Dashboard Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-primary mb-2">
-              Mission Control
-            </h1>
-            <p className="text-secondary">
-              Live trading dashboard — All systems operational
+    <ProtectedRoute>
+      <div className="stack-gap-lg">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="min-w-[220px] flex-1 space-y-1">
+            <p className="metric-label text-[color:var(--accent-gold)]">Portfolio Overview</p>
+            <h2 className="text-3xl font-semibold">Live intelligence feed</h2>
+          </div>
+          <div className="flex w-full flex-wrap gap-3 sm:ml-auto sm:w-auto sm:justify-end">
+            <Button variant="secondary" onClick={reload} isLoading={loading}>
+              Refresh snapshot
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid-premium sm:grid-cols-2 lg:grid-cols-3">
+          <Card title="Portfolio Value" subtitle="Real-time valuation">
+            {loading ? (
+              <Skeleton className="h-12 w-48" />
+            ) : (
+              <p className="metric-value" data-variant="muted">
+                {currency(portfolioValue)}
+              </p>
+            )}
+            <p className="mt-2 text-sm text-[color:var(--accent-green)]">
+              Daily PnL {loading ? <Skeleton className="mt-1 h-4 w-20" /> : <span className="metric-value text-base" data-variant="success">{currency(totalPnl)}</span>}
             </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="status-dot-green" />
-            <Badge variant="success">LIVE</Badge>
-          </div>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid-auto-fit">
-          <Card glowColor="green">
-            <CardHeader>
-              <CardTitle>Portfolio Value</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-primary">
-                {metricsLoading ? '...' : formatCurrency(portfolioValue)}
-              </div>
-              {!metricsLoading && (
-                <div className="text-sm text-muted mt-2">
-                  Previous: {formatCurrency(portfolioValue - dailyPnL)}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card glowColor={dailyPnL >= 0 ? 'green' : 'yellow'}>
-            <CardHeader>
-              <CardTitle>24H P&L</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className={`text-3xl font-bold ${dailyPnL >= 0 ? 'text-green' : 'text-yellow'}`}>
-                {metricsLoading ? '...' : formatCurrency(dailyPnL)}
-              </div>
-              {!metricsLoading && (
-                <div className="text-sm text-muted mt-2">
-                  {formatPercent((dailyPnL / (portfolioValue - dailyPnL)) * 100)}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card glowColor="yellow">
-            <CardHeader>
-              <CardTitle>Active Positions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-primary">
-                {positionsLoading ? '...' : activePositionsCount}
-              </div>
-              <div className="text-sm text-muted mt-2">
-                Currently trading
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card glowColor="green">
-            <CardHeader>
-              <CardTitle>Win Rate</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className={`text-3xl font-bold ${winRate >= 50 ? 'text-green' : 'text-primary'}`}>
-                {metricsLoading ? '...' : winRate.toFixed(1)}%
-              </div>
-              <div className="text-sm text-muted mt-2">
-                {winRate >= 50 ? 'Strong performance' : 'Building momentum'}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Error Display */}
-        {metricsError && (
-          <div className="card-clean" style={{ background: '#fef9c3', borderColor: '#facc15' }}>
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">⚠️</span>
-              <div>
-                <div className="font-semibold text-yellow">
-                  Backend Connection Error
-                </div>
-                <div className="text-sm text-secondary">
-                  Unable to fetch live dashboard data. Showing fallback values.
-                </div>
-              </div>
+            <div className="mt-4 rounded-[0.75rem] border border-[color:var(--border-soft)] bg-base/80 p-4">
+              {chartPoints.length ? <PriceChart points={chartPoints} /> : <Skeleton className="h-28 w-full" />}
             </div>
-          </div>
-        )}
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Chart Area */}
-          <div className="lg:col-span-2">
-            <Card glowColor="green">
-              <CardHeader>
-                <CardTitle>Price Chart</CardTitle>
-                <p className="text-sm text-muted">BTC/USDT • 15m</p>
-              </CardHeader>
-              <CardContent>
-                <div className="h-96 flex items-center justify-center bg-elevated rounded-lg">
-                  <div className="text-center">
-                    <div className="text-6xl mb-4">📈</div>
-                    <p className="text-muted">
-                      Interactive chart will load here
+          </Card>
+          <Card title="System Status" subtitle="Core health overview">
+            {loading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-4/5" />
+                <Skeleton className="h-4 w-3/5" />
+              </div>
+            ) : (
+              <dl className="space-y-3 text-sm">
+                <StatusRow label="Uptime" value={status?.uptime ?? "--"} />
+                <StatusRow label="Latency" value={status?.latencyMs ? `${status.latencyMs} ms` : "--"} />
+                <StatusRow label="Mode" value={status?.mode ?? "Standby"} />
+              </dl>
+            )}
+          </Card>
+          <Card title="Open Positions" subtitle={`${positions.length} active`}>
+            <div className="space-y-3">
+              {loading && !positions.length && <Skeleton className="h-16 w-full" />}
+              {positions.slice(0, 4).map((position) => (
+                <div
+                  key={position.id ?? position.symbol}
+                  className="data-soft-fade flex items-center justify-between rounded-[0.75rem] border border-[color:var(--border-soft)] bg-base/70 px-4 py-3"
+                >
+                  <div>
+                    <p className="text-sm font-semibold">{position.symbol}</p>
+                    <p className="text-xs muted-premium">
+                      {position.size} @ {currency(position.entryPrice)}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold">{currency(position.currentPrice)}</p>
+                    <p className={position.pnl >= 0 ? 'text-[color:var(--accent-green)]' : 'text-red-400'}>
+                      {currency(position.pnl)}
                     </p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Live Feed Column */}
-          <div className="space-y-6">
-            {/* Recent Trades */}
-            <Card glowColor="yellow">
-              <CardHeader>
-                <CardTitle>Recent Trades</CardTitle>
-                <p className="text-sm text-muted">Last 10 executions</p>
-              </CardHeader>
-              <CardContent>
-                {tradesLoading ? (
-                  <div className="flex items-center justify-center h-48">
-                    <div className="text-center">
-                      <div className="text-4xl mb-2">⏳</div>
-                      <p className="text-muted">Loading trades...</p>
-                    </div>
-                  </div>
-                ) : recentTrades && recentTrades.length > 0 ? (
-                  <div className="space-y-2">
-                    {recentTrades.slice(0, 10).map((trade: any, i: number) => (
-                      <div
-                        key={i}
-                        className="flex items-center justify-between p-3 rounded-lg bg-surface border border-cream"
-                      >
-                        <div className="flex-1">
-                          <div className="font-semibold text-sm text-primary">
-                            {trade.symbol}
-                          </div>
-                          <div className="text-xs text-muted">
-                            {formatTime(trade.timestamp)}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <Badge variant={trade.side === 'buy' || trade.side === 'BUY' ? 'success' : 'warning'}>
-                            {(trade.side || 'BUY').toUpperCase()}
-                          </Badge>
-                          <div className="text-xs text-secondary mt-1">
-                            {trade.quantity} @ ${trade.price?.toFixed(2)}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center h-48">
-                    <div className="text-center">
-                      <div className="text-4xl mb-2">📭</div>
-                      <p className="text-muted">No recent trades</p>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* System Health */}
-            <Card glowColor="green">
-              <CardHeader>
-                <CardTitle>System Health</CardTitle>
-                <p className="text-sm text-muted">All systems nominal</p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {strategiesLoading ? (
-                    <div className="text-center py-4">
-                      <div className="text-2xl mb-2">⏳</div>
-                      <p className="text-sm text-muted">Loading...</p>
-                    </div>
-                  ) : strategies && strategies.length > 0 ? (
-                    strategies.slice(0, 4).map((strategy: any) => (
-                      <div key={strategy.name}>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm text-secondary">
-                            {strategy.name}
-                          </span>
-                          <Badge variant={strategy.status === 'running' ? 'success' : 'warning'}>
-                            {strategy.status?.toUpperCase()}
-                          </Badge>
-                        </div>
-                        <div className="h-1.5 rounded-full overflow-hidden bg-cream-300">
-                          <div
-                            className="h-full transition-all bg-primary"
-                            style={{ width: `${strategy.performance || 85}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    [
-                      { name: 'Trading Engine', status: 100 },
-                      { name: 'Data Feed', status: 98 },
-                      { name: 'Risk Manager', status: 100 },
-                      { name: 'Order Router', status: 95 },
-                    ].map((system) => (
-                      <div key={system.name}>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm text-secondary">
-                            {system.name}
-                          </span>
-                          <span className="text-sm font-bold text-green">
-                            {system.status}%
-                          </span>
-                        </div>
-                        <div className="h-1.5 rounded-full overflow-hidden bg-cream-300">
-                          <div
-                            className="h-full transition-all bg-primary"
-                            style={{ width: `${system.status}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+              ))}
+              {!loading && positions.length === 0 && (
+                <p className="text-sm muted-premium">No active positions.</p>
+              )}
+            </div>
+          </Card>
         </div>
+
+        <Card title="Live Markets" subtitle="Streaming pricing intelligence">
+          <div className="grid-premium sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {loading && !prices.length && [0, 1, 2, 3].map((index) => <Skeleton key={index} className="h-24 w-full" />)}
+            {prices.slice(0, 4).map((asset) => (
+              <div
+                key={asset.symbol}
+                className="data-soft-fade rounded-[0.75rem] border border-[color:var(--border-soft)] bg-base/70 p-4 transition-all hover:border-[color:var(--accent-cyan)]"
+              >
+                <p className="metric-label text-[color:var(--accent-green)]">{asset.symbol}</p>
+                <p className="mt-2 text-2xl font-semibold">{currency(asset.price)}</p>
+                <p className={`text-sm ${asset.change && asset.change >= 0 ? 'text-[color:var(--accent-green)]' : 'text-red-400'}`}>
+                  {asset.change ? `${asset.change.toFixed(2)}%` : '--'}
+                </p>
+              </div>
+            ))}
+            {!loading && !prices.length && (
+              <p className="text-sm muted-premium">No market data received.</p>
+            )}
+          </div>
+        </Card>
+
+        <Card title="Positions Table" subtitle="Risk-weighted exposure overview">
+          {loading && !positions.length ? (
+            <Skeleton className="h-32 w-full" />
+          ) : positions.length ? (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[620px] text-sm">
+                <thead>
+                  <tr className="text-left text-xs uppercase tracking-widest text-[color:var(--accent-gold)]">
+                    <th className="pb-3">Symbol</th>
+                    <th className="pb-3">Size</th>
+                    <th className="pb-3">Entry</th>
+                    <th className="pb-3">Mark</th>
+                    <th className="pb-3">PnL</th>
+                    <th className="pb-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[color:var(--border-soft)]">
+                  {positions.map((position) => (
+                    <tr key={`table-${position.id ?? position.symbol}`} className="data-soft-fade transition hover:bg-base/40">
+                      <td className="py-3 font-semibold">{position.symbol}</td>
+                      <td className="py-3">{position.size}</td>
+                      <td className="py-3">{currency(position.entryPrice)}</td>
+                      <td className="py-3">{currency(position.currentPrice)}</td>
+                      <td className={`py-3 font-semibold ${position.pnl >= 0 ? 'text-[color:var(--accent-green)]' : 'text-red-400'}`}>
+                        {currency(position.pnl)}
+                      </td>
+                      <td className="py-3 text-xs uppercase tracking-widest text-[color:var(--accent-cyan)]">
+                        {position.status ?? 'Active'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-sm muted-premium">No open positions to display.</p>
+          )}
+        </Card>
+
+        <Card title="Recent Trades" subtitle="Chronological execution log">
+          <div className="divide-y divide-[color:var(--border-soft)] text-sm">
+            {loading && !trades.length && [0, 1, 2].map((index) => <Skeleton key={index} className="h-12 w-full" />)}
+            {trades.slice(0, 6).map((trade) => (
+              <div key={trade.id ?? trade.timestamp} className="data-soft-fade flex flex-wrap items-center justify-between gap-4 py-3">
+                <div className="min-w-[160px]">
+                  <p className="font-medium">{trade.symbol}</p>
+                  <p className="text-xs muted-premium">
+                    {new Date(trade.timestamp).toLocaleString()}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p>{trade.size} units</p>
+                  <p className={trade.pnl >= 0 ? 'text-[color:var(--accent-green)]' : 'text-red-400'}>
+                    {currency(trade.pnl)}
+                  </p>
+                </div>
+              </div>
+            ))}
+            {!loading && trades.length === 0 && (
+              <p className="py-4 muted-premium">No trades executed.</p>
+            )}
+          </div>
+        </Card>
       </div>
-    </SciFiShell>
+    </ProtectedRoute>
+  );
+}
+
+function StatusRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between text-sm">
+      <span className="opacity-70">{label}</span>
+      <span className="data-soft-fade font-semibold">{value}</span>
+    </div>
   );
 }

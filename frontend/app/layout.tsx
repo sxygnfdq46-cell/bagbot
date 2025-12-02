@@ -1,44 +1,56 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
-import ClientLayoutWrapper from './ClientLayoutWrapper';
+import type { Metadata } from "next";
+import Script from "next/script";
+import { Inter } from "next/font/google";
+import { ReactNode } from "react";
+import "@/styles/globals.css";
+import Sidebar from "@/components/ui/sidebar";
+import Navbar from "@/components/ui/navbar";
+import AppProviders from "@/components/app-providers";
+import PageTransition from "@/components/ui/page-transition";
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: 'BagBot 2.0',
-  description: 'Quantum Trading Intelligence System',
+  title: "BagBot Terminal",
+  description: "Reimagined BagBot frontend — clean, premium, and precise."
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+const themeInitScript = `(() => {
+  const STORAGE_KEY = 'bagbot-theme';
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const next = stored === 'dark' || stored === 'light' ? stored : (prefersDark ? 'dark' : 'light');
+    document.documentElement.dataset.theme = next;
+    document.documentElement.style.colorScheme = next === 'dark' ? 'dark' : 'light';
+  } catch {
+    document.documentElement.dataset.theme = 'light';
+    document.documentElement.style.colorScheme = 'light';
+  }
+})();`;
+
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-theme="light">
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  const theme = localStorage.getItem('theme');
-                  if (theme === 'dark') {
-                    document.documentElement.classList.add('dark');
-                  } else {
-                    document.documentElement.classList.remove('dark');
-                  }
-                } catch(e) {}
-              })();
-            `
-          }}
-        />
+        <Script id="theme-mode-init" strategy="beforeInteractive">
+          {themeInitScript}
+        </Script>
       </head>
-      <body className={inter.className}>
-        <ClientLayoutWrapper>
-          {children}
-        </ClientLayoutWrapper>
+      <body className={`${inter.variable} bg-base text-text-main`}>
+        <AppProviders>
+          <div className="min-h-screen bg-base">
+            <div className="flex min-h-screen">
+              <Sidebar />
+              <div className="flex flex-1 flex-col">
+                <Navbar />
+                <main className="flex-1 px-5 py-10 md:px-10 lg:px-16">
+                  <PageTransition>{children}</PageTransition>
+                </main>
+              </div>
+            </div>
+          </div>
+        </AppProviders>
       </body>
     </html>
   );

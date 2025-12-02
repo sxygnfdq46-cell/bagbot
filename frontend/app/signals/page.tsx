@@ -1,308 +1,171 @@
 'use client';
 
-import { SciFiShell } from '../sci-fi-shell';
-import { HoloCard } from '../../design-system/components/cards/HoloCard';
-import { NeonTabs } from '../../design-system/components/tabs/NeonTabs';
-import { useTheme } from '../providers';
-import { useState, useEffect } from 'react';
-import PageTransition from '../../components/PageTransition';
-import AnimatedText from '../../components/AnimatedText';
-import AnimatedCard from '../../components/AnimatedCard';
-import { useAPIPoll } from '../../lib/hooks/useAPI';
-import { useWebSocket } from '../../lib/hooks/useWebSocket';
-import { SignalStorm, HoloRefract, ParticleUniverse } from '../../components/quantum/QuantumEffects';
-import { SignalRipple, AuroraStream, NeuralSynapse } from '../../components/ascension/AscensionEffects';
+import { useEffect, useState } from 'react';
+import Card from '@/components/ui/card';
+import Skeleton from '@/components/ui/skeleton';
+import Tag from '@/components/ui/tag';
+import { wsClient, type WsStatus } from '@/lib/ws-client';
+import { useToast } from '@/components/ui/toast-provider';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+
+type Signal = {
+  id: string;
+  asset: string;
+  action: 'LONG' | 'SHORT' | 'FLAT' | string;
+  confidence: number;
+  timestamp: string;
+  strength?: string;
+};
 
 export default function SignalsPage() {
-  const { theme } = useTheme();
-  const [rippleTrigger, setRippleTrigger] = useState(false);
-  const [activeTab, setActiveTab] = useState('all');
-  const [signalPulse, setSignalPulse] = useState(0);
-  const [auroraEvent, setAuroraEvent] = useState<number>(0);
+  const [signals, setSignals] = useState<Signal[]>([]);
+  const [status, setStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
+  const { notify } = useToast();
 
-  // Fetch recent signals with polling
-  const { data: signalsData } = useAPIPoll<any[]>('/api/signals/recent?limit=20', 2000);
-
-  // WebSocket for real-time signals
-  const { data: liveSignal } = useWebSocket<any>({
-    channel: 'signals',
-    enabled: true,
-    autoConnect: true,
-  });
-
-  // Level 5: Track signal pulse and trigger effects
   useEffect(() => {
-    if (liveSignal) {
-      const strength = liveSignal.strength || 50;
-      setSignalPulse(strength);
-      setRippleTrigger(true);
-      setAuroraEvent(Date.now());
-      setTimeout(() => setRippleTrigger(false), 300);
-    }
-  }, [liveSignal]);
+    let hasAnnouncedConnection = false;
+    let hasWarnedFailure = false;
+    setStatus('connecting');
 
-  const signals = signalsData ?? [
-    {
-      pair: 'BTC/USDT',
-      type: 'BUY',
-      price: '$67,842',
-      confidence: 92,
-      source: 'Neural Alpha',
-      time: '2m ago',
-    },
-    {
-      pair: 'ETH/USDT',
-      type: 'SELL',
-      price: '$3,421',
-      confidence: 87,
-      source: 'Mean Reversion',
-      time: '5m ago',
-    },
-    {
-      pair: 'SOL/USDT',
-      type: 'BUY',
-      price: '$142.80',
-      confidence: 95,
-      source: 'Breakout Hunter',
-      time: '8m ago',
-    },
-    {
-      pair: 'AVAX/USDT',
-      type: 'BUY',
-      price: '$38.92',
-      confidence: 78,
-      source: 'Grid Bot',
-      time: '12m ago',
-    },
-    {
-      pair: 'BTC/USDT',
-      type: 'SELL',
-      price: '$67,891',
-      confidence: 84,
-      source: 'Neural Alpha',
-      time: '15m ago',
-    },
-  ];
+    const unsubscribeStatus = wsClient.onStatusChange((nextStatus: WsStatus) => {
+      setStatus(nextStatus);
+      if (nextStatus === 'connected' && !hasAnnouncedConnection) {
+        hasAnnouncedConnection = true;
+        hasWarnedFailure = false;
+        notify({ title: 'Signal feed secure', description: 'Live stream locked in', variant: 'success' });
+      }
+      if (nextStatus === 'disconnected') {
+        if (hasAnnouncedConnection) {
+          hasAnnouncedConnection = false;
+          notify({ title: 'Signal feed closed', description: 'Connection dropped', variant: 'error' });
+        } else if (!hasWarnedFailure) {
+          hasWarnedFailure = true;
+          notify({ title: 'Signal feed unavailable', description: 'Unable to establish WebSocket channel', variant: 'error' });
+        }
+      }
+    });
+
+    const unsubscribeSignals = wsClient.subscribe('signals', (payload) => {
+      const normalized = normalizeSignal(payload);
+      if (!normalized) return;
+      setSignals((prev) => [normalized, ...prev].slice(0, 15));
+    });
+
+    return () => {
+      unsubscribeStatus();
+      unsubscribeSignals();
+    };
+  }, [notify]);
 
   return (
-    <SciFiShell>
-      {/* LEVEL 5: Aurora on signals */}
-      {auroraEvent > 0 && <AuroraStream event="signal" position="top" key={auroraEvent} />}
-      {rippleTrigger && <SignalRipple trigger={rippleTrigger} color="rgba(255, 0, 255, 0.6)" />}
-      
-      {/* LEVEL 4: Signal Storm Effect */}
-      <SignalStorm intensity={liveSignal ? 2 : 1} />
-      <ParticleUniverse enabled={true} />
-      
-      <PageTransition direction="up">
-        {/* LEVEL 5: Neural Synapse */}
-        <NeuralSynapse active={true} marketPulse={signalPulse}>
-      <div className="space-y-6">
-        {/* Page Header */}
+    <ProtectedRoute>
+      <div className="stack-gap-lg">
+        <div className="stack-gap-xxs">
+          <p className="metric-label text-[color:var(--accent-gold)]">Signal Fabric</p>
+          <div className="stack-gap-xxs">
+            <h1 className="text-3xl font-semibold">Monitor live conviction throughput</h1>
+            <p className="muted-premium max-w-2xl">
+              Every signal arrives with contextual confidence and strength markers so you can choreograph the execution layer in real time.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            <Tag variant={status === 'connected' ? 'success' : status === 'connecting' ? 'warning' : 'danger'}>
+              {status === 'connected' ? 'Link secured' : status === 'connecting' ? 'Negotiating link' : 'Link offline'}
+            </Tag>
+            <p className="metric-label text-xs uppercase tracking-[0.4em] text-[color:var(--accent-green)]">
+              WebSocket status: {status}
+            </p>
+          </div>
+        </div>
+
+        <Card title="Live Signals" subtitle="Streaming priority decisions">
+          <div className="divide-y divide-[color:var(--border-soft)]">
+            {signals.map((signal) => (
+              <SignalCard key={signal.id} signal={signal} />
+            ))}
+            {status === 'connecting' && signals.length === 0 && (
+              <div className="grid-premium py-4 sm:grid-cols-2">
+                {[0, 1, 2, 3].map((index) => (
+                  <Skeleton key={index} className="h-20 w-full" />
+                ))}
+              </div>
+            )}
+            {signals.length === 0 && status !== 'connecting' && (
+              <p className="py-6 text-sm muted-premium">Awaiting live signal feed...</p>
+            )}
+          </div>
+        </Card>
+      </div>
+    </ProtectedRoute>
+  );
+}
+
+function SignalCard({ signal }: { signal: Signal }) {
+  return (
+    <div className="data-soft-fade py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <AnimatedText variant="breathe-cyan">
-          <h1 
-            className="text-4xl font-bold neon-text mb-2"
-            style={{ color: theme.colors.neonCyan }}
-          >
-            Signal Feed
-          </h1>
-          </AnimatedText>
-          <p style={{ color: theme.text.tertiary }}>
-            Real-time trading signals from all active strategies
+          <p className="metric-label text-[color:var(--accent-green)]">{signal.asset}</p>
+          <p className="text-xs muted-premium">
+            {signal.timestamp ? new Date(signal.timestamp).toLocaleTimeString() : 'Just now'}
           </p>
         </div>
-
-        {/* Signal Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[
-            { label: 'Signals Today', value: '847', icon: '📡' },
-            { label: 'Avg Confidence', value: '86.4%', icon: '🎯' },
-            { label: 'Executed', value: '723', icon: '✅' },
-            { label: 'Success Rate', value: '79.2%', icon: '🏆' },
-          ].map((stat, idx) => (
-            <div
-              key={stat.label}
-              className="p-4 rounded glass-panel holo-border animate-fade-in-up"
-              style={{
-                background: 'rgba(255, 255, 255, 0.03)',
-                border: `1px solid ${theme.border.default}`,
-                animationDelay: `${0.1 + idx * 0.1}s`,
-              }}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-2xl">{stat.icon}</span>
-                <span className="text-sm" style={{ color: theme.text.tertiary }}>
-                  {stat.label}
-                </span>
-              </div>
-              <div 
-                className="text-2xl font-bold"
-                style={{ color: theme.colors.neonCyan }}
-              >
-                {stat.value}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Tabs */}
-        <NeonTabs
-          tabs={[
-            { id: 'all', label: 'All Signals', icon: '📡' },
-            { id: 'buy', label: 'Buy Only', icon: '📈' },
-            { id: 'sell', label: 'Sell Only', icon: '📉' },
-            { id: 'high', label: 'High Confidence', icon: '⭐' },
-          ]}
-          defaultTab={activeTab}
-          onChange={setActiveTab}
-        />
-
-        {/* Signals List */}
-        <div className="space-y-3">
-          {signals.map((signal: any, index: number) => (
-            <AnimatedCard key={signal.id || index} variant={signal.type === 'BUY' || signal.side === 'buy' ? 'pulse-green' : 'pulse-magenta'} delay={100 + index * 50}>
-            <HoloCard
-              glowColor={(signal.type === 'BUY' || signal.side === 'buy') ? 'cyan' : 'magenta'}
-            >
-              <div className="flex items-center justify-between">
-                {/* Left: Signal Type & Pair */}
-                <div className="flex items-center gap-4">
-                  <div
-                    className="w-16 h-16 rounded-lg flex items-center justify-center text-2xl font-bold"
-                    style={{
-                      background: signal.type === 'BUY' 
-                        ? 'rgba(0, 255, 170, 0.2)' 
-                        : 'rgba(255, 0, 85, 0.2)',
-                      border: `2px solid ${signal.type === 'BUY' ? theme.colors.success : theme.colors.error}`,
-                      boxShadow: signal.type === 'BUY'
-                        ? `0 0 20px ${theme.colors.success}`
-                        : `0 0 20px ${theme.colors.error}`,
-                      color: signal.type === 'BUY' ? theme.colors.success : theme.colors.error,
-                    }}
-                  >
-                    {signal.type === 'BUY' ? '↗' : '↘'}
-                  </div>
-                  <div>
-                    <h3 
-                      className="text-2xl font-bold mb-1"
-                      style={{ color: theme.text.primary }}
-                    >
-                      {signal.pair}
-                    </h3>
-                    <div className="flex items-center gap-3">
-                      <span 
-                        className="text-sm font-medium"
-                        style={{ color: theme.text.tertiary }}
-                      >
-                        Source: {signal.source}
-                      </span>
-                      <span 
-                        className="text-xs"
-                        style={{ color: theme.text.tertiary }}
-                      >
-                        {signal.time}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Center: Price & Confidence */}
-                <div className="flex items-center gap-8">
-                  <div className="text-center">
-                    <div className="text-sm mb-1" style={{ color: theme.text.tertiary }}>
-                      Target Price
-                    </div>
-                    <div 
-                      className="text-2xl font-bold"
-                      style={{ color: theme.colors.neonCyan }}
-                    >
-                      {signal.price}
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-sm mb-1" style={{ color: theme.text.tertiary }}>
-                      Confidence
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="text-2xl font-bold"
-                        style={{ 
-                          color: signal.confidence >= 90 
-                            ? theme.colors.success 
-                            : signal.confidence >= 80 
-                            ? theme.colors.neonCyan 
-                            : theme.colors.warning 
-                        }}
-                      >
-                        {signal.confidence}%
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right: Confidence Bar */}
-                <div className="w-32">
-                  <div 
-                    className="h-3 rounded-full overflow-hidden"
-                    style={{ background: 'rgba(255, 255, 255, 0.1)' }}
-                  >
-                    <div
-                      className="h-full animate-pulse-glow"
-                      style={{
-                        width: `${signal.confidence}%`,
-                        background: signal.confidence >= 90 
-                          ? theme.colors.success 
-                          : signal.confidence >= 80 
-                          ? theme.colors.neonCyan 
-                          : theme.colors.warning,
-                        boxShadow: `0 0 10px ${theme.colors.neonCyan}`,
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </HoloCard>
-            </AnimatedCard>
-          ))}
-        </div>
-
-        {/* Live Signal Stream Status */}
-        <AnimatedCard variant="pulse-cyan" delay={300}>
-        <HoloCard title="Signal Stream Status" subtitle="Real-time feed health" glowColor="cyan">
-          <div className="grid grid-cols-3 gap-6">
-            {[
-              { name: 'Neural Alpha', status: 'ACTIVE', signals: 342 },
-              { name: 'Mean Reversion', status: 'ACTIVE', signals: 287 },
-              { name: 'Breakout Hunter', status: 'ACTIVE', signals: 218 },
-            ].map((source) => (
-              <div key={source.name}>
-                <div className="flex items-center justify-between mb-2">
-                  <span style={{ color: theme.text.secondary }}>{source.name}</span>
-                  <span 
-                    className="px-2 py-1 rounded text-xs font-bold"
-                    style={{ 
-                      background: 'rgba(0, 255, 170, 0.2)',
-                      color: theme.colors.success 
-                    }}
-                  >
-                    {source.status}
-                  </span>
-                </div>
-                <div className="text-2xl font-bold mb-1" style={{ color: theme.colors.neonCyan }}>
-                  {source.signals}
-                </div>
-                <div className="text-xs" style={{ color: theme.text.tertiary }}>
-                  signals today
-                </div>
-              </div>
-            ))}
-          </div>
-        </HoloCard>
-        </AnimatedCard>
+        <Tag variant={signal.action === 'LONG' ? 'success' : signal.action === 'SHORT' ? 'danger' : 'warning'}>
+          {signal.action ?? 'HOLD'}
+        </Tag>
       </div>
-      </NeuralSynapse>
-      </PageTransition>
-    </SciFiShell>
+      <dl className="mt-4 grid-premium sm:grid-cols-3">
+        <div>
+          <dt className="metric-label">Confidence</dt>
+          <dd className="metric-value" data-variant="muted">
+            {Number.isFinite(signal.confidence) ? `${signal.confidence.toFixed(1)}%` : '0.0%'}
+          </dd>
+        </div>
+        <div>
+          <dt className="metric-label">Strength</dt>
+          <dd className="metric-value">
+            {signal.strength ?? 'Unranked'}
+          </dd>
+        </div>
+        <div>
+          <dt className="metric-label">Action clock</dt>
+          <dd className="metric-value text-base">
+            {signal.timestamp ? new Date(signal.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'}
+          </dd>
+        </div>
+      </dl>
+    </div>
   );
+}
+
+function normalizeSignal(payload: unknown): Signal | null {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+
+  const source = payload as Record<string, unknown>;
+  const asset = typeof source.asset === 'string'
+    ? source.asset
+    : typeof source.symbol === 'string'
+      ? source.symbol
+      : undefined;
+  if (!asset) return null;
+
+  const timestamp = typeof source.timestamp === 'string' ? source.timestamp : new Date().toISOString();
+  const action = typeof source.action === 'string'
+    ? source.action
+    : typeof source.direction === 'string'
+      ? source.direction
+      : 'HOLD';
+  const confidenceRaw = source.confidence ?? source.alignment;
+  const confidence = typeof confidenceRaw === 'number' ? confidenceRaw : 0;
+
+  return {
+    id: String(source.id ?? `${asset}-${timestamp}`),
+    asset,
+    action,
+    confidence,
+    timestamp,
+    strength: typeof source.strength === 'string' ? source.strength : undefined
+  };
 }

@@ -1,0 +1,27 @@
+:root {
+  color-scheme: light;
+}
+
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+:root[data-theme="light"] {
+  --bg-main: #fdf6f7;
+  --card-bg: #faf2f0;
+  --bg-card: var(--card-bg);
+  --text-primary: #2f2f2f;
+  --text-secondary: #5b5662;
+  --text-muted: #7b7584;
+  --text-main: var(--text-primary);
+  --accent-gold: #f5d97a;
+  --accent-green: #a6ffcb;
+  --accent-cyan: #78f6ff;
+  --accent-blue: #7ec7ff;
+  --accent-violet: #c1a8ff;
+  --border-soft: #e8e4dc;
+  --card-border: rgba(18, 23, 33, 0.08);
+  --glow-primary: rgba(245, 217, 122, 0.35);
+  --glow-secondary: rgba(120, 246, 255, 0.22);
+  --scrim: rgba(4, 6, 12, 0.6);
+}

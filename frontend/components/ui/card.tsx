@@ -1,43 +1,32 @@
-import React from 'react';
+"use client";
 
-export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  glowColor?: 'green' | 'yellow' | 'default';
-}
+import { ReactNode } from "react";
 
-export function Card({ className = '', glowColor = 'default', ...props }: CardProps) {
-  const glowClasses = {
-    green: 'border-primary hover-glow-green',
-    yellow: 'border-accent hover-glow-yellow',
-    default: 'border-cream'
-  };
+type CardProps = {
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  action?: ReactNode;
+  children: ReactNode;
+  padded?: boolean;
+};
 
+export default function Card({ title, subtitle, action, children, padded = true }: CardProps) {
   return (
-    <div
-      className={`card-clean-hover ${glowClasses[glowColor]} ${className}`}
-      {...props}
-    />
-  );
-}
-
-export interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> {}
-
-export function CardContent({ className = '', ...props }: CardContentProps) {
-  return <div className={`p-6 pt-0 ${className}`} {...props} />;
-}
-
-export interface CardHeaderProps extends React.HTMLAttributes<HTMLDivElement> {}
-
-export function CardHeader({ className = '', ...props }: CardHeaderProps) {
-  return <div className={`flex flex-col space-y-1.5 p-6 border-b border-cream ${className}`} {...props} />;
-}
-
-export interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {}
-
-export function CardTitle({ className = '', ...props }: CardTitleProps) {
-  return (
-    <h3
-      className={`text-2xl font-semibold leading-none tracking-tight text-primary ${className}`}
-      {...props}
-    />
+    <section className={`premium-card border border-[color:var(--border-soft)] bg-card shadow-card backdrop-blur-sm ${padded ? 'p-5 sm:p-6' : ''}`}>
+      {(title || subtitle || action) && (
+        <div className="card-section flex flex-wrap items-start justify-between gap-3 pb-4">
+          <div className="min-w-0 space-y-1">
+            {title && <h3 className="text-lg font-semibold leading-tight text-[color:var(--text-main)]">{title}</h3>}
+            {subtitle && (
+              <p className="text-sm muted-premium">
+                {subtitle}
+              </p>
+            )}
+          </div>
+          {action}
+        </div>
+      )}
+      {children}
+    </section>
   );
 }
