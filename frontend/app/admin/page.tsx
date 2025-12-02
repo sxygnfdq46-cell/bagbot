@@ -8,11 +8,13 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useToast } from '@/components/ui/toast-provider';
 import { adminApi, type AdminStrategy, type AdminUser, type SystemHealth } from '@/lib/api/admin';
 import { wsClient } from '@/lib/ws-client';
+import GlobalHero from '@/components/ui/global-hero';
 
 export default function AdminPage() {
   return (
     <ProtectedRoute requiredRole="admin">
       <div className="stack-gap-lg">
+        <GlobalHero description="Mission assurance controls for system stability, posture, and overrides." />
         <header className="stack-gap-xxs">
           <p className="metric-label text-[color:var(--accent-gold)]">Admin Control</p>
           <h1 className="page-title text-3xl font-semibold">Mission Assurance & Oversight</h1>

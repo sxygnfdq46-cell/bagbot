@@ -7,6 +7,7 @@ import Tag from '@/components/ui/tag';
 import { wsClient, type WsStatus } from '@/lib/ws-client';
 import { useToast } from '@/components/ui/toast-provider';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import GlobalHero from '@/components/ui/global-hero';
 
 type Signal = {
   id: string;
@@ -60,6 +61,7 @@ export default function SignalsPage() {
   return (
     <ProtectedRoute>
       <div className="stack-gap-lg">
+        <GlobalHero description="Track conviction throughput as signals stream from the core fabric." />
         <div className="stack-gap-xxs">
           <p className="metric-label text-[color:var(--accent-gold)]">Signal Fabric</p>
           <div className="stack-gap-xxs">

@@ -3,12 +3,12 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import Card from '@/components/ui/card';
 import Button from '@/components/ui/button';
-import ThemeToggle from '@/components/ui/theme-toggle';
 import Skeleton from '@/components/ui/skeleton';
 import Tag from '@/components/ui/tag';
 import { settings as settingsApi, type Preferences } from '@/lib/api/settings';
 import { useToast } from '@/components/ui/toast-provider';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import GlobalHero from '@/components/ui/global-hero';
 
 export default function SettingsPage() {
   const [apiKey, setApiKey] = useState('');
@@ -74,6 +74,7 @@ export default function SettingsPage() {
   return (
     <ProtectedRoute>
       <div className="stack-gap-lg">
+        <GlobalHero description="Align vault credentials, ambience, and notifications from one premium surface." />
         <div className="stack-gap-xxs">
           <p className="metric-label text-[color:var(--accent-gold)]">System Settings</p>
           <div className="stack-gap-xxs">
@@ -125,12 +126,9 @@ export default function SettingsPage() {
         </Card>
 
         <Card title="Theme" subtitle="Instant ambiance switch">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <p className="muted-premium">
-              Synchronize UI mode with trading desk lighting.
-            </p>
-            <ThemeToggle />
-          </div>
+          <p className="muted-premium">
+            Use the global toggle anchored to the sidebar footer to choose between Light Luxe and Noir mode.
+          </p>
         </Card>
 
         <Card title="Preferences" subtitle="Tailor system signals to you">

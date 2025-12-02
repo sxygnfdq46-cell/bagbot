@@ -4,7 +4,6 @@ import { Inter } from "next/font/google";
 import { ReactNode } from "react";
 import "@/styles/globals.css";
 import Sidebar from "@/components/ui/sidebar";
-import Navbar from "@/components/ui/navbar";
 import AppProviders from "@/components/app-providers";
 import PageTransition from "@/components/ui/page-transition";
 
@@ -43,7 +42,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <div className="flex min-h-screen">
               <Sidebar />
               <div className="flex flex-1 flex-col">
-                <Navbar />
                 <main className="flex-1 px-5 py-10 md:px-10 lg:px-16">
                   <PageTransition>{children}</PageTransition>
                 </main>

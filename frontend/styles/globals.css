@@ -145,45 +145,6 @@ main {
   }
 }
 
-.nav-link {
-  position: relative;
-  padding: 0.35rem 0.9rem;
-  border-radius: 999px;
-  color: color-mix(in srgb, var(--text-main) 85%, var(--accent-cyan) 15%);
-  opacity: 0.75;
-  transition: color 160ms ease, opacity 160ms ease, text-shadow 200ms ease;
-}
-
-.nav-link::after {
-  content: "";
-  position: absolute;
-  inset: -4px;
-  border-radius: inherit;
-  background: radial-gradient(circle, rgba(0, 255, 213, 0.15), transparent 65%);
-  filter: blur(8px);
-  opacity: 0;
-  transition: opacity 200ms ease;
-  z-index: -1;
-}
-
-.nav-link:hover {
-  opacity: 1;
-}
-
-.nav-link:hover::after {
-  opacity: 0.4;
-}
-
-.nav-link--active {
-  color: var(--accent-gold);
-  text-shadow: 0 0 12px rgba(255, 215, 0, 0.45);
-}
-
-.nav-link--active::after {
-  opacity: 0.65;
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.45), transparent 70%);
-}
-
 .nav-pill {
   position: relative;
   display: flex;

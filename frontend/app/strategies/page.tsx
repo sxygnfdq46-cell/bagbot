@@ -8,6 +8,7 @@ import { strategies as strategiesApi, type Strategy } from '@/lib/api/strategies
 import { useToast } from '@/components/ui/toast-provider';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import Tag from '@/components/ui/tag';
+import GlobalHero from '@/components/ui/global-hero';
 
 export default function StrategiesPage() {
   const [strategies, setStrategies] = useState<Strategy[]>([]);
@@ -62,6 +63,7 @@ export default function StrategiesPage() {
   return (
     <ProtectedRoute>
       <div className="stack-gap-lg">
+        <GlobalHero description="Curate and choreograph the strategies that deserve live capital." />
         <div className="stack-gap-xxs">
           <p className="metric-label text-[color:var(--accent-gold)]">Strategy Control</p>
           <div className="stack-gap-xxs">

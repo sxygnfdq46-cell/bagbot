@@ -3,6 +3,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import Button from '@/components/ui/button';
 
+type ThemeToggleProps = {
+  className?: string;
+};
+
 type ThemeMode = 'light' | 'dark';
 
 const STORAGE_KEY = 'bagbot-theme';
@@ -35,7 +39,7 @@ const resolveInitialTheme = (): ThemeMode => {
   return 'light';
 };
 
-export default function ThemeToggle() {
+export default function ThemeToggle({ className = '' }: ThemeToggleProps) {
   const [theme, setTheme] = useState<ThemeMode>(resolveInitialTheme);
 
   const applyTheme = useCallback((next: ThemeMode, persist = true) => {
@@ -91,7 +95,7 @@ export default function ThemeToggle() {
     <Button
       variant="secondary"
       onClick={toggle}
-      className="w-full justify-between sm:min-w-[140px]"
+      className={`w-full justify-between sm:min-w-[140px] ${className}`.trim()}
       aria-pressed={theme === 'dark'}
     >
       <span>{theme === 'light' ? 'Light Luxe' : 'Noir Mode'}</span>

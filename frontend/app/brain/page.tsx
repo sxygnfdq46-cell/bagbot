@@ -8,11 +8,13 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useToast } from '@/components/ui/toast-provider';
 import { brainApi, type BrainDecision, type BrainLink } from '@/lib/api/brain';
 import { wsClient, type WsStatus } from '@/lib/ws-client';
+import GlobalHero from '@/components/ui/global-hero';
 
 export default function BrainPage() {
   return (
     <ProtectedRoute>
       <div className="stack-gap-lg">
+        <GlobalHero description="Audit and steer the neural fabric powering Bagbot's live intelligence." />
         <header className="stack-gap-xxs">
           <p className="metric-label text-[color:var(--accent-gold)]">Brain Intelligence</p>
           <h1 className="page-title text-3xl font-semibold">Neural Command Surface</h1>
