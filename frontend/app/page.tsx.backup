@@ -1,0 +1,242 @@
+'use client';
+
+import { SciFiShell } from './sci-fi-shell';
+import { HoloCard } from '@/design-system/components/cards/HoloCard';
+import { HoloButton } from '@/design-system/components/buttons/HoloButton';
+import { HUDWidget } from '@/design-system/components/hud/HUDWidget';
+import { useTheme } from './providers';
+import PageTransition from '@/components/PageTransition';
+import AnimatedText from '@/components/AnimatedText';
+import AnimatedCard from '@/components/AnimatedCard';
+import ParallaxContainer from '@/components/ParallaxContainer';
+
+export default function HomePage() {
+  const { theme } = useTheme();
+
+  return (
+    <SciFiShell>
+      <PageTransition direction="up">
+        <ParallaxContainer intensity={0.3}>
+          <div className="space-y-8">
+            {/* Hero Section */}
+            <div className="text-center py-12" data-parallax="0.2">
+          <h1 
+            className="text-7xl font-extrabold neon-text-strong mb-4 tracking-tight"
+            style={{ color: theme.colors.neonCyan }}
+          >
+            <AnimatedText variant="breathe-cyan">BAGBOT 2.0</AnimatedText>
+          </h1>
+          <p 
+            className="text-2xl mb-6"
+            style={{ color: theme.text.secondary }}
+          >
+            The World's Most Futuristic Trading Interface
+          </p>
+          <p 
+            className="text-lg mb-8"
+            style={{ color: theme.text.tertiary }}
+          >
+            Alien technology. Human profits. Zero compromises.
+          </p>
+          <div className="flex gap-4 justify-center">
+            <HoloButton variant="primary" size="lg" className="hover-lift hover-glow transition-smooth">
+              Launch Dashboard →
+            </HoloButton>
+            <HoloButton variant="secondary" size="lg" className="hover-lift hover-glow transition-smooth">
+              View Strategies
+            </HoloButton>
+          </div>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-parallax="0.4">
+              <div className="fade-in-up" style={{ animationDelay: '0.1s' }}>
+                <HUDWidget
+                  title="System Status"
+                  value="ONLINE"
+                  icon="🟢"
+                  color="success"
+                />
+              </div>
+              <div className="fade-in-up" style={{ animationDelay: '0.2s' }}>
+                <HUDWidget
+                  title="Active Strategies"
+                  value="12"
+                  icon="🎯"
+                  color="cyan"
+                  trend="up"
+                  trendValue="+3"
+                />
+              </div>
+              <div className="fade-in-up" style={{ animationDelay: '0.3s' }}>
+                <HUDWidget
+                  title="24H Profit"
+                  value="$24,891"
+                  icon="💰"
+                  color="success"
+                  trend="up"
+                  trendValue="+12.4%"
+                />
+              </div>
+              <div className="fade-in-up" style={{ animationDelay: '0.4s' }}>
+                <HUDWidget
+                  title="Total Trades"
+                  value="1,847"
+                  icon="📊"
+                  color="magenta"
+                  trend="up"
+                  trendValue="+156"
+                />
+              </div>
+            </div>
+
+            {/* Features Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6" data-parallax="0.5">
+              <AnimatedCard variant="pulse-cyan" delay={100}>
+                <HoloCard
+                  title="Neural Decision Engine"
+                  subtitle="AI-powered strategy optimization"
+                  glowColor="cyan"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">🧠</span>
+                      <div>
+                        <div className="font-semibold" style={{ color: theme.text.primary }}>
+                          Adaptive Learning
+                        </div>
+                        <div className="text-sm" style={{ color: theme.text.tertiary }}>
+                          Evolves with market conditions
+                        </div>
+                      </div>
+                    </div>
+                    <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255, 255, 255, 0.1)' }}>
+                      <div 
+                        className="h-full animate-pulse-glow"
+                        style={{ 
+                          width: '87%', 
+                          background: theme.colors.neonCyan,
+                          boxShadow: theme.shadows.glow.cyan 
+                        }}
+                      />
+                    </div>
+                  </div>
+                </HoloCard>
+              </AnimatedCard>
+
+              <AnimatedCard variant="pulse-magenta" delay={200}>
+                <HoloCard
+                  title="Real-Time Signal Processing"
+                  subtitle="Microsecond execution latency"
+                  glowColor="magenta"
+                >
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">⚡</span>
+                <div>
+                  <div className="font-semibold" style={{ color: theme.text.primary }}>
+                    Ultra-Fast Execution
+                  </div>
+                  <div className="text-sm" style={{ color: theme.text.tertiary }}>
+                    < 100μs order processing
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                {[85, 92, 78, 95, 88, 91, 94].map((val, i) => (
+                  <div 
+                    key={i}
+                    className="flex-1 rounded-t animate-float"
+                    style={{ 
+                      height: `${val}px`,
+                      background: theme.colors.neonMagenta,
+                      boxShadow: theme.shadows.glow.magenta,
+                      animationDelay: `${i * 0.1}s`
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          </HoloCard>
+          </AnimatedCard>
+
+          <AnimatedCard variant="pulse-green" delay={300}>
+            <HoloCard
+              title="Multi-Exchange Coverage"
+            subtitle="Unified interface for all major exchanges"
+            glowColor="teal"
+          >
+            <div className="grid grid-cols-4 gap-3">
+              {['Binance', 'Coinbase', 'Kraken', 'Bybit'].map((exchange) => (
+                <div
+                  key={exchange}
+                  className="text-center p-3 rounded glass-panel"
+                  style={{
+                    background: 'rgba(0, 255, 170, 0.1)',
+                    border: `1px solid ${theme.border.default}`,
+                  }}
+                >
+                  <div className="text-xs font-semibold" style={{ color: theme.colors.neonTeal }}>
+                    {exchange}
+                  </div>
+                </div>
+              ))}}
+            </div>
+          </HoloCard>
+          </AnimatedCard>
+
+          <AnimatedCard variant="pulse-cyan" delay={400}>
+            <HoloCard
+              title="Advanced Risk Management"
+            subtitle="Protect your capital with precision"
+            glowColor="cyan"
+          >
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span style={{ color: theme.text.secondary }}>Max Drawdown</span>
+                <span className="font-bold" style={{ color: theme.colors.success }}>5.2%</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span style={{ color: theme.text.secondary }}>Risk Per Trade</span>
+                <span className="font-bold" style={{ color: theme.colors.info }}>1.5%</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span style={{ color: theme.text.secondary }}>Sharpe Ratio</span>
+                <span className="font-bold" style={{ color: theme.colors.neonCyan }}>2.8</span>
+              </div>
+            </div>
+          </HoloCard>
+          </AnimatedCard>
+        </div>
+
+        {/* CTA Section */}
+        <div 
+          className="text-center py-12 rounded-lg glass-panel holo-border fade-in-up"
+          data-parallax="0.6"
+          style={{
+            background: 'rgba(0, 246, 255, 0.05)',
+            border: `1px solid ${theme.border.default}`,
+          }}
+        >
+          <h2 
+            className="text-3xl font-bold mb-4"
+            style={{ color: theme.colors.neonCyan }}
+          >
+            Ready to Trade Like It's 2490?
+          </h2>
+          <p 
+            className="text-lg mb-6"
+            style={{ color: theme.text.secondary }}
+          >
+            Join the future of algorithmic trading. Experience the interface that shouldn't exist yet.
+          </p>
+          <HoloButton variant="primary" size="lg" className="hover-lift hover-glow pulse-scale transition-smooth">
+            Start Trading Now →
+          </HoloButton>
+        </div>
+          </div>
+        </ParallaxContainer>
+      </PageTransition>
+    </SciFiShell>
+  );
+}
