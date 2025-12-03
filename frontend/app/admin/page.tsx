@@ -11,6 +11,8 @@ import MetricLabel from '@/components/ui/metric-label';
 import TerminalShell from '@/components/ui/terminal-shell';
 
 export default function AdminPage() {
+  const safeModeStatus = 'PREVIEW';
+  const safeModeHint = 'Mission control only';
   return (
     <TerminalShell className="stack-gap-lg">
       <GlobalHeroBadge
@@ -18,8 +20,13 @@ export default function AdminPage() {
         metaText="MISSION ASSURANCE"
         title="Admin Oversight"
         description="Mission assurance controls for system stability, posture, and overrides."
-        statusLabel="Safe Mode"
-        statusValue="Preview"
+        statusAdornment={
+          <div>
+            <MetricLabel className="text-[color:var(--accent-gold)]">Safe Mode</MetricLabel>
+            <p className="text-lg font-semibold text-[color:var(--text-main)]">{safeModeStatus}</p>
+            <span className="status-indicator text-[color:var(--accent-gold)]">{safeModeHint}</span>
+          </div>
+        }
       />
       <section className="stack-gap-sm w-full">
         <header className="stack-gap-xxs w-full">

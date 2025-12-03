@@ -5,10 +5,20 @@ export type MiniChart = { symbol: string; change: number; points: number[]; volu
 export type LiveFeedEvent = { id: string; channel: string; latency: number; payload: string };
 export type ChartOverviewStat = { label: string; value: string; accent: string };
 
+export type Candle = {
+  timestamp: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+};
+
 export type ChartSnapshot = {
   asset: string;
   timeframe: string;
   series: PricePoint[];
+  candles: Candle[];
   overview: ChartOverviewStat[];
   miniCharts: MiniChart[];
   pulse: number[];
@@ -33,6 +43,13 @@ const noisePoint = (anchor: number) => {
 
 const sparkline = (anchor: number, length = 32) => Array.from({ length }, () => noisePoint(anchor));
 
+const timeframeToMinutes: Record<string, number> = {
+  '1H': 60,
+  '4H': 240,
+  '1D': 1440,
+  '1W': 10080
+};
+
 const buildSeries = (asset: string): PricePoint[] => {
   const base = basePrice(asset);
   const length = 140;
@@ -43,6 +60,35 @@ const buildSeries = (asset: string): PricePoint[] => {
     series.push({ timestamp: Date.now() - (length - i) * 60_000, value: Math.max(current, 1) });
   }
   return series;
+};
+
+const buildCandles = (asset: string, timeframe: string): Candle[] => {
+  const base = basePrice(asset);
+  const length = 120;
+  const candles: Candle[] = [];
+  let cursor = base;
+  const minutes = timeframeToMinutes[timeframe] ?? 60;
+  const stepMs = minutes * 60_000;
+
+  for (let i = 0; i < length; i += 1) {
+    const open = cursor;
+    const drift = (Math.random() - 0.5) * (base * 0.0025);
+    const close = Math.max(1, open + drift);
+    const high = Math.max(open, close) + Math.random() * (base * 0.0015);
+    const low = Math.min(open, close) - Math.random() * (base * 0.0015);
+    const volume = Math.max(10, Math.random() * base * 1200);
+    candles.push({
+      timestamp: Date.now() - (length - i) * stepMs,
+      open,
+      high,
+      low,
+      close,
+      volume
+    });
+    cursor = close;
+  }
+
+  return candles;
 };
 
 const buildMiniCharts = (): MiniChart[] =>
@@ -73,6 +119,7 @@ let chartSnapshot: ChartSnapshot = {
   asset: ASSETS[0],
   timeframe: TIMEFRAMES[0],
   series: buildSeries(ASSETS[0]),
+  candles: buildCandles(ASSETS[0], TIMEFRAMES[0]),
   overview: buildOverview(),
   miniCharts: buildMiniCharts(),
   pulse: seedPulse(),
@@ -95,6 +142,7 @@ export const chartsApi = {
       asset,
       timeframe,
       series: buildSeries(asset),
+      candles: buildCandles(asset, timeframe),
       overview: buildOverview(),
       miniCharts: buildMiniCharts(),
       pulse: chartSnapshot.pulse,

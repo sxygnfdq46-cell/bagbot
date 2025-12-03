@@ -19,6 +19,8 @@ import MetricLabel from '@/components/ui/metric-label';
 import TerminalShell from '@/components/ui/terminal-shell';
 
 export default function BrainPage() {
+  const telemetryStatus = 'LIVE';
+  const telemetryHint = 'Neural stream stable';
   return (
     <TerminalShell className="stack-gap-lg">
         <GlobalHeroBadge
@@ -26,8 +28,13 @@ export default function BrainPage() {
           metaText="INTELLIGENCE"
           title="Brain Command Surface"
           description="Audit and steer the neural fabric powering Bagbot's live intelligence."
-          statusLabel="Telemetry"
-          statusValue="Live"
+          statusAdornment={
+            <div>
+              <MetricLabel className="text-[color:var(--accent-gold)]">Telemetry</MetricLabel>
+              <p className="text-lg font-semibold text-[color:var(--text-main)]">{telemetryStatus}</p>
+              <span className="status-indicator text-[color:var(--accent-violet)]">{telemetryHint}</span>
+            </div>
+          }
         />
         <section className="stack-gap-sm w-full">
           <header className="stack-gap-xxs w-full">

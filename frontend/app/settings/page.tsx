@@ -71,6 +71,8 @@ export default function SettingsPage() {
 
   const credentialStatus = savingKeys ? 'warning' : apiKey ? 'success' : 'default';
   const preferencesStatus = savingPrefs ? 'warning' : loadingPrefs ? 'default' : 'success';
+  const vaultStatus = savingKeys ? 'ENCRYPTING' : apiKey ? 'KEY STORED' : 'PENDING INPUT';
+  const vaultHint = savingKeys ? 'Sealing credentials' : apiKey ? 'Vault secured' : 'Awaiting API keys';
 
   return (
     <TerminalShell className="stack-gap-lg w-full">
@@ -79,8 +81,13 @@ export default function SettingsPage() {
         metaText="PREMIUM VAULT"
         title="BagBot Preferences"
         description="Align vault credentials, ambience, and notifications from one premium surface."
-        statusLabel="Vault"
-        statusValue={apiKey ? 'Key stored' : 'Pending'}
+        statusAdornment={
+          <div>
+            <MetricLabel className="text-[color:var(--accent-gold)]">Vault</MetricLabel>
+            <p className="text-lg font-semibold text-[color:var(--text-main)]">{vaultStatus}</p>
+            <span className="status-indicator text-[color:var(--accent-violet)]">{vaultHint}</span>
+          </div>
+        }
       />
       <section className="stack-gap-sm w-full">
         <header className="stack-gap-xxs w-full">

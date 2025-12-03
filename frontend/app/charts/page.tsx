@@ -1,15 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Card from "@/components/ui/card";
 import Button from "@/components/ui/button";
 import Skeleton from "@/components/ui/skeleton";
-import PriceChart from "@/components/ui/price-chart";
+import CandlestickChart from "@/components/ui/candlestick-chart";
 import Sparkline from "@/components/ui/sparkline";
 import GlobalHeroBadge from "@/components/ui/global-hero-badge";
 import MetricLabel from "@/components/ui/metric-label";
 import TerminalShell from "@/components/ui/terminal-shell";
-import { chartsApi, type ChartOverviewStat, type LiveFeedEvent, type MiniChart, type PricePoint } from "@/lib/api/charts";
+import {
+  chartsApi,
+  type Candle,
+  type ChartOverviewStat,
+  type LiveFeedEvent,
+  type MiniChart
+} from "@/lib/api/charts";
 
 const TIMEFRAMES = chartsApi.listTimeframes();
 const ASSETS = chartsApi.listAssets();
@@ -17,25 +23,36 @@ const ASSETS = chartsApi.listAssets();
 export default function ChartsPage() {
   const [timeframe, setTimeframe] = useState(TIMEFRAMES[0]);
   const [asset, setAsset] = useState(ASSETS[0]);
-  const [chartPoints, setChartPoints] = useState<PricePoint[]>([]);
+  const [candles, setCandles] = useState<Candle[]>([]);
   const [miniCharts, setMiniCharts] = useState<MiniChart[]>([]);
   const [overviewStats, setOverviewStats] = useState<ChartOverviewStat[]>([]);
   const [pulse, setPulse] = useState<number[]>([]);
   const [feed, setFeed] = useState<LiveFeedEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [chartMode, setChartMode] = useState<"full" | "mini">("full");
+  const [activeCandle, setActiveCandle] = useState<Candle | null>(null);
+  const heroFeedStatus = `SYNCED • ${timeframe.toUpperCase()}`;
+  const heroHint = `Asset ${asset}`;
+
+  const applySnapshot = useCallback((snapshot: Awaited<ReturnType<typeof chartsApi.getSnapshot>>) => {
+    setCandles(snapshot.candles);
+    setActiveCandle(snapshot.candles.at(-1) ?? null);
+    setMiniCharts(snapshot.miniCharts);
+    setOverviewStats(snapshot.overview);
+    setPulse(snapshot.pulse);
+    setFeed(snapshot.feed);
+  }, []);
+
+  const loadSnapshot = useCallback(() => chartsApi.getSnapshot(asset, timeframe), [asset, timeframe]);
 
   useEffect(() => {
     let mounted = true;
     setLoading(true);
-    chartsApi
-      .getSnapshot(asset, timeframe)
-      .then((response) => {
+    loadSnapshot()
+      .then((snapshot) => {
         if (!mounted) return;
-        setChartPoints(response.series);
-        setMiniCharts(response.miniCharts);
-        setOverviewStats(response.overview);
-        setPulse(response.pulse);
-        setFeed(response.feed);
+        applySnapshot(snapshot);
       })
       .catch((error) => {
         if (!mounted) return;
@@ -47,7 +64,19 @@ export default function ChartsPage() {
     return () => {
       mounted = false;
     };
-  }, [asset, timeframe]);
+  }, [loadSnapshot, applySnapshot]);
+
+  const handleRefresh = useCallback(async () => {
+    try {
+      setRefreshing(true);
+      const snapshot = await loadSnapshot();
+      applySnapshot(snapshot);
+    } catch (error) {
+      console.warn('[charts] manual refresh failed', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [applySnapshot, loadSnapshot]);
 
   useEffect(() => {
     let mounted = true;
@@ -78,8 +107,13 @@ export default function ChartsPage() {
           metaText="LIGHT LUXE"
           title="Charts Intelligence"
           description="Layered telemetry for every trade desk. Pin, compare, and stage premium visualizations without leaving the terminal."
-          statusLabel="Feed"
-          statusValue={`Synced • ${timeframe}`}
+          statusAdornment={
+            <div>
+              <MetricLabel className="text-[color:var(--accent-gold)]">Feed</MetricLabel>
+              <p className="text-lg font-semibold text-[color:var(--text-main)]">{heroFeedStatus}</p>
+              <span className="status-indicator text-[color:var(--accent-cyan)]">{heroHint}</span>
+            </div>
+          }
         />
 
       <section className="stack-gap-sm w-full">
@@ -92,12 +126,13 @@ export default function ChartsPage() {
         </header>
       </section>
 
-      <Card title="Multi-section browser" subtitle="Dial-in timeframe + asset contexts">
-        <div className="stack-gap-md">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="stack-gap-xxs">
-              <MetricLabel>Timeframe</MetricLabel>
-              <div className="flex flex-wrap gap-2">
+      <Card title="Candlestick Surface" subtitle="Premium OHLC command center">
+        <div className="stack-gap-lg">
+          <div className="stack-gap-xxs">
+            <div className="flex flex-wrap items-end gap-4">
+              <div className="stack-gap-xxs">
+                <MetricLabel>Timeframe</MetricLabel>
+                <div className="flex flex-wrap gap-2">
                   {TIMEFRAMES.map((frame) => (
                     <Button
                       key={frame}
@@ -109,23 +144,93 @@ export default function ChartsPage() {
                       {frame}
                     </Button>
                   ))}
+                </div>
               </div>
-            </div>
-            <div className="stack-gap-xxs">
-              <MetricLabel>Asset</MetricLabel>
-              <select
-                className="field-premium field-premium--select min-w-[180px]"
-                value={asset}
-                onChange={(event) => setAsset(event.target.value)}
-              >
+              <div className="stack-gap-xxs">
+                <MetricLabel>Asset</MetricLabel>
+                <select
+                  className="field-premium field-premium--select min-w-[180px]"
+                  value={asset}
+                  onChange={(event) => setAsset(event.target.value)}
+                >
                   {ASSETS.map((ticker) => (
                     <option key={ticker} value={ticker}>
                       {ticker}
                     </option>
                   ))}
-              </select>
+                </select>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  variant={chartMode === 'full' ? 'secondary' : 'ghost'}
+                  onClick={() => setChartMode('full')}
+                  aria-pressed={chartMode === 'full'}
+                >
+                  Full view
+                </Button>
+                <Button
+                  variant={chartMode === 'mini' ? 'secondary' : 'ghost'}
+                  onClick={() => setChartMode('mini')}
+                  aria-pressed={chartMode === 'mini'}
+                >
+                  Mini view
+                </Button>
+                <Button variant="secondary" onClick={handleRefresh} isLoading={refreshing} className="!px-4 !py-2">
+                  Refresh
+                </Button>
+              </div>
+            </div>
+            <p className="muted-premium text-sm">
+              Crosshair, tooltip, volume, and OHLC data are wired locally. Placeholder controls remain ready for backend streaming contracts.
+            </p>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+            <CandlestickChart candles={candles} mode={chartMode} loading={loading || refreshing} onHover={setActiveCandle} />
+            <div className="info-tablet stack-gap-sm">
+              <MetricLabel>OHLC Panel</MetricLabel>
+              {activeCandle ? (
+                <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
+                  <div>
+                    <dt className="opacity-70">Open</dt>
+                    <dd className="font-semibold">{activeCandle.open.toFixed(2)}</dd>
+                  </div>
+                  <div>
+                    <dt className="opacity-70">High</dt>
+                    <dd className="font-semibold">{activeCandle.high.toFixed(2)}</dd>
+                  </div>
+                  <div>
+                    <dt className="opacity-70">Low</dt>
+                    <dd className="font-semibold">{activeCandle.low.toFixed(2)}</dd>
+                  </div>
+                  <div>
+                    <dt className="opacity-70">Close</dt>
+                    <dd className="font-semibold">{activeCandle.close.toFixed(2)}</dd>
+                  </div>
+                  <div>
+                    <dt className="opacity-70">Volume</dt>
+                    <dd className="font-semibold">{activeCandle.volume.toFixed(0)}</dd>
+                  </div>
+                  <div>
+                    <dt className="opacity-70">Timestamp</dt>
+                    <dd className="font-semibold">{new Date(activeCandle.timestamp).toLocaleString()}</dd>
+                  </div>
+                </dl>
+              ) : (
+                <Skeleton className="h-32 w-full" />
+              )}
+              <div className="rounded-2xl border border-dashed border-[color:var(--border-soft)] p-3 text-xs">
+                <p className="text-[color:var(--accent-gold)]">Backend wiring placeholder</p>
+                <p className="mt-1 text-sm text-[color:var(--text-main)] opacity-70">
+                  WebSocket + REST endpoints will bind here for live executions once the contracts land in Phase 4.
+                </p>
+                <Button variant="ghost" className="mt-3 w-full opacity-70" disabled>
+                  Awaiting feed binding
+                </Button>
+              </div>
             </div>
           </div>
+
           <div className="grid-premium sm:grid-cols-2 lg:grid-cols-4">
             {overviewStats.map((stat) => (
               <div key={stat.label} className="info-tablet">
@@ -157,22 +262,6 @@ export default function ChartsPage() {
               </div>
             </div>
           ))}
-        </div>
-      </Card>
-      <Card title="Deep dive" subtitle="Full-width market structure" padded={false}>
-        <div className="stack-gap-lg p-5 sm:p-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <MetricLabel>{asset}</MetricLabel>
-              <h2 className="text-3xl font-semibold">Premium liquidity track</h2>
-            </div>
-            <Button variant="secondary" isLoading={loading}>
-              Refresh trace
-            </Button>
-          </div>
-          <div className="rounded-[1.25rem] border border-[color:var(--border-soft)] bg-base/80 p-4">
-            {loading ? <Skeleton className="h-48 w-full" /> : <PriceChart points={chartPoints} />}
-          </div>
         </div>
       </Card>
       <Card title="Stream monitor" subtitle="WebSocket placeholder feed">

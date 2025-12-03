@@ -114,8 +114,13 @@ export default function BotControlCenterPage() {
         metaText="CONTROL CENTER"
         title="Bot Control Center"
         description="Command, audit, and stage BagBot's automation core. Every control reacts instantly inside the premium surface."
-        statusLabel="Mode"
-        statusValue={status.toUpperCase()}
+        statusAdornment={
+          <div>
+            <p className="metric-label text-[color:var(--accent-gold)]">Mode</p>
+            <p className="text-lg font-semibold text-[color:var(--text-main)]">{status.toUpperCase()}</p>
+            <span className="status-indicator text-[color:var(--accent-gold)]">Auto-refresh</span>
+          </div>
+        }
       />
 
       <section className="stack-gap-sm w-full">

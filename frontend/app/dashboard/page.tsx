@@ -19,6 +19,8 @@ export default function DashboardPage() {
   const { loading, error, prices, positions, trades, status, portfolioValue, totalPnl, chartPoints, reload } =
     useDashboardData();
   const { notify } = useToast();
+  const heroMode = status?.mode ? status.mode.toUpperCase() : 'STANDBY';
+  const heroHint = status?.latencyMs ? `${status.latencyMs} ms latency` : 'Live telemetry';
 
   useEffect(() => {
     if (error) {
@@ -34,8 +36,13 @@ export default function DashboardPage() {
           metaText="LIVE INTELLIGENCE"
           title="Command Dashboard"
           description="Live telemetry across portfolio value, system health, and execution feeds."
-          statusLabel="Mode"
-          statusValue={status?.mode ?? "Standby"}
+          statusAdornment={
+            <div>
+              <MetricLabel className="text-[color:var(--accent-gold)]">Mode</MetricLabel>
+              <p className="text-lg font-semibold text-[color:var(--text-main)]">{heroMode}</p>
+              <span className="status-indicator text-[color:var(--accent-cyan)]">{heroHint}</span>
+            </div>
+          }
         />
         <section className="stack-gap-sm w-full">
           <header className="stack-gap-xxs w-full">

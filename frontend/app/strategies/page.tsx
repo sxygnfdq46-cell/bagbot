@@ -60,6 +60,8 @@ export default function StrategiesPage() {
     const totalPnl = enabled.reduce((acc, strategy) => acc + (strategy.stats?.pnl ?? 0), 0);
     return { enabled: enabled.length, avgWinRate, totalPnl };
   }, [strategies]);
+  const enabledCopy = loading ? 'SYNCING' : `${statsSummary.enabled} LIVE`;
+  const enabledHint = loading ? 'Refreshing stack' : 'Execution ready';
 
   return (
     <TerminalShell className="stack-gap-lg w-full">
@@ -68,8 +70,13 @@ export default function StrategiesPage() {
         metaText="EXECUTION STACK"
         title="Strategy Orchestration"
         description="Curate and choreograph the systems that deserve live capital."
-        statusLabel="Enabled"
-        statusValue={loading ? 'Syncing' : `${statsSummary.enabled}`}
+        statusAdornment={
+          <div>
+            <MetricLabel className="text-[color:var(--accent-gold)]">Enabled</MetricLabel>
+            <p className="text-lg font-semibold text-[color:var(--text-main)]">{enabledCopy}</p>
+            <span className="status-indicator text-[color:var(--accent-green)]">{enabledHint}</span>
+          </div>
+        }
       />
 
       <section className="stack-gap-sm w-full">

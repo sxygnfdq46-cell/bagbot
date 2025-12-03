@@ -15,6 +15,8 @@ export default function SignalsPage() {
   const [status, setStatus] = useState<SignalStatus>('connecting');
   const [loading, setLoading] = useState(true);
   const { notify } = useToast();
+  const heroStatus = status === 'connected' ? 'LINK LIVE' : status === 'connecting' ? 'DIALING' : 'DEGRADED';
+  const heroHint = status === 'connected' ? 'Streaming core feed' : status === 'connecting' ? 'Negotiating link' : 'Holding cache';
 
   useEffect(() => {
     let mounted = true;
@@ -64,8 +66,13 @@ export default function SignalsPage() {
           metaText="LIVE LINK"
           title="Signal Intelligence"
           description="Track conviction throughput as signals stream from the core fabric."
-          statusLabel="Link"
-          statusValue={status === 'connected' ? 'Live' : status === 'connecting' ? 'Dialing' : 'Degraded'}
+          statusAdornment={
+            <div>
+              <MetricLabel className="text-[color:var(--accent-gold)]">Link</MetricLabel>
+              <p className="text-lg font-semibold text-[color:var(--text-main)]">{heroStatus}</p>
+              <span className="status-indicator text-[color:var(--accent-cyan)]">{heroHint}</span>
+            </div>
+          }
         />
         <section className="stack-gap-sm w-full">
           <header className="stack-gap-xxs w-full">
