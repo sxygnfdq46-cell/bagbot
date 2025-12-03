@@ -4,64 +4,69 @@ import { useEffect, useState } from 'react';
 import Card from '@/components/ui/card';
 import Skeleton from '@/components/ui/skeleton';
 import Tag from '@/components/ui/tag';
-import { wsClient, type WsStatus } from '@/lib/ws-client';
+import PageTransition from '@/components/ui/page-transition';
+import GlobalHeroBadge from '@/components/ui/global-hero-badge';
 import { useToast } from '@/components/ui/toast-provider';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import GlobalHero from '@/components/ui/global-hero';
-
-type Signal = {
-  id: string;
-  asset: string;
-  action: 'LONG' | 'SHORT' | 'FLAT' | string;
-  confidence: number;
-  timestamp: string;
-  strength?: string;
-};
+import { signalsApi, type SignalRecord, type SignalStatus } from '@/lib/api/signals';
 
 export default function SignalsPage() {
-  const [signals, setSignals] = useState<Signal[]>([]);
-  const [status, setStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
+  const [signals, setSignals] = useState<SignalRecord[]>([]);
+  const [status, setStatus] = useState<SignalStatus>('connecting');
+  const [loading, setLoading] = useState(true);
   const { notify } = useToast();
 
   useEffect(() => {
-    let hasAnnouncedConnection = false;
-    let hasWarnedFailure = false;
-    setStatus('connecting');
+    let mounted = true;
+    let warned = false;
+    let lastStatus: SignalStatus | null = null;
 
-    const unsubscribeStatus = wsClient.onStatusChange((nextStatus: WsStatus) => {
-      setStatus(nextStatus);
-      if (nextStatus === 'connected' && !hasAnnouncedConnection) {
-        hasAnnouncedConnection = true;
-        hasWarnedFailure = false;
-        notify({ title: 'Signal feed secure', description: 'Live stream locked in', variant: 'success' });
-      }
-      if (nextStatus === 'disconnected') {
-        if (hasAnnouncedConnection) {
-          hasAnnouncedConnection = false;
-          notify({ title: 'Signal feed closed', description: 'Connection dropped', variant: 'error' });
-        } else if (!hasWarnedFailure) {
-          hasWarnedFailure = true;
-          notify({ title: 'Signal feed unavailable', description: 'Unable to establish WebSocket channel', variant: 'error' });
+    const hydrate = async (request: () => ReturnType<typeof signalsApi.getSnapshot>) => {
+      try {
+        const response = await request();
+        if (!mounted) return;
+        setSignals(response.signals);
+        setStatus(response.status);
+        setLoading(false);
+        warned = false;
+        if (lastStatus !== response.status) {
+          lastStatus = response.status;
+          if (response.status === 'connected') {
+            notify({ title: 'Signal feed secured', description: 'Mock stream stabilized', variant: 'success' });
+          } else if (response.status === 'degraded') {
+            notify({ title: 'Signal feed degraded', description: 'Holding latest buffered snapshot', variant: 'info' });
+          }
+        }
+      } catch (error) {
+        if (!mounted) return;
+        setStatus('degraded');
+        setLoading(false);
+        if (!warned) {
+          warned = true;
+           notify({ title: 'Signal feed offline', description: error instanceof Error ? error.message : 'Unknown error', variant: 'error' });
         }
       }
-    });
+    };
 
-    const unsubscribeSignals = wsClient.subscribe('signals', (payload) => {
-      const normalized = normalizeSignal(payload);
-      if (!normalized) return;
-      setSignals((prev) => [normalized, ...prev].slice(0, 15));
-    });
+    hydrate(() => signalsApi.getSnapshot());
+    const interval = setInterval(() => hydrate(() => signalsApi.pollFeed()), 3600);
 
     return () => {
-      unsubscribeStatus();
-      unsubscribeSignals();
+      mounted = false;
+      clearInterval(interval);
     };
   }, [notify]);
 
   return (
-    <ProtectedRoute>
+    <PageTransition>
       <div className="stack-gap-lg">
-        <GlobalHero description="Track conviction throughput as signals stream from the core fabric." />
+        <GlobalHeroBadge
+          badge="SIGNAL FABRIC"
+          metaText="LIVE LINK"
+          title="Signal Intelligence"
+          description="Track conviction throughput as signals stream from the core fabric."
+          statusLabel="Link"
+          statusValue={status === 'connected' ? 'Live' : status === 'connecting' ? 'Dialing' : 'Degraded'}
+        />
         <div className="stack-gap-xxs">
           <p className="metric-label text-[color:var(--accent-gold)]">Signal Fabric</p>
           <div className="stack-gap-xxs">
@@ -75,7 +80,7 @@ export default function SignalsPage() {
               {status === 'connected' ? 'Link secured' : status === 'connecting' ? 'Negotiating link' : 'Link offline'}
             </Tag>
             <p className="metric-label text-xs uppercase tracking-[0.4em] text-[color:var(--accent-green)]">
-              WebSocket status: {status}
+              Signal layer: {status}
             </p>
           </div>
         </div>
@@ -85,26 +90,24 @@ export default function SignalsPage() {
             {signals.map((signal) => (
               <SignalCard key={signal.id} signal={signal} />
             ))}
-            {status === 'connecting' && signals.length === 0 && (
+            {loading && (
               <div className="grid-premium py-4 sm:grid-cols-2">
                 {[0, 1, 2, 3].map((index) => (
                   <Skeleton key={index} className="h-20 w-full" />
                 ))}
               </div>
             )}
-            {signals.length === 0 && status !== 'connecting' && (
-              <p className="py-6 text-sm muted-premium">Awaiting live signal feed...</p>
-            )}
+            {!loading && signals.length === 0 && <p className="py-6 text-sm muted-premium">Awaiting live signal feed...</p>}
           </div>
         </Card>
       </div>
-    </ProtectedRoute>
+    </PageTransition>
   );
 }
 
-function SignalCard({ signal }: { signal: Signal }) {
+function SignalCard({ signal }: { signal: SignalRecord }) {
   return (
-    <div className="data-soft-fade py-4">
+    <div className="flex flex-col gap-3 py-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="metric-label text-[color:var(--accent-green)]">{signal.asset}</p>
@@ -116,7 +119,7 @@ function SignalCard({ signal }: { signal: Signal }) {
           {signal.action ?? 'HOLD'}
         </Tag>
       </div>
-      <dl className="mt-4 grid-premium sm:grid-cols-3">
+      <dl className="grid-premium sm:grid-cols-3">
         <div>
           <dt className="metric-label">Confidence</dt>
           <dd className="metric-value" data-variant="muted">
@@ -125,9 +128,7 @@ function SignalCard({ signal }: { signal: Signal }) {
         </div>
         <div>
           <dt className="metric-label">Strength</dt>
-          <dd className="metric-value">
-            {signal.strength ?? 'Unranked'}
-          </dd>
+          <dd className="metric-value">{signal.strength ?? 'Unranked'}</dd>
         </div>
         <div>
           <dt className="metric-label">Action clock</dt>
@@ -138,36 +139,4 @@ function SignalCard({ signal }: { signal: Signal }) {
       </dl>
     </div>
   );
-}
-
-function normalizeSignal(payload: unknown): Signal | null {
-  if (!payload || typeof payload !== 'object') {
-    return null;
-  }
-
-  const source = payload as Record<string, unknown>;
-  const asset = typeof source.asset === 'string'
-    ? source.asset
-    : typeof source.symbol === 'string'
-      ? source.symbol
-      : undefined;
-  if (!asset) return null;
-
-  const timestamp = typeof source.timestamp === 'string' ? source.timestamp : new Date().toISOString();
-  const action = typeof source.action === 'string'
-    ? source.action
-    : typeof source.direction === 'string'
-      ? source.direction
-      : 'HOLD';
-  const confidenceRaw = source.confidence ?? source.alignment;
-  const confidence = typeof confidenceRaw === 'number' ? confidenceRaw : 0;
-
-  return {
-    id: String(source.id ?? `${asset}-${timestamp}`),
-    asset,
-    action,
-    confidence,
-    timestamp,
-    strength: typeof source.strength === 'string' ? source.strength : undefined
-  };
 }

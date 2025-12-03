@@ -1,8 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { market, type MarketPrice } from '@/lib/api/market';
-import { trading, type Position, type SystemStatus, type Trade } from '@/lib/api/trading';
+import { dashboardApi, type MarketPrice, type Position, type SystemStatus, type Trade } from '@/lib/api/dashboard';
 import { wsClient } from '@/lib/ws-client';
 
 export type PricePoint = { timestamp: number; value: number };
@@ -38,31 +37,15 @@ export function useDashboardData() {
   const load = useCallback(async () => {
     setState((prev) => ({ ...prev, loading: true, error: undefined }));
     try {
-      const [pricesResult, positionsResult, tradesResult, statusResult] = await Promise.allSettled([
-        market.getLivePrices(),
-        trading.getPositions(),
-        trading.getRecentTrades(),
-        trading.getSystemStatus()
-      ]);
-
+      const snapshot = await dashboardApi.getSnapshot();
       if (!mounted.current) return;
-
-      const failureMessages: string[] = [];
-      const getValue = <T,>(result: PromiseSettledResult<T>, fallback: T): T => {
-        if (result.status === 'fulfilled') return result.value;
-        const reason = result.reason;
-        const description = reason instanceof Error ? reason.message : 'Unavailable';
-        failureMessages.push(description);
-        return fallback;
-      };
-
       setState({
         loading: false,
-        prices: getValue(pricesResult, []),
-        positions: getValue(positionsResult, []),
-        trades: getValue(tradesResult, []),
-        status: getValue(statusResult, null),
-        error: failureMessages.length ? failureMessages.join(' | ') : undefined
+        prices: snapshot.prices,
+        positions: snapshot.positions,
+        trades: snapshot.trades,
+        status: snapshot.status,
+        error: undefined
       });
     } catch (error) {
       if (!mounted.current) return;

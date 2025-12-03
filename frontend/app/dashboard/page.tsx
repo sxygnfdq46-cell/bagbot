@@ -8,7 +8,7 @@ import PriceChart from "@/components/ui/price-chart";
 import { useToast } from "@/components/ui/toast-provider";
 import { useDashboardData } from "./use-dashboard-data";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import GlobalHero from "@/components/ui/global-hero";
+import GlobalHeroBadge from "@/components/ui/global-hero-badge";
 
 const currency = (value: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value ?? 0);
@@ -27,7 +27,14 @@ export default function DashboardPage() {
   return (
     <ProtectedRoute>
       <div className="stack-gap-lg">
-        <GlobalHero description="Live telemetry across portfolio value, system health, and execution feeds." />
+        <GlobalHeroBadge
+          badge="PORTFOLIO"
+          metaText="LIVE INTELLIGENCE"
+          title="Command Dashboard"
+          description="Live telemetry across portfolio value, system health, and execution feeds."
+          statusLabel="Mode"
+          statusValue={status?.mode ?? "Standby"}
+        />
         <div className="flex flex-wrap items-center gap-4">
           <div className="min-w-[220px] flex-1 space-y-1">
             <p className="metric-label text-[color:var(--accent-gold)]">Portfolio Overview</p>

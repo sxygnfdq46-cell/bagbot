@@ -1,11 +1,7 @@
-import { api } from '../api-client';
+import { dashboardApi, type MarketPrice } from '@/lib/api/dashboard';
 
-export type MarketPrice = {
-  symbol: string;
-  price: number;
-  change?: number;
-};
+export { MarketPrice };
 
 export const market = {
-  getLivePrices: () => api.get<MarketPrice[]>('/api/market/prices')
+  getLivePrices: () => dashboardApi.getLivePrices()
 };

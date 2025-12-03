@@ -11,7 +11,7 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const baseStyles =
-  "btn-premium inline-flex items-center justify-center rounded-[0.75rem] px-5 py-2 text-sm font-semibold tracking-wide transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
+  "btn-premium surface-button inline-flex items-center justify-center rounded-[0.75rem] px-5 py-2 text-sm font-semibold tracking-wide transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
 
 const variants: Record<ButtonVariant, string> = {
   primary:

@@ -4,17 +4,23 @@ import { useEffect, useMemo, useState } from 'react';
 import Card from '@/components/ui/card';
 import Button from '@/components/ui/button';
 import Skeleton from '@/components/ui/skeleton';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useToast } from '@/components/ui/toast-provider';
-import { adminApi, type AdminStrategy, type AdminUser, type SystemHealth } from '@/lib/api/admin';
-import { wsClient } from '@/lib/ws-client';
-import GlobalHero from '@/components/ui/global-hero';
+import { adminApi, type AdminStrategy, type AdminUser, type SystemHealth, type AdminLogEntry } from '@/lib/api/admin';
+import PageTransition from '@/components/ui/page-transition';
+import GlobalHeroBadge from '@/components/ui/global-hero-badge';
 
 export default function AdminPage() {
   return (
-    <ProtectedRoute requiredRole="admin">
+    <PageTransition>
       <div className="stack-gap-lg">
-        <GlobalHero description="Mission assurance controls for system stability, posture, and overrides." />
+        <GlobalHeroBadge
+          badge="CONTROL"
+          metaText="MISSION ASSURANCE"
+          title="Admin Oversight"
+          description="Mission assurance controls for system stability, posture, and overrides."
+          statusLabel="Safe Mode"
+          statusValue="Preview"
+        />
         <header className="stack-gap-xxs">
           <p className="metric-label text-[color:var(--accent-gold)]">Admin Control</p>
           <h1 className="page-title text-3xl font-semibold">Mission Assurance & Oversight</h1>
@@ -38,7 +44,7 @@ export default function AdminPage() {
           <ConfigEditorPanel />
         </div>
       </div>
-    </ProtectedRoute>
+    </PageTransition>
   );
 }
 
@@ -269,27 +275,35 @@ function StrategyControlPanel() {
   );
 }
 
-type LogEntry = {
-  id: string;
-  message: string;
-  type: 'info' | 'warning' | 'error';
-  timestamp: string;
-};
-
 function SystemLogsPanel() {
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [filter, setFilter] = useState<'all' | LogEntry['type']>('all');
+  const { notify } = useToast();
+  const [logs, setLogs] = useState<AdminLogEntry[]>([]);
+  const [filter, setFilter] = useState<'all' | AdminLogEntry['type']>('all');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = wsClient.subscribe('logs', (payload) => {
-      const normalized = normalizeLog(payload);
-      if (!normalized) return;
-      setLogs((prev) => [normalized, ...prev].slice(0, 40));
-    });
-    return () => {
-      unsubscribe();
+    let mounted = true;
+    let warned = false;
+    const load = async () => {
+      try {
+        const response = await adminApi.getLogs();
+        if (!mounted) return;
+        setLogs(response);
+        setLoading(false);
+        warned = false;
+      } catch (error) {
+        if (!mounted || warned) return;
+        warned = true;
+        notify({ title: 'Logs unavailable', description: error instanceof Error ? error.message : 'Unknown error', variant: 'error' });
+      }
     };
-  }, []);
+    load();
+    const interval = setInterval(load, 4800);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, [notify]);
 
   const filteredLogs = useMemo(
     () => logs.filter((log) => (filter === 'all' ? true : log.type === filter)),
@@ -312,7 +326,9 @@ function SystemLogsPanel() {
         ))}
       </div>
       <div className="no-scrollbar mt-4 max-h-64 space-y-3 overflow-y-auto pr-2">
-        {filteredLogs.length === 0 ? (
+        {loading ? (
+          <p className="text-sm text-[color:var(--text-main)] opacity-60">Loading logs…</p>
+        ) : filteredLogs.length === 0 ? (
           <p className="text-sm text-[color:var(--text-main)] opacity-60">Awaiting telemetry…</p>
         ) : (
           filteredLogs.map((log) => (
@@ -338,20 +354,6 @@ function SystemLogsPanel() {
     </Card>
   );
 }
-
-const normalizeLog = (payload: unknown): LogEntry | null => {
-  if (!payload || typeof payload !== 'object') return null;
-  const source = payload as Record<string, unknown>;
-  const type = typeof source.type === 'string' ? (source.type.toLowerCase() as LogEntry['type']) : 'info';
-  const message = typeof source.message === 'string' ? source.message : JSON.stringify(source);
-  const timestamp = typeof source.timestamp === 'string' ? source.timestamp : new Date().toLocaleTimeString();
-  return {
-    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    type: ['info', 'warning', 'error'].includes(type) ? type : 'info',
-    message,
-    timestamp
-  };
-};
 
 function SafeModeController() {
   const { notify } = useToast();

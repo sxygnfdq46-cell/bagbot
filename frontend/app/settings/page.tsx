@@ -7,8 +7,8 @@ import Skeleton from '@/components/ui/skeleton';
 import Tag from '@/components/ui/tag';
 import { settings as settingsApi, type Preferences } from '@/lib/api/settings';
 import { useToast } from '@/components/ui/toast-provider';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import GlobalHero from '@/components/ui/global-hero';
+import PageTransition from '@/components/ui/page-transition';
+import GlobalHeroBadge from '@/components/ui/global-hero-badge';
 
 export default function SettingsPage() {
   const [apiKey, setApiKey] = useState('');
@@ -72,9 +72,16 @@ export default function SettingsPage() {
   const preferencesStatus = savingPrefs ? 'warning' : loadingPrefs ? 'default' : 'success';
 
   return (
-    <ProtectedRoute>
+    <PageTransition>
       <div className="stack-gap-lg">
-        <GlobalHero description="Align vault credentials, ambience, and notifications from one premium surface." />
+        <GlobalHeroBadge
+          badge="SETTINGS"
+          metaText="PREMIUM VAULT"
+          title="BagBot Preferences"
+          description="Align vault credentials, ambience, and notifications from one premium surface."
+          statusLabel="Vault"
+          statusValue={apiKey ? 'Key stored' : 'Pending'}
+        />
         <div className="stack-gap-xxs">
           <p className="metric-label text-[color:var(--accent-gold)]">System Settings</p>
           <div className="stack-gap-xxs">
@@ -181,7 +188,7 @@ export default function SettingsPage() {
           </form>
         </Card>
       </div>
-    </ProtectedRoute>
+    </PageTransition>
   );
 }
 

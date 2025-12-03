@@ -1,20 +1,34 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Card from '@/components/ui/card';
 import Button from '@/components/ui/button';
 import Skeleton from '@/components/ui/skeleton';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useToast } from '@/components/ui/toast-provider';
-import { brainApi, type BrainDecision, type BrainLink } from '@/lib/api/brain';
-import { wsClient, type WsStatus } from '@/lib/ws-client';
-import GlobalHero from '@/components/ui/global-hero';
+import {
+  brainApi,
+  type BrainDecision,
+  type BrainLink,
+  type BrainActivityEvent,
+  type BrainActivityResponse,
+  type BrainLoadMetrics,
+  type BrainLoadResponse
+} from '@/lib/api/brain';
+import PageTransition from '@/components/ui/page-transition';
+import GlobalHeroBadge from '@/components/ui/global-hero-badge';
 
 export default function BrainPage() {
   return (
-    <ProtectedRoute>
+    <PageTransition>
       <div className="stack-gap-lg">
-        <GlobalHero description="Audit and steer the neural fabric powering Bagbot's live intelligence." />
+        <GlobalHeroBadge
+          badge="NEURAL"
+          metaText="INTELLIGENCE"
+          title="Brain Command Surface"
+          description="Audit and steer the neural fabric powering Bagbot's live intelligence."
+          statusLabel="Telemetry"
+          statusValue="Live"
+        />
         <header className="stack-gap-xxs">
           <p className="metric-label text-[color:var(--accent-gold)]">Brain Intelligence</p>
           <h1 className="page-title text-3xl font-semibold">Neural Command Surface</h1>
@@ -34,68 +48,59 @@ export default function BrainPage() {
           <DecisionTimelinePanel />
         </div>
       </div>
-    </ProtectedRoute>
+    </PageTransition>
   );
 }
 
-type ActivityEvent = {
-  id: string;
-  label: string;
-  location: string;
-  intensity: number;
-  status: 'stable' | 'spike' | 'offline' | 'degraded';
-  timestamp: string;
-};
-
 function ActivityMapPanel() {
   const { notify } = useToast();
-  const [events, setEvents] = useState<ActivityEvent[]>([]);
-  const [wsStatus, setWsStatus] = useState<WsStatus>('disconnected');
-  const statusRef = useRef<WsStatus>('disconnected');
+  const [events, setEvents] = useState<BrainActivityEvent[]>([]);
+  const [status, setStatus] = useState<BrainActivityResponse['status']>('syncing');
 
   useEffect(() => {
-    const unsubscribe = wsClient.subscribe('brain_activity', (payload) => {
-      const event = normalizeActivity(payload);
-      if (!event) return;
-      setEvents((prev) => [event, ...prev].slice(0, 14));
-    });
-    const stopTracking = wsClient.onStatusChange((nextStatus) => {
-      setWsStatus(nextStatus);
-      if (nextStatus === 'disconnected' && statusRef.current !== 'disconnected') {
-        notify({ title: 'Activity stream offline', description: 'Channel brain_activity disconnected', variant: 'error' });
+    let warnedOffline = false;
+    let mounted = true;
+    const notifyOffline = () =>
+      notify({ title: 'Activity stream offline', description: 'Using cached neural telemetry', variant: 'error' });
+    const load = async () => {
+      try {
+        const response = await brainApi.getActivityMap();
+        if (!mounted) return;
+        setEvents(response.events);
+        setStatus(response.status);
+        if (response.status !== 'offline') {
+          warnedOffline = false;
+        }
+      } catch (error) {
+        if (!mounted) return;
+        setStatus('offline');
+        if (!warnedOffline) {
+          notifyOffline();
+          warnedOffline = true;
+        }
       }
-      if (nextStatus === 'connected' && statusRef.current === 'disconnected') {
-        notify({ title: 'Activity stream restored', description: 'Channel brain_activity reconnected', variant: 'success' });
-      }
-      statusRef.current = nextStatus;
-    });
+    };
+
+    load();
+    const interval = setInterval(load, 4500);
     return () => {
-      unsubscribe?.();
-      stopTracking?.();
+      mounted = false;
+      clearInterval(interval);
     };
   }, [notify]);
-
-  const statusLabel = useMemo(() => {
-    switch (wsStatus) {
-      case 'connected':
-        return 'Live';
-      case 'connecting':
-        return 'Syncing';
-      default:
-        return 'Offline';
-    }
-  }, [wsStatus]);
 
   return (
     <Card title="Activity Map" subtitle="Live neuron firing and routing">
       <div className="flex flex-wrap items-center justify-between gap-3 text-xs uppercase tracking-[0.3em] text-[color:var(--text-main)]">
         <span>Channel brain_activity</span>
-        <span className={`rounded-full px-3 py-1 ${wsStatus === 'connected' ? 'bg-[color:var(--accent-green)] text-black' : 'border border-[color:var(--border-soft)]'}`}>
-          {statusLabel}
+        <span
+          className={`rounded-full px-3 py-1 ${status === 'live' ? 'bg-[color:var(--accent-green)] text-black' : status === 'syncing' ? 'bg-[color:var(--accent-gold)]/30' : 'border border-[color:var(--border-soft)]'}`}
+        >
+          {status === 'live' ? 'Live' : status === 'syncing' ? 'Syncing' : 'Offline'}
         </span>
       </div>
       <div className="mt-4 space-y-3">
-        {wsStatus === 'disconnected' && (
+        {status === 'offline' && (
           <p className="text-xs text-red-400">Channel offline — attempting to resubscribe.</p>
         )}
         {events.length === 0 ? (
@@ -122,43 +127,43 @@ function ActivityMapPanel() {
   );
 }
 
-type LoadMetrics = {
-  load: number;
-  temperature: number;
-  saturation: number;
-};
-
 function NeuralLoadPanel() {
   const { notify } = useToast();
-  const [metrics, setMetrics] = useState<LoadMetrics>({ load: 0.38, temperature: 45, saturation: 0.32 });
-  const [status, setStatus] = useState<WsStatus>('disconnected');
-  const statusRef = useRef<WsStatus>('disconnected');
+  const [metrics, setMetrics] = useState<BrainLoadMetrics>({ load: 0.38, temperature: 45, saturation: 0.32 });
+  const [status, setStatus] = useState<BrainLoadResponse['status']>('syncing');
 
   useEffect(() => {
-    const unsubscribe = wsClient.subscribe('brain_metrics', (payload) => {
-      const metric = normalizeMetrics(payload);
-      if (!metric) return;
-      setMetrics(metric);
-    });
-    const stopTracking = wsClient.onStatusChange((nextStatus) => {
-      setStatus(nextStatus);
-      if (nextStatus === 'disconnected' && statusRef.current !== 'disconnected') {
-        notify({ title: 'Load telemetry offline', description: 'Channel brain_metrics disconnected', variant: 'error' });
+    let warnedOffline = false;
+    let mounted = true;
+    const load = async () => {
+      try {
+        const response = await brainApi.getLoadMetrics();
+        if (!mounted) return;
+        setMetrics(response.metrics);
+        setStatus(response.status);
+        if (response.status !== 'offline') {
+          warnedOffline = false;
+        }
+      } catch (error) {
+        if (!mounted) return;
+        setStatus('offline');
+        if (!warnedOffline) {
+          notify({ title: 'Load telemetry offline', description: 'Using cached neural load metrics', variant: 'error' });
+          warnedOffline = true;
+        }
       }
-      if (nextStatus === 'connected' && statusRef.current === 'disconnected') {
-        notify({ title: 'Load telemetry restored', description: 'Channel brain_metrics reconnected', variant: 'success' });
-      }
-      statusRef.current = nextStatus;
-    });
+    };
+    load();
+    const interval = setInterval(load, 4200);
     return () => {
-      unsubscribe?.();
-      stopTracking?.();
+      mounted = false;
+      clearInterval(interval);
     };
   }, [notify]);
 
   return (
     <Card title="Neural Load" subtitle="Compute, thermal, and saturation">
-      {status === 'disconnected' && (
+      {status === 'offline' && (
         <p className="text-xs text-red-400">Telemetry offline — showing last received snapshot.</p>
       )}
       <dl className="space-y-4 text-sm">
@@ -322,41 +327,6 @@ function MetricRow({ label, value, progress = 0, accent }: { label: string; valu
     </div>
   );
 }
-
-const normalizeActivity = (payload: unknown): ActivityEvent | null => {
-  if (!payload || typeof payload !== 'object') return null;
-  const source = payload as Record<string, unknown>;
-  const intensity = Number(source.intensity ?? source.load ?? 0.4);
-  const rawStatus = typeof source.status === 'string' ? source.status.toLowerCase() : '';
-  const normalizedStatus: ActivityEvent['status'] = rawStatus.includes('spike')
-    ? 'spike'
-    : rawStatus.includes('offline') || rawStatus.includes('down')
-    ? 'offline'
-    : rawStatus.includes('degrad')
-    ? 'degraded'
-    : 'stable';
-  return {
-    id: String(source.id ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`),
-    label: typeof source.label === 'string' ? source.label : typeof source.signal === 'string' ? source.signal : 'Unknown signal',
-    location: typeof source.location === 'string' ? source.location : typeof source.region === 'string' ? source.region : 'Unmapped',
-    intensity: Number.isFinite(intensity) ? intensity : 0.4,
-    status: normalizedStatus,
-    timestamp: typeof source.timestamp === 'string' ? source.timestamp : new Date().toLocaleTimeString()
-  };
-};
-
-const normalizeMetrics = (payload: unknown): LoadMetrics | null => {
-  if (!payload || typeof payload !== 'object') return null;
-  const source = payload as Record<string, unknown>;
-  const load = Number(source.load ?? source.utilization ?? 0.3);
-  const saturation = Number(source.saturation ?? source.bandwidth ?? 0.25);
-  const temperature = Number(source.temperature ?? 45);
-  return {
-    load: Number.isFinite(load) ? Math.max(0, Math.min(1, load)) : 0.3,
-    temperature: Number.isFinite(temperature) ? temperature : 45,
-    saturation: Number.isFinite(saturation) ? Math.max(0, Math.min(1, saturation)) : 0.25
-  };
-};
 
 const getStatusColor = (status: string | undefined) => {
   if (!status) return 'border border-[color:var(--border-soft)] text-[color:var(--text-main)]';

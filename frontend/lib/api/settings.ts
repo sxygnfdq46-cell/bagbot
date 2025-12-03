@@ -1,4 +1,4 @@
-import { api } from '../api-client';
+import { mockResponse } from '@/lib/api/mock-service';
 
 export type Preferences = {
   notifications: boolean;
@@ -11,14 +11,21 @@ export type ApiKeysPayload = {
   apiSecret: string;
 };
 
+let preferencesSnapshot: Preferences & { apiKey?: string } = {
+  notifications: true,
+  dailySummary: true,
+  riskLevel: 'medium',
+  apiKey: '••••-PREVIEW-KEY'
+};
+
 export const settings = {
-  getPreferences: () => api.get<Preferences & { apiKey?: string }>('/api/settings/preferences'),
-  savePreferences: (payload: Preferences) =>
-    api.post('/api/settings/preferences', {
-      body: payload
-    }),
-  saveApiKeys: (payload: ApiKeysPayload) =>
-    api.post('/api/settings/api-keys', {
-      body: payload
-    })
+  getPreferences: async () => mockResponse(preferencesSnapshot),
+  savePreferences: async (payload: Preferences) => {
+    preferencesSnapshot = { ...preferencesSnapshot, ...payload };
+    return mockResponse({ success: true });
+  },
+  saveApiKeys: async (payload: ApiKeysPayload) => {
+    preferencesSnapshot = { ...preferencesSnapshot, apiKey: payload.apiKey };
+    return mockResponse({ success: true });
+  }
 };
