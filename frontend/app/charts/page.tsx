@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Card from "@/components/ui/card";
 import Button from "@/components/ui/button";
 import Skeleton from "@/components/ui/skeleton";
-import CandlestickChart from "@/components/ui/candlestick-chart";
+import CandlestickChart, { type ChartHoverPayload } from "@/components/charts/candlestick-chart";
+import OhlcPanel from "@/components/charts/ohlc-panel";
 import Sparkline from "@/components/ui/sparkline";
 import GlobalHeroBadge from "@/components/ui/global-hero-badge";
 import MetricLabel from "@/components/ui/metric-label";
@@ -31,17 +32,17 @@ export default function ChartsPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [chartMode, setChartMode] = useState<"full" | "mini">("full");
-  const [activeCandle, setActiveCandle] = useState<Candle | null>(null);
+  const [hoveredCandle, setHoveredCandle] = useState<ChartHoverPayload | null>(null);
   const heroFeedStatus = `SYNCED • ${timeframe.toUpperCase()}`;
   const heroHint = `Asset ${asset}`;
 
   const applySnapshot = useCallback((snapshot: Awaited<ReturnType<typeof chartsApi.getSnapshot>>) => {
     setCandles(snapshot.candles);
-    setActiveCandle(snapshot.candles.at(-1) ?? null);
     setMiniCharts(snapshot.miniCharts);
     setOverviewStats(snapshot.overview);
     setPulse(snapshot.pulse);
     setFeed(snapshot.feed);
+    setHoveredCandle(null);
   }, []);
 
   const loadSnapshot = useCallback(() => chartsApi.getSnapshot(asset, timeframe), [asset, timeframe]);
@@ -69,14 +70,22 @@ export default function ChartsPage() {
   const handleRefresh = useCallback(async () => {
     try {
       setRefreshing(true);
-      const snapshot = await loadSnapshot();
+      const snapshot = await chartsApi.getSnapshot(asset, timeframe, { cache: "no-store" });
       applySnapshot(snapshot);
     } catch (error) {
       console.warn('[charts] manual refresh failed', error);
     } finally {
       setRefreshing(false);
     }
-  }, [applySnapshot, loadSnapshot]);
+  }, [applySnapshot, asset, timeframe]);
+
+  const latestCandle = useMemo(() => {
+    const last = candles.at(-1);
+    if (!last) return null;
+    return { ...last, index: candles.length - 1, time: last.timestamp } as ChartHoverPayload;
+  }, [candles]);
+
+  const activeCandle = hoveredCandle ?? latestCandle;
 
   useEffect(() => {
     let mounted = true;
@@ -186,39 +195,9 @@ export default function ChartsPage() {
           </div>
 
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-            <CandlestickChart candles={candles} mode={chartMode} loading={loading || refreshing} onHover={setActiveCandle} />
-            <div className="info-tablet stack-gap-sm">
-              <MetricLabel>OHLC Panel</MetricLabel>
-              {activeCandle ? (
-                <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
-                  <div>
-                    <dt className="opacity-70">Open</dt>
-                    <dd className="font-semibold">{activeCandle.open.toFixed(2)}</dd>
-                  </div>
-                  <div>
-                    <dt className="opacity-70">High</dt>
-                    <dd className="font-semibold">{activeCandle.high.toFixed(2)}</dd>
-                  </div>
-                  <div>
-                    <dt className="opacity-70">Low</dt>
-                    <dd className="font-semibold">{activeCandle.low.toFixed(2)}</dd>
-                  </div>
-                  <div>
-                    <dt className="opacity-70">Close</dt>
-                    <dd className="font-semibold">{activeCandle.close.toFixed(2)}</dd>
-                  </div>
-                  <div>
-                    <dt className="opacity-70">Volume</dt>
-                    <dd className="font-semibold">{activeCandle.volume.toFixed(0)}</dd>
-                  </div>
-                  <div>
-                    <dt className="opacity-70">Timestamp</dt>
-                    <dd className="font-semibold">{new Date(activeCandle.timestamp).toLocaleString()}</dd>
-                  </div>
-                </dl>
-              ) : (
-                <Skeleton className="h-32 w-full" />
-              )}
+            <CandlestickChart candles={candles} mode={chartMode} loading={loading || refreshing} onHover={setHoveredCandle} />
+            <div className="stack-gap-sm">
+              <OhlcPanel candle={activeCandle} loading={loading || refreshing} />
               <div className="rounded-2xl border border-dashed border-[color:var(--border-soft)] p-3 text-xs">
                 <p className="text-[color:var(--accent-gold)]">Backend wiring placeholder</p>
                 <p className="mt-1 text-sm text-[color:var(--text-main)] opacity-70">
