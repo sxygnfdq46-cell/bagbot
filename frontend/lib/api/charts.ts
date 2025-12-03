@@ -26,7 +26,7 @@ export type ChartSnapshot = {
 };
 
 const ASSETS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'DOGE-USD'];
-const TIMEFRAMES = ['1H', '4H', '1D', '1W'];
+const TIMEFRAMES = ['1H', '4H', '1D', '1W', '1M'];
 
 const basePrice = (asset: string) => {
   if (asset.startsWith('ETH')) return 3050;
@@ -47,7 +47,8 @@ const timeframeToMinutes: Record<string, number> = {
   '1H': 60,
   '4H': 240,
   '1D': 1440,
-  '1W': 10080
+  '1W': 10080,
+  '1M': 43200
 };
 
 const buildSeries = (asset: string): PricePoint[] => {
@@ -134,10 +135,14 @@ const mutatePulse = (asset: string) => {
   };
 };
 
+type SnapshotOptions = {
+  cache?: RequestCache;
+};
+
 export const chartsApi = {
   listAssets: () => ASSETS,
   listTimeframes: () => TIMEFRAMES,
-  getSnapshot: async (asset: string, timeframe: string): Promise<ChartSnapshot> => {
+  getSnapshot: async (asset: string, timeframe: string, _options?: SnapshotOptions): Promise<ChartSnapshot> => {
     chartSnapshot = {
       asset,
       timeframe,
