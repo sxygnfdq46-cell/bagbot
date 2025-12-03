@@ -40,13 +40,21 @@ export default function Sparkline({
       .join(' ');
   }, [points, width, height]);
 
+  const signature = path || 'sparkline-empty';
+
   const stops = gradientStops ?? [
     { color: stroke, opacity: 0.8, offset: 0 },
     { color: stroke, opacity: 0.05, offset: 100 }
   ];
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="h-full w-full" role="img" aria-label="Sparkline">
+    <svg
+      key={signature}
+      viewBox={`0 0 ${width} ${height}`}
+      className="sparkline-visual h-full w-full"
+      role="img"
+      aria-label="Sparkline"
+    >
       <defs>
         <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
           {stops.map(({ color, opacity, offset }, index) => (

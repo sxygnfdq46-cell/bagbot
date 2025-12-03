@@ -13,9 +13,9 @@ type CardProps = {
 export default function Card({ title, subtitle, action, children, padded = true }: CardProps) {
   return (
     <section
-      className={`premium-card surface-card border border-[color:var(--border-soft)] bg-card shadow-card backdrop-blur-sm ${
-        padded ? 'p-5 sm:p-6' : ''
-      }`}
+      className={`premium-card surface-card flex w-full flex-col bg-card backdrop-blur-sm ${padded ? 'p-5 sm:p-6' : ''}`}
+      data-surface="cream"
+      data-padding={padded ? 'cozy' : 'flush'}
     >
       {(title || subtitle || action) && (
         <div className="card-section flex flex-wrap items-start justify-between gap-3 pb-4">

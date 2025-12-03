@@ -9,6 +9,8 @@ import { useToast } from "@/components/ui/toast-provider";
 import { useDashboardData } from "./use-dashboard-data";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import GlobalHeroBadge from "@/components/ui/global-hero-badge";
+import MetricLabel from "@/components/ui/metric-label";
+import TerminalShell from "@/components/ui/terminal-shell";
 
 const currency = (value: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value ?? 0);
@@ -26,7 +28,7 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute>
-      <div className="stack-gap-lg">
+      <TerminalShell className="stack-gap-lg">
         <GlobalHeroBadge
           badge="PORTFOLIO"
           metaText="LIVE INTELLIGENCE"
@@ -35,17 +37,24 @@ export default function DashboardPage() {
           statusLabel="Mode"
           statusValue={status?.mode ?? "Standby"}
         />
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="min-w-[220px] flex-1 space-y-1">
-            <p className="metric-label text-[color:var(--accent-gold)]">Portfolio Overview</p>
-            <h2 className="text-3xl font-semibold">Live intelligence feed</h2>
-          </div>
-          <div className="flex w-full flex-wrap gap-3 sm:ml-auto sm:w-auto sm:justify-end">
-            <Button variant="secondary" onClick={reload} isLoading={loading}>
-              Refresh snapshot
-            </Button>
-          </div>
-        </div>
+        <section className="stack-gap-sm w-full">
+          <header className="stack-gap-xxs w-full">
+            <MetricLabel className="text-[color:var(--accent-gold)]">Portfolio Overview</MetricLabel>
+            <div className="stack-gap-xxs sm:flex sm:items-end sm:justify-between sm:gap-4">
+              <div className="stack-gap-xxs max-w-3xl">
+                <h2 className="text-3xl font-semibold leading-tight">Live intelligence feed</h2>
+                <p className="muted-premium">
+                  Monitor capital posture, health, and execution in a single synchronized surface.
+                </p>
+              </div>
+              <div className="stack-gap-xxs w-full sm:w-auto sm:flex sm:flex-wrap sm:justify-end sm:gap-3">
+                <Button variant="secondary" onClick={reload} isLoading={loading}>
+                  Refresh snapshot
+                </Button>
+              </div>
+            </div>
+          </header>
+        </section>
 
         <div className="grid-premium sm:grid-cols-2 lg:grid-cols-3">
           <Card title="Portfolio Value" subtitle="Real-time valuation">
@@ -115,7 +124,7 @@ export default function DashboardPage() {
                 key={asset.symbol}
                 className="data-soft-fade rounded-[0.75rem] border border-[color:var(--border-soft)] bg-base/70 p-4 transition-all hover:border-[color:var(--accent-cyan)]"
               >
-                <p className="metric-label text-[color:var(--accent-green)]">{asset.symbol}</p>
+                <MetricLabel className="text-[color:var(--accent-green)]">{asset.symbol}</MetricLabel>
                 <p className="mt-2 text-2xl font-semibold">{currency(asset.price)}</p>
                 <p className={`text-sm ${asset.change && asset.change >= 0 ? 'text-[color:var(--accent-green)]' : 'text-red-400'}`}>
                   {asset.change ? `${asset.change.toFixed(2)}%` : '--'}
@@ -191,7 +200,7 @@ export default function DashboardPage() {
             )}
           </div>
         </Card>
-      </div>
+      </TerminalShell>
     </ProtectedRoute>
   );
 }

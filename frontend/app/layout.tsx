@@ -38,14 +38,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body className={`${inter.variable} bg-base text-text-main`}>
         <AppProviders>
-          <div className="min-h-screen bg-base">
-            <div className="flex min-h-screen">
-              <Sidebar />
-              <div className="flex flex-1 flex-col">
-                <main className="flex-1 px-5 py-10 md:px-10 lg:px-16">
-                  <PageTransition>{children}</PageTransition>
-                </main>
-              </div>
+          <div className="flex min-h-screen w-screen max-w-full overflow-x-hidden bg-base">
+            <Sidebar />
+            <div className="flex flex-1 flex-col min-w-0">
+              <main className="flex w-full flex-1 flex-col min-w-0 py-10">
+                <PageTransition>{children}</PageTransition>
+              </main>
             </div>
           </div>
         </AppProviders>

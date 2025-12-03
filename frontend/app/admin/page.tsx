@@ -6,45 +6,46 @@ import Button from '@/components/ui/button';
 import Skeleton from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/toast-provider';
 import { adminApi, type AdminStrategy, type AdminUser, type SystemHealth, type AdminLogEntry } from '@/lib/api/admin';
-import PageTransition from '@/components/ui/page-transition';
 import GlobalHeroBadge from '@/components/ui/global-hero-badge';
+import MetricLabel from '@/components/ui/metric-label';
+import TerminalShell from '@/components/ui/terminal-shell';
 
 export default function AdminPage() {
   return (
-    <PageTransition>
-      <div className="stack-gap-lg">
-        <GlobalHeroBadge
-          badge="CONTROL"
-          metaText="MISSION ASSURANCE"
-          title="Admin Oversight"
-          description="Mission assurance controls for system stability, posture, and overrides."
-          statusLabel="Safe Mode"
-          statusValue="Preview"
-        />
-        <header className="stack-gap-xxs">
-          <p className="metric-label text-[color:var(--accent-gold)]">Admin Control</p>
-          <h1 className="page-title text-3xl font-semibold">Mission Assurance & Oversight</h1>
+    <TerminalShell className="stack-gap-lg">
+      <GlobalHeroBadge
+        badge="CONTROL"
+        metaText="MISSION ASSURANCE"
+        title="Admin Oversight"
+        description="Mission assurance controls for system stability, posture, and overrides."
+        statusLabel="Safe Mode"
+        statusValue="Preview"
+      />
+      <section className="stack-gap-sm w-full">
+        <header className="stack-gap-xxs w-full">
+          <MetricLabel className="text-[color:var(--accent-gold)]">Admin Control</MetricLabel>
+          <h2 className="text-3xl font-semibold leading-tight">Mission Assurance & Oversight</h2>
           <p className="muted-premium">
             Live intelligence on system stability, user posture, and neural integrity—all in one secured pane.
           </p>
         </header>
+      </section>
 
-        <div className="grid-premium lg:grid-cols-2">
-          <SystemHealthPanel />
-          <SafeModeController />
-        </div>
-
-        <div className="grid-premium lg:grid-cols-2">
-          <UserManagementPanel />
-          <StrategyControlPanel />
-        </div>
-
-        <div className="grid-premium lg:grid-cols-2">
-          <SystemLogsPanel />
-          <ConfigEditorPanel />
-        </div>
+      <div className="grid-premium lg:grid-cols-2">
+        <SystemHealthPanel />
+        <SafeModeController />
       </div>
-    </PageTransition>
+
+      <div className="grid-premium lg:grid-cols-2">
+        <UserManagementPanel />
+        <StrategyControlPanel />
+      </div>
+
+      <div className="grid-premium lg:grid-cols-2">
+        <SystemLogsPanel />
+        <ConfigEditorPanel />
+      </div>
+    </TerminalShell>
   );
 }
 

@@ -14,13 +14,13 @@ import {
   type BrainLoadMetrics,
   type BrainLoadResponse
 } from '@/lib/api/brain';
-import PageTransition from '@/components/ui/page-transition';
 import GlobalHeroBadge from '@/components/ui/global-hero-badge';
+import MetricLabel from '@/components/ui/metric-label';
+import TerminalShell from '@/components/ui/terminal-shell';
 
 export default function BrainPage() {
   return (
-    <PageTransition>
-      <div className="stack-gap-lg">
+    <TerminalShell className="stack-gap-lg">
         <GlobalHeroBadge
           badge="NEURAL"
           metaText="INTELLIGENCE"
@@ -29,13 +29,15 @@ export default function BrainPage() {
           statusLabel="Telemetry"
           statusValue="Live"
         />
-        <header className="stack-gap-xxs">
-          <p className="metric-label text-[color:var(--accent-gold)]">Brain Intelligence</p>
-          <h1 className="page-title text-3xl font-semibold">Neural Command Surface</h1>
-          <p className="muted-premium">
-            Monitor cognitive load, signal routing, and manual overrides for the live intelligence engine.
-          </p>
-        </header>
+        <section className="stack-gap-sm w-full">
+          <header className="stack-gap-xxs w-full">
+            <MetricLabel className="text-[color:var(--accent-gold)]">Brain Intelligence</MetricLabel>
+            <h2 className="text-3xl font-semibold leading-tight">Neural Command Surface</h2>
+            <p className="muted-premium">
+              Monitor cognitive load, signal routing, and manual overrides for the live intelligence engine.
+            </p>
+          </header>
+        </section>
 
         <div className="grid-premium lg:grid-cols-3">
           <ActivityMapPanel />
@@ -47,8 +49,7 @@ export default function BrainPage() {
           <LinkageGraphPanel />
           <DecisionTimelinePanel />
         </div>
-      </div>
-    </PageTransition>
+    </TerminalShell>
   );
 }
 
@@ -99,7 +100,7 @@ function ActivityMapPanel() {
           {status === 'live' ? 'Live' : status === 'syncing' ? 'Syncing' : 'Offline'}
         </span>
       </div>
-      <div className="mt-4 space-y-3">
+      <div className="mt-4 stack-gap-sm">
         {status === 'offline' && (
           <p className="text-xs text-red-400">Channel offline — attempting to resubscribe.</p>
         )}
@@ -166,7 +167,7 @@ function NeuralLoadPanel() {
       {status === 'offline' && (
         <p className="text-xs text-red-400">Telemetry offline — showing last received snapshot.</p>
       )}
-      <dl className="space-y-4 text-sm">
+      <dl className="stack-gap-md text-sm">
         <MetricRow label="Cognitive Load" value={`${(metrics.load * 100).toFixed(0)}%`} progress={metrics.load} accent={metrics.load > 0.75 ? 'warning' : undefined} />
         <MetricRow label="Die Temperature" value={`${metrics.temperature.toFixed?.(1) ?? metrics.temperature}°C`} progress={Math.min(1, metrics.temperature / 100)} accent={metrics.temperature > 70 ? 'warning' : undefined} />
         <MetricRow label="Signal Saturation" value={`${(metrics.saturation * 100).toFixed(0)}%`} progress={metrics.saturation} />
@@ -246,7 +247,7 @@ function LinkageGraphPanel() {
       ) : nodes.length === 0 ? (
         <p className="text-sm text-[color:var(--text-main)] opacity-60">No linkage data returned.</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="stack-gap-sm">
           {nodes.map((node) => (
             <li key={node.id} className="data-soft-fade rounded-2xl border border-[color:var(--border-soft)] bg-base/70 p-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -297,7 +298,7 @@ function DecisionTimelinePanel() {
       ) : decisions.length === 0 ? (
         <p className="text-sm text-[color:var(--text-main)] opacity-60">No recorded decisions.</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="stack-gap-sm">
           {decisions.map((decision) => (
             <li key={decision.id} className="data-soft-fade rounded-2xl border border-[color:var(--border-soft)] bg-base/70 p-3">
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs uppercase tracking-[0.3em]">

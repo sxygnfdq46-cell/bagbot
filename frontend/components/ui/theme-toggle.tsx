@@ -95,7 +95,7 @@ export default function ThemeToggle({ className = '' }: ThemeToggleProps) {
     <Button
       variant="secondary"
       onClick={toggle}
-      className={`w-full justify-between sm:min-w-[140px] ${className}`.trim()}
+      className={`theme-toggle-trigger w-full justify-between sm:min-w-[140px] ${className}`.trim()}
       aria-pressed={theme === 'dark'}
     >
       <span>{theme === 'light' ? 'Light Luxe' : 'Noir Mode'}</span>

@@ -7,8 +7,9 @@ import Skeleton from '@/components/ui/skeleton';
 import Tag from '@/components/ui/tag';
 import { settings as settingsApi, type Preferences } from '@/lib/api/settings';
 import { useToast } from '@/components/ui/toast-provider';
-import PageTransition from '@/components/ui/page-transition';
 import GlobalHeroBadge from '@/components/ui/global-hero-badge';
+import MetricLabel from '@/components/ui/metric-label';
+import TerminalShell from '@/components/ui/terminal-shell';
 
 export default function SettingsPage() {
   const [apiKey, setApiKey] = useState('');
@@ -72,38 +73,37 @@ export default function SettingsPage() {
   const preferencesStatus = savingPrefs ? 'warning' : loadingPrefs ? 'default' : 'success';
 
   return (
-    <PageTransition>
-      <div className="stack-gap-lg">
-        <GlobalHeroBadge
-          badge="SETTINGS"
-          metaText="PREMIUM VAULT"
-          title="BagBot Preferences"
-          description="Align vault credentials, ambience, and notifications from one premium surface."
-          statusLabel="Vault"
-          statusValue={apiKey ? 'Key stored' : 'Pending'}
-        />
-        <div className="stack-gap-xxs">
-          <p className="metric-label text-[color:var(--accent-gold)]">System Settings</p>
-          <div className="stack-gap-xxs">
-            <h1 className="text-3xl font-semibold">Command the vault and signal posture</h1>
-            <p className="muted-premium max-w-2xl">
-              Align security credentials, ambience, and signal routing in one premium surface to keep BagBot tuned to your desk.
-            </p>
-          </div>
-        </div>
+    <TerminalShell className="stack-gap-lg w-full">
+      <GlobalHeroBadge
+        badge="SETTINGS"
+        metaText="PREMIUM VAULT"
+        title="BagBot Preferences"
+        description="Align vault credentials, ambience, and notifications from one premium surface."
+        statusLabel="Vault"
+        statusValue={apiKey ? 'Key stored' : 'Pending'}
+      />
+      <section className="stack-gap-sm w-full">
+        <header className="stack-gap-xxs w-full">
+          <MetricLabel className="text-[color:var(--accent-gold)]">System Settings</MetricLabel>
+          <h2 className="text-3xl font-semibold leading-tight">Command the vault and signal posture</h2>
+          <p className="muted-premium">
+            Align security credentials, ambience, and signal routing in one premium surface to keep BagBot tuned to your desk.
+          </p>
+        </header>
+      </section>
 
-        <Card title="API Keys" subtitle="Securely stored within BagBot Vault">
-          <div className="flex flex-wrap items-center gap-3 pb-4">
+      <Card title="API Keys" subtitle="Securely stored within BagBot Vault">
+        <div className="flex flex-wrap items-center gap-3 pb-4">
             <Tag variant={credentialStatus}>
               {savingKeys ? 'Encrypting credentials' : apiKey ? 'Vaulted' : 'Pending input'}
             </Tag>
-            <p className="metric-label text-xs uppercase tracking-[0.4em] text-[color:var(--accent-green)]">
+            <MetricLabel className="text-xs uppercase tracking-[0.4em] text-[color:var(--accent-green)]">
               Zero knowledge storage
-            </p>
+            </MetricLabel>
           </div>
-          <form className="grid-premium sm:grid-cols-2" onSubmit={handleSaveKeys}>
+        <form className="grid-premium sm:grid-cols-2" onSubmit={handleSaveKeys}>
             <label className="stack-gap-xxs text-sm">
-              <span className="metric-label">API Key</span>
+              <MetricLabel as="span">API Key</MetricLabel>
               <input
                 value={apiKey}
                 onChange={(event: ChangeEvent<HTMLInputElement>) => setApiKey(event.target.value)}
@@ -112,7 +112,7 @@ export default function SettingsPage() {
               />
             </label>
             <label className="stack-gap-xxs text-sm">
-              <span className="metric-label">API Secret</span>
+              <MetricLabel as="span">API Secret</MetricLabel>
               <input
                 type="password"
                 value={apiSecret}
@@ -129,66 +129,65 @@ export default function SettingsPage() {
                 </Button>
               </div>
             </div>
-          </form>
-        </Card>
+        </form>
+      </Card>
 
-        <Card title="Theme" subtitle="Instant ambiance switch">
-          <p className="muted-premium">
-            Use the global toggle anchored to the sidebar footer to choose between Light Luxe and Noir mode.
-          </p>
-        </Card>
+      <Card title="Theme" subtitle="Instant ambiance switch">
+        <p className="muted-premium">
+          Use the global toggle anchored to the sidebar footer to choose between Light Luxe and Noir mode.
+        </p>
+      </Card>
 
-        <Card title="Preferences" subtitle="Tailor system signals to you">
-          <div className="flex flex-wrap items-center gap-3 pb-4">
-            <Tag variant={preferencesStatus}>
-              {savingPrefs ? 'Saving route' : loadingPrefs ? 'Loading prefs' : 'Live preferences'}
-            </Tag>
-            <p className="metric-label text-xs uppercase tracking-[0.4em] text-[color:var(--accent-violet)]">
-              Signal governance
-            </p>
+      <Card title="Preferences" subtitle="Tailor system signals to you">
+        <div className="flex flex-wrap items-center gap-3 pb-4">
+          <Tag variant={preferencesStatus}>
+            {savingPrefs ? 'Saving route' : loadingPrefs ? 'Loading prefs' : 'Live preferences'}
+          </Tag>
+          <MetricLabel className="text-xs uppercase tracking-[0.4em] text-[color:var(--accent-violet)]">
+            Signal governance
+          </MetricLabel>
+        </div>
+        <form className="stack-gap-md" onSubmit={handleSavePreferences}>
+          <div className="grid-premium">
+            <PreferenceRow
+              label="Instant notifications"
+              loading={loadingPrefs}
+              checked={preferences.notifications}
+              onChange={(checked) => setPreferences((prev) => ({ ...prev, notifications: checked }))}
+            />
+            <PreferenceRow
+              label="Daily alpha digest"
+              loading={loadingPrefs}
+              checked={preferences.dailySummary}
+              onChange={(checked) => setPreferences((prev) => ({ ...prev, dailySummary: checked }))}
+            />
           </div>
-          <form className="stack-gap-md" onSubmit={handleSavePreferences}>
-            <div className="grid-premium">
-              <PreferenceRow
-                label="Instant notifications"
-                loading={loadingPrefs}
-                checked={preferences.notifications}
-                onChange={(checked) => setPreferences((prev) => ({ ...prev, notifications: checked }))}
-              />
-              <PreferenceRow
-                label="Daily alpha digest"
-                loading={loadingPrefs}
-                checked={preferences.dailySummary}
-                onChange={(checked) => setPreferences((prev) => ({ ...prev, dailySummary: checked }))}
-              />
-            </div>
-            <label className="stack-gap-xxs text-sm">
-              <span className="metric-label">Risk Appetite</span>
-              {loadingPrefs ? (
-                <Skeleton className="h-12 w-full" />
-              ) : (
-                <select
-                  value={preferences.riskLevel}
-                  onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-                    setPreferences((prev) => ({ ...prev, riskLevel: event.target.value as Preferences['riskLevel'] }))
-                  }
-                  className="field-premium field-premium--select"
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                </select>
-              )}
-            </label>
-            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-              <Button type="submit" variant="secondary" isLoading={savingPrefs} loadingText="Saving…" className="w-full sm:w-auto">
-                Save Preferences
-              </Button>
-            </div>
-          </form>
-        </Card>
-      </div>
-    </PageTransition>
+          <label className="stack-gap-xxs text-sm">
+            <MetricLabel as="span">Risk Appetite</MetricLabel>
+            {loadingPrefs ? (
+              <Skeleton className="h-12 w-full" />
+            ) : (
+              <select
+                value={preferences.riskLevel}
+                onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+                  setPreferences((prev) => ({ ...prev, riskLevel: event.target.value as Preferences['riskLevel'] }))
+                }
+                className="field-premium field-premium--select"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            )}
+          </label>
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <Button type="submit" variant="secondary" isLoading={savingPrefs} loadingText="Saving…" className="w-full sm:w-auto">
+              Save Preferences
+            </Button>
+          </div>
+        </form>
+      </Card>
+    </TerminalShell>
   );
 }
 
@@ -205,7 +204,7 @@ function PreferenceRow({
 }) {
   return (
     <label className="flex flex-wrap items-center justify-between gap-4 rounded-[0.75rem] border border-[color:var(--border-soft)] bg-base/70 px-4 py-3 text-sm">
-      <span className="metric-label text-base text-[color:var(--text-main)]">{label}</span>
+      <MetricLabel as="span" className="text-base text-[color:var(--text-main)]">{label}</MetricLabel>
       {loading ? (
         <Skeleton className="h-6 w-12" />
       ) : (

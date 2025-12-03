@@ -4,9 +4,15 @@ import { ReactNode } from 'react';
 
 export type TagVariant = 'default' | 'success' | 'warning' | 'danger';
 
-export default function Tag({ children, variant = 'default' }: { children: ReactNode; variant?: TagVariant }) {
+type TagProps = {
+  children: ReactNode;
+  variant?: TagVariant;
+  className?: string;
+};
+
+export default function Tag({ children, variant = 'default', className = '' }: TagProps) {
   return (
-    <span className="tag-premium" data-variant={variant}>
+    <span className={`tag-premium ${className}`.trim()} data-variant={variant}>
       {children}
     </span>
   );
