@@ -6,6 +6,7 @@ import "@/styles/globals.css";
 import Sidebar from "@/components/ui/sidebar";
 import AppProviders from "@/components/app-providers";
 import PageTransition from "@/components/ui/page-transition";
+import GlobalBagbotInscription from "@/components/global-bagbot-inscription";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -38,10 +39,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body className={`${inter.variable} bg-base text-text-main`}>
         <AppProviders>
-          <div className="flex min-h-screen w-screen max-w-full overflow-x-hidden bg-base">
+          <div className="layout-shell">
             <Sidebar />
-            <div className="flex flex-1 flex-col min-w-0">
-              <main className="flex w-full flex-1 flex-col min-w-0 py-10">
+            <div className="layout-main">
+              <GlobalBagbotInscription />
+              <main className="layout-content">
                 <PageTransition>{children}</PageTransition>
               </main>
             </div>

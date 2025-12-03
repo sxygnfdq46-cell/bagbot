@@ -209,9 +209,11 @@ html {
 }
 
 :root[data-theme="light"] .sidebar-shell {
-  position: sticky;
+  position: fixed;
   top: 0;
-  min-height: 100vh;
+  left: 0;
+  height: 100vh;
+  width: var(--layout-sidebar-width);
   background: color-mix(in srgb, #ffffff 85%, rgba(255, 255, 255, 0.05));
   border-right: 1px solid color-mix(in srgb, var(--glass-border-light) 30%, transparent);
   box-shadow: 0 40px 80px -70px rgba(0, 0, 0, 0.35);

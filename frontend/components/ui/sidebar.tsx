@@ -35,10 +35,18 @@ export default function Sidebar() {
   );
 
   useEffect(() => {
-    if (!mobileOpen) return;
-    document.documentElement.classList.add('overflow-hidden');
+    const root = document.documentElement;
+    const body = document.body;
+    if (mobileOpen) {
+      root.classList.add('drawer-active');
+      body.classList.add('drawer-active');
+    } else {
+      root.classList.remove('drawer-active');
+      body.classList.remove('drawer-active');
+    }
     return () => {
-      document.documentElement.classList.remove('overflow-hidden');
+      root.classList.remove('drawer-active');
+      body.classList.remove('drawer-active');
     };
   }, [mobileOpen]);
 
@@ -80,7 +88,7 @@ export default function Sidebar() {
 
   return (
     <>
-      <aside className="sidebar-shell sticky top-0 hidden h-screen w-64 flex-shrink-0 flex-col border-r border-[color:var(--border-soft)] bg-base p-6 backdrop-blur-xl lg:flex">
+      <aside className="sidebar-shell hidden w-64 flex-shrink-0 flex-col border-r border-[color:var(--border-soft)] bg-base backdrop-blur-xl lg:flex">
         <div className="stack-gap-lg h-full">
           <div className="text-xs uppercase tracking-[0.4em] text-[color:var(--accent-gold)]">
             Control

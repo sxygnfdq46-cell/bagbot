@@ -14,6 +14,11 @@
   --spacing-xl: 1.5rem;
   --border-weight-strong: 2.75px;
   --border-weight-soft: 1.75px;
+  --layout-sidebar-width: 16rem;
+  --layout-padding-x: clamp(1.25rem, 3vw, 3rem);
+  --layout-padding-y: clamp(1.25rem, 3vw, 2.75rem);
+  --layout-hero-gap: calc(var(--spacing-xl) + 0.35rem);
+  --layout-inscription-clearance: clamp(2.75rem, 6vw, 3.75rem);
 }
 
 html,
@@ -24,6 +29,11 @@ body {
 
 * {
   box-sizing: border-box;
+}
+
+:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent-cyan) 75%, transparent);
+  outline-offset: 3px;
 }
 
 body {
@@ -858,6 +868,205 @@ main {
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* Layout structure */
+.layout-shell {
+  display: flex;
+  width: 100vw;
+  max-width: 100%;
+  height: 100vh;
+  background: var(--bg-main);
+  color: var(--text-main);
+  overflow: hidden;
+}
+
+.layout-main {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 100vh;
+  background: var(--bg-main);
+}
+
+@supports (height: 100dvh) {
+  .layout-shell,
+  .layout-main,
+  .sidebar-shell {
+    height: 100dvh;
+    min-height: 100dvh;
+  }
+}
+
+@media (min-width: 1024px) {
+  .layout-main {
+    margin-left: var(--layout-sidebar-width);
+  }
+}
+
+.layout-content {
+  position: relative;
+  height: 100%;
+  overflow-y: auto;
+  padding-top: calc(var(--layout-padding-y) + var(--layout-inscription-clearance) + env(safe-area-inset-top));
+  padding-bottom: calc(var(--layout-padding-y) + env(safe-area-inset-bottom));
+  padding-left: calc(var(--layout-padding-x) + env(safe-area-inset-left));
+  padding-right: calc(var(--layout-padding-x) + env(safe-area-inset-right));
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable both-edges;
+}
+
+html.drawer-active,
+body.drawer-active {
+  overflow: hidden;
+}
+
+html.drawer-active .layout-content {
+  overflow: hidden;
+}
+
+@media (max-width: 1023px) {
+  .layout-content {
+    padding-left: calc(var(--spacing-lg) + env(safe-area-inset-left));
+    padding-right: calc(var(--spacing-lg) + env(safe-area-inset-right));
+    padding-top: calc(var(--layout-padding-y) + var(--layout-inscription-clearance) + env(safe-area-inset-top));
+  }
+}
+
+.sidebar-shell {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--layout-sidebar-width);
+  height: 100vh;
+  overflow: hidden;
+  z-index: 15;
+  padding-top: calc(var(--layout-padding-y) + env(safe-area-inset-top));
+  padding-bottom: calc(var(--layout-padding-y) + env(safe-area-inset-bottom));
+  padding-left: calc(var(--layout-padding-x) * 0.75 + env(safe-area-inset-left));
+  padding-right: calc(var(--layout-padding-x) * 0.75 + env(safe-area-inset-right));
+}
+
+.terminal-shell > .hero-badge + * {
+  margin-top: var(--layout-hero-gap);
+  padding-top: var(--spacing-sm);
+}
+
+@media (max-width: 640px) {
+  .terminal-shell > .hero-badge + * {
+    margin-top: calc(var(--layout-hero-gap) * 1.2);
+  }
+}
+
+/* Global BagBot inscription */
+.global-bagbot-inscription {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + var(--spacing-md));
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: 0.45rem clamp(1.25rem, 3vw, 2.35rem);
+  border-radius: 999px;
+  background:
+    linear-gradient(120deg, color-mix(in srgb, var(--accent-gold) 80%, transparent), color-mix(in srgb, var(--accent-cyan) 30%, transparent));
+  color: color-mix(in srgb, var(--text-main) 82%, var(--accent-gold) 18%);
+  letter-spacing: 0.55em;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  width: min(420px, calc(100vw - 3rem));
+  pointer-events: none;
+  z-index: 20;
+  isolation: isolate;
+  box-shadow:
+    0 25px 65px -40px color-mix(in srgb, var(--accent-gold) 45%, transparent),
+    0 15px 40px -30px rgba(0, 0, 0, 0.35);
+  transition: opacity 200ms ease, transform 220ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.global-bagbot-inscription__label {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--accent-gold) 45%, transparent);
+}
+
+.global-bagbot-inscription__halo,
+.global-bagbot-inscription__glimmer {
+  position: absolute;
+  inset: -40%;
+  border-radius: inherit;
+  opacity: 0.45;
+  z-index: 1;
+  pointer-events: none;
+  display: block;
+}
+
+.global-bagbot-inscription__halo {
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent-gold) 50%, transparent), transparent 70%);
+  filter: blur(18px);
+  animation: bagbot-glow 4.2s ease-in-out infinite;
+}
+.global-bagbot-inscription__glimmer {
+  background: linear-gradient(120deg, transparent, color-mix(in srgb, var(--accent-cyan) 55%, transparent), transparent);
+  opacity: 0.35;
+  animation: bagbot-shimmer 3.6s linear infinite;
+  will-change: transform, opacity;
+}
+
+@media (max-width: 768px) {
+  .global-bagbot-inscription {
+    width: calc(100vw - (var(--spacing-lg) * 2) - env(safe-area-inset-left) - env(safe-area-inset-right));
+    min-width: auto;
+    letter-spacing: 0.42em;
+    font-size: 0.62rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .global-bagbot-inscription__halo,
+  .global-bagbot-inscription__glimmer {
+    animation: none;
+  }
+}
+
+html.drawer-active .global-bagbot-inscription {
+  opacity: 0;
+  transform: translate(-50%, -6px);
+}
+
+@keyframes bagbot-glow {
+  0% {
+    opacity: 0.25;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 0.25;
+    transform: scale(0.95);
+  }
+}
+
+@keyframes bagbot-shimmer {
+  0% {
+    transform: translateX(-35%);
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.45;
+  }
+  100% {
+    transform: translateX(35%);
+    opacity: 0.15;
+  }
 }
 
 @media (max-width: 640px) {
