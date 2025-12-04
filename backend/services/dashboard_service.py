@@ -73,3 +73,44 @@ class DashboardService:
             totalPnl=total_pnl,
             generatedAt=now,
         )
+
+    @staticmethod
+    async def get_system_status() -> SystemStatus:
+        """Return the current system status snapshot."""
+
+        snapshot = await DashboardService.get_snapshot(
+            include_prices=False,
+            include_positions=False,
+            include_trades=False,
+        )
+        return snapshot.status
+
+    @staticmethod
+    async def get_market_prices() -> List[MarketPrice]:
+        """Return the current market price tiles."""
+
+        snapshot = await DashboardService.get_snapshot(
+            include_positions=False,
+            include_trades=False,
+        )
+        return snapshot.prices
+
+    @staticmethod
+    async def get_positions() -> List[Position]:
+        """Return open positions."""
+
+        snapshot = await DashboardService.get_snapshot(
+            include_prices=False,
+            include_trades=False,
+        )
+        return snapshot.positions
+
+    @staticmethod
+    async def get_recent_trades() -> List[Trade]:
+        """Return the recent trades list."""
+
+        snapshot = await DashboardService.get_snapshot(
+            include_prices=False,
+            include_positions=False,
+        )
+        return snapshot.trades

@@ -5,16 +5,9 @@ from backend.ws.admin_stream import handle_admin_logs
 from backend.ws.bot_stream import handle_bot_logs, handle_bot_telemetry
 from backend.ws.brain_stream import handle_brain_events
 from backend.ws.charts_stream import handle_charts_stream
-from backend.ws.dashboard_stream import handle_dashboard_stream
 from backend.ws.signals_stream import handle_signals_stream
 
 router = APIRouter()
-
-
-@router.websocket("/ws/dashboard")
-async def dashboard_ws(websocket: WebSocket) -> None:
-    """Proxy to dashboard stream handler (placeholder)."""
-    await handle_dashboard_stream(websocket)
 
 
 @router.websocket("/ws/charts")
