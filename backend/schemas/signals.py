@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel
 
@@ -27,3 +27,22 @@ class SignalRecord(BaseModel):
     price: float
     timeframe: str
     generatedAt: datetime
+
+
+class SignalLogEntry(BaseModel):
+    """Represents a rolling log event emitted by the signal pipeline."""
+
+    id: str
+    provider: str
+    level: Literal["info", "warning", "error"]
+    message: str
+    timestamp: datetime
+
+
+class SignalsStatusSummary(BaseModel):
+    """Aggregated view of provider health for the signals view."""
+
+    providers: List[SignalProviderStatus]
+    totalActiveProviders: int
+    overallHealth: Literal["healthy", "degraded", "offline"]
+    updatedAt: datetime
