@@ -3,8 +3,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.api import (
-    admin,
-    auth,
     bot,
     brain,
     charts,
@@ -14,6 +12,7 @@ from backend.api import (
     signals,
     strategies,
 )
+from backend.api import admin_routes, auth_routes
 from backend.api.websocket_router import router as websocket_router
 
 app = FastAPI(title="Bagbot Backend", version="0.1.0")
@@ -26,14 +25,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth.router)
+app.include_router(auth_routes.router)
 app.include_router(dashboard.router)
 app.include_router(strategies.router)
 app.include_router(signals.router)
 app.include_router(charts.router)
 app.include_router(bot.router)
 app.include_router(brain.router)
-app.include_router(admin.router)
+app.include_router(admin_routes.router)
 app.include_router(settings.router)
 app.include_router(health.router)
 app.include_router(websocket_router)

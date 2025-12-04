@@ -1,11 +1,25 @@
-"""Auth schema placeholders."""
-from typing import Optional
-
-from pydantic import BaseModel
+"""Authentication schemas aligned with the frontend contract."""
+from pydantic import BaseModel, EmailStr
 
 
 class LoginRequest(BaseModel):
-    """TODO: define login payload."""
+    """Incoming login payload."""
 
-    username: Optional[str] = None
-    password: Optional[str] = None
+    email: EmailStr
+    password: str
+
+
+class UserProfile(BaseModel):
+    """Shape of the authenticated user object returned to the UI."""
+
+    id: str
+    name: str
+    email: EmailStr
+    role: str
+
+
+class LoginResponse(BaseModel):
+    """Login response returned to the frontend."""
+
+    token: str
+    user: UserProfile
