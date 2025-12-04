@@ -1,9 +1,0 @@
-Optimization Report - 20251124_183004
-============================================================
-
-Objective: sharpe
-Population: 2 | Generations: 1 | Seed: 42
-Data: /var/folders/3c/4wk8wc7s0fx4lc1mlvbzmgdc0000gn/T/tmpi48f8kyn/test_data.csv
-
-Backtest Report:
-{'num_trades': 0, 'win_rate': None, 'sharpe': None, 'max_drawdown': 0.0, 'total_return': 0.0}
