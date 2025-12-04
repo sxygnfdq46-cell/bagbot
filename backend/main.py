@@ -15,6 +15,7 @@ from backend.api import (
 from backend.api import admin_routes, auth_routes
 from backend.api.ws.dashboard_ws import router as dashboard_ws_router
 from backend.api.websocket_router import router as websocket_router
+from backend.ws.brain_ws import router as brain_ws_router
 
 app = FastAPI(title="Bagbot Backend", version="0.1.0")
 
@@ -38,6 +39,7 @@ app.include_router(settings.router)
 app.include_router(health.router)
 app.include_router(websocket_router)
 app.include_router(dashboard_ws_router, prefix="/ws")
+app.include_router(brain_ws_router, prefix="/ws")
 
 
 @app.get("/", tags=["root"])
