@@ -1,5 +1,7 @@
 """Charts endpoints for the candlestick suite."""
-from typing import Any
+from __future__ import annotations
+
+from typing import Any, Optional
 
 from fastapi import APIRouter, Query
 
@@ -7,7 +9,9 @@ router = APIRouter(prefix="/api/charts", tags=["charts"])
 
 
 @router.get("/snapshot")
-async def get_chart_snapshot(asset: str | None = Query(default=None), timeframe: str | None = Query(default=None)) -> dict[str, Any]:
+async def get_chart_snapshot(
+    asset: Optional[str] = Query(default=None), timeframe: Optional[str] = Query(default=None)
+) -> dict[str, Any]:
     """Return OHLCV snapshots for a given asset/timeframe (placeholder)."""
     return {
         "detail": "chart snapshot placeholder",

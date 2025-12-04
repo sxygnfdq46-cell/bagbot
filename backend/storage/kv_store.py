@@ -1,5 +1,7 @@
 """Key/value cache placeholder."""
 
+from typing import Optional
+
 
 class KeyValueStore:
     """Simple abstraction over Redis or similar (placeholder)."""
@@ -8,6 +10,6 @@ class KeyValueStore:
         """TODO: write to KV store."""
         raise NotImplementedError
 
-    def get(self, key: str) -> str | None:
+    def get(self, key: str) -> Optional[str]:
         """TODO: read from KV store."""
         raise NotImplementedError

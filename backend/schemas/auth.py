@@ -1,8 +1,11 @@
 """Auth schema placeholders."""
+from typing import Optional
+
 from pydantic import BaseModel
 
 
 class LoginRequest(BaseModel):
     """TODO: define login payload."""
-    username: str | None = None
-    password: str | None = None
+
+    username: Optional[str] = None
+    password: Optional[str] = None
