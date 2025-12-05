@@ -24,6 +24,7 @@ from backend.services.strategy_service import (
 from backend.db import session as db_session
 from backend.storage import report_manifest
 from backend.services.manager import websocket_broadcast
+from backend.workers.events import broadcast_worker_heartbeat
 
 _CHANNEL = "signals"
 
@@ -285,8 +286,16 @@ def worker_heartbeat(
     at: datetime | None = None,
 ) -> Dict[str, Any]:
     """Lightweight health check for worker processes."""
+    now = at or _utcnow()
+    timestamp = now.isoformat()
+    ts_ms = int(now.timestamp() * 1000)
 
-    timestamp = (at or _utcnow()).isoformat()
+    try:
+        asyncio.get_running_loop()
+        asyncio.create_task(broadcast_worker_heartbeat(node_id, ts=ts_ms))
+    except RuntimeError:
+        asyncio.run(broadcast_worker_heartbeat(node_id, ts=ts_ms))
+
     return {
         "node_id": node_id,
         "status": "healthy",
