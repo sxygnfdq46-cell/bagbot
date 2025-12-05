@@ -1,9 +1,19 @@
-"""Strategy service placeholder."""
+from typing import Optional, Dict, Any
 
 
-class StrategyService:
-    """Controls strategy lifecycle (placeholder)."""
+def get_strategy(strategy_id: str) -> Optional[Dict[str, Any]]:
+    """Stub: pretend strategy exists."""
+    return {"id": strategy_id, "enabled": False}
 
-    async def list(self) -> None:
-        """TODO: list strategies."""
-        raise NotImplementedError
+
+def update_strategy(strategy_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Stub: merge data."""
+    result = {"id": strategy_id}
+    result.update(data)
+    return result
+
+
+def update_strategy(*args, **kwargs):
+    if _update_strategy:
+        return _update_strategy(*args, **kwargs)
+    return True
