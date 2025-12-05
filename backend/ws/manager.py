@@ -1,7 +1,6 @@
 """WebSocket broadcast stubs for tests."""
 from __future__ import annotations
 
-import asyncio
 from typing import Any, Dict, Optional, Union
 from uuid import UUID
 
@@ -45,6 +44,7 @@ async def _broadcast_strategy_state_async(
     state: str,
     payload: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any] | None:
+    """Broadcast strategy state change to WebSocket channel."""
     body = {"strategy_id": strategy_id, "state": state}
     if payload:
         body.update(payload)
@@ -56,14 +56,13 @@ async def _broadcast_strategy_state_async(
     )
 
 
-def broadcast_strategy_state(
+async def broadcast_strategy_state(
     strategy_id: str,
     state: str,
     payload: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any] | None:
-    return asyncio.run(
-        _broadcast_strategy_state_async(strategy_id, state, payload)
-    )
+    """Broadcast strategy state changes to WebSocket channel."""
+    return await _broadcast_strategy_state_async(strategy_id, state, payload)
 
 
 __all__ = [

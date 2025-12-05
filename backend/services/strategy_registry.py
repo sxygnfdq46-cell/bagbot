@@ -18,13 +18,34 @@ class StrategyRegistry:
         self._entries: Dict[str, StrategyMeta] = {}
 
     def register(self, meta: StrategyMeta) -> StrategyMeta:
+        """Register a new strategy in the registry.
+
+        Args:
+            meta (StrategyMeta): The strategy metadata to register.
+
+        Returns:
+            StrategyMeta: The registered strategy metadata.
+        """
         self._entries[meta.strategy_id] = meta
         return meta
 
     def get(self, strategy_id: str) -> Optional[StrategyMeta]:
+        """Retrieve a strategy from the registry by its ID.
+
+        Args:
+            strategy_id (str): The ID of the strategy to retrieve.
+
+        Returns:
+            Optional[StrategyMeta]: The strategy metadata if found, else None.
+        """
         return self._entries.get(strategy_id)
 
     def list(self) -> List[StrategyMeta]:
+        """List all registered strategies in the registry.
+
+        Returns:
+            List[StrategyMeta]: A list of all registered strategy metadata.
+        """
         return list(self._entries.values())
 
 
@@ -32,6 +53,7 @@ _default_registry: StrategyRegistry | None = None
 
 
 def load_default_registry() -> StrategyRegistry:
+    """Load or initialize the global strategy registry."""
     global _default_registry
     if _default_registry is None:
         registry = StrategyRegistry()
@@ -41,6 +63,7 @@ def load_default_registry() -> StrategyRegistry:
 
 
 def register_strategy(meta: StrategyMeta) -> StrategyMeta:
+    """Register a strategy in the default registry."""
     registry = load_default_registry()
     return registry.register(meta)
 
