@@ -23,7 +23,7 @@ from backend.services.strategy_service import (
 )
 from backend.db import session as db_session
 from backend.storage import report_manifest
-from backend.services.manager import websocket_broadcast
+from backend.ws.manager import broadcast_strategy_state, websocket_broadcast
 
 _CHANNEL = "signals"
 
@@ -57,10 +57,10 @@ async def _start_strategy_async(strategy_id: str) -> Dict[str, Any]:
             last_run=_utcnow(),
         )
 
-        await websocket_broadcast(
-            channel=_CHANNEL,
-            event="strategy.started",
-            payload={"strategy_id": strategy_id, "state": "running"},
+        await broadcast_strategy_state(
+            strategy_id=strategy_id,
+            state="started",
+            payload={"state": "running"},
         )
         return {"status": "started", "strategy_id": strategy_id}
 
@@ -83,10 +83,10 @@ async def _stop_strategy_async(strategy_id: str) -> Dict[str, Any]:
             enabled=False,
         )
 
-        await websocket_broadcast(
-            channel=_CHANNEL,
-            event="strategy.stopped",
-            payload={"strategy_id": strategy_id, "state": "stopped"},
+        await broadcast_strategy_state(
+            strategy_id=strategy_id,
+            state="stopped",
+            payload={"state": "stopped"},
         )
         return {"status": "stopped", "strategy_id": strategy_id}
 
@@ -152,7 +152,9 @@ async def _finalize_ready_report(
     }
 
 
-async def _generate_report_async(strategy_id: str, report_id: str | None = None) -> Dict[str, Any]:
+async def _generate_report_async(
+    strategy_id: str, report_id: str | None = None
+) -> Dict[str, Any]:
     async with db_session.AsyncSessionLocal() as session:
         strategy = await get_strategy(session, strategy_id)
         if strategy is None:
@@ -189,7 +191,9 @@ async def _generate_report_async(strategy_id: str, report_id: str | None = None)
         report_path, csv_path = _report_file_paths(report.id)
 
         try:
-            report_path.write_text(json.dumps(report_payload, indent=2))
+            report_path.write_text(
+                json.dumps(report_payload, indent=2)
+            )
             _write_csv_report(csv_path, report_payload)
             return await _finalize_ready_report(
                 session,
@@ -200,7 +204,7 @@ async def _generate_report_async(strategy_id: str, report_id: str | None = None)
                 report_payload=report_payload,
                 job_id=job_id,
             )
-        except Exception as exc:  # pragma: no cover - defensive failure handling
+        except Exception as exc:  # pragma: no cover
             error_message = str(exc)
             await update_report(
                 session,
@@ -233,24 +237,47 @@ def stop_strategy(strategy_id: str) -> Dict[str, Any]:
     return asyncio.run(_stop_strategy_async(strategy_id))
 
 
-def generate_report(strategy_id: str, report_id: str | None = None) -> Dict[str, Any]:
+def generate_report(
+    strategy_id: str, report_id: str | None = None
+) -> Dict[str, Any]:
     """Produce a JSON + CSV report for the requested strategy."""
 
-    return asyncio.run(_generate_report_async(strategy_id, report_id))
+    return asyncio.run(
+        _generate_report_async(strategy_id, report_id)
+    )
 
 
-def strategy_toggle(strategy_id: str, target_state: Literal["started", "stopped"] = "started") -> Dict[str, Any]:
+def strategy_toggle(
+    strategy_id: str,
+    target_state: Literal["started", "stopped"] = "started",
+) -> Dict[str, Any]:
     """Small RQ-friendly wrapper around start/stop helpers."""
 
     try:
-        ts = target_state if target_state in ("started", "stopped") else "started"
+        allowed_states = ("started", "stopped")
+        ts = target_state if target_state in allowed_states else "started"
         if ts == "started":
             start_strategy(strategy_id=strategy_id)
-            return {"strategy_id": strategy_id, "status": "started"}
+            return {
+                "strategy_id": strategy_id,
+                "status": "started",
+            }
         stop_strategy(strategy_id=strategy_id)
-        return {"strategy_id": strategy_id, "status": "stopped"}
-    except Exception as exc:  # pragma: no cover - defensive wrapper
-        return {"strategy_id": strategy_id, "status": "failed", "reason": str(exc)}
+        return {
+            "strategy_id": strategy_id,
+            "status": "stopped",
+        }
+    except Exception as exc:  # pragma: no cover
+        return {
+            "strategy_id": strategy_id,
+            "status": "failed",
+            "reason": str(exc),
+        }
 
 
-__all__ = ["start_strategy", "stop_strategy", "generate_report", "strategy_toggle"]
+__all__ = [
+    "start_strategy",
+    "stop_strategy",
+    "generate_report",
+    "strategy_toggle",
+]
