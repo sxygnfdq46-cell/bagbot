@@ -11,7 +11,7 @@ from typing import Literal
 
 from rq import get_current_job
 
-# prefer service-layer helpers (thin wrappers) rather than direct crud imports
+# kept service-layer imports to avoid deprecated backend.crud
 from backend.services.report_service import (
     create_report,
     get_report,
@@ -23,7 +23,7 @@ from backend.services.strategy_service import (
 )
 from backend.db import session as db_session
 from backend.storage import report_manifest
-from backend.ws.manager import broadcast_strategy_state, websocket_broadcast
+from backend.services.manager import websocket_broadcast
 
 _CHANNEL = "signals"
 
@@ -57,10 +57,10 @@ async def _start_strategy_async(strategy_id: str) -> Dict[str, Any]:
             last_run=_utcnow(),
         )
 
-        await broadcast_strategy_state(
-            strategy_id=strategy_id,
-            state="started",
-            payload={"state": "running"},
+        await websocket_broadcast(
+            channel=_CHANNEL,
+            event="strategy.started",
+            payload={"strategy_id": strategy_id, "state": "running"},
         )
         return {"status": "started", "strategy_id": strategy_id}
 
@@ -83,10 +83,10 @@ async def _stop_strategy_async(strategy_id: str) -> Dict[str, Any]:
             enabled=False,
         )
 
-        await broadcast_strategy_state(
-            strategy_id=strategy_id,
-            state="stopped",
-            payload={"state": "stopped"},
+        await websocket_broadcast(
+            channel=_CHANNEL,
+            event="strategy.stopped",
+            payload={"strategy_id": strategy_id, "state": "stopped"},
         )
         return {"status": "stopped", "strategy_id": strategy_id}
 
@@ -153,7 +153,8 @@ async def _finalize_ready_report(
 
 
 async def _generate_report_async(
-    strategy_id: str, report_id: str | None = None
+    strategy_id: str,
+    report_id: str | None = None,
 ) -> Dict[str, Any]:
     async with db_session.AsyncSessionLocal() as session:
         strategy = await get_strategy(session, strategy_id)
@@ -191,9 +192,7 @@ async def _generate_report_async(
         report_path, csv_path = _report_file_paths(report.id)
 
         try:
-            report_path.write_text(
-                json.dumps(report_payload, indent=2)
-            )
+            report_path.write_text(json.dumps(report_payload, indent=2))
             _write_csv_report(csv_path, report_payload)
             return await _finalize_ready_report(
                 session,
@@ -204,7 +203,8 @@ async def _generate_report_async(
                 report_payload=report_payload,
                 job_id=job_id,
             )
-        except Exception as exc:  # pragma: no cover
+        except Exception as exc:
+            # pragma: no cover - defensive failure handling
             error_message = str(exc)
             await update_report(
                 session,
@@ -238,12 +238,13 @@ def stop_strategy(strategy_id: str) -> Dict[str, Any]:
 
 
 def generate_report(
-    strategy_id: str, report_id: str | None = None
+    strategy_id: str,
+    report_id: str | None = None,
 ) -> Dict[str, Any]:
     """Produce a JSON + CSV report for the requested strategy."""
 
     return asyncio.run(
-        _generate_report_async(strategy_id, report_id)
+        _generate_report_async(strategy_id, report_id),
     )
 
 
@@ -254,8 +255,11 @@ def strategy_toggle(
     """Small RQ-friendly wrapper around start/stop helpers."""
 
     try:
-        allowed_states = ("started", "stopped")
-        ts = target_state if target_state in allowed_states else "started"
+        ts = (
+            target_state
+            if target_state in ("started", "stopped")
+            else "started"
+        )
         if ts == "started":
             start_strategy(strategy_id=strategy_id)
             return {
@@ -267,7 +271,7 @@ def strategy_toggle(
             "strategy_id": strategy_id,
             "status": "stopped",
         }
-    except Exception as exc:  # pragma: no cover
+    except Exception as exc:  # pragma: no cover - defensive wrapper
         return {
             "strategy_id": strategy_id,
             "status": "failed",
@@ -275,9 +279,25 @@ def strategy_toggle(
         }
 
 
+def worker_heartbeat(
+    node_id: str,
+    *,
+    at: datetime | None = None,
+) -> Dict[str, Any]:
+    """Lightweight health check for worker processes."""
+
+    timestamp = (at or _utcnow()).isoformat()
+    return {
+        "node_id": node_id,
+        "status": "healthy",
+        "at": timestamp,
+    }
+
+
 __all__ = [
     "start_strategy",
     "stop_strategy",
     "generate_report",
     "strategy_toggle",
+    "worker_heartbeat",
 ]
