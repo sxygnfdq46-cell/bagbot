@@ -152,7 +152,10 @@ async def _finalize_ready_report(
     }
 
 
-async def _generate_report_async(strategy_id: str, report_id: str | None = None) -> Dict[str, Any]:
+async def _generate_report_async(
+    strategy_id: str,
+    report_id: str | None = None,
+) -> Dict[str, Any]:
     async with db_session.AsyncSessionLocal() as session:
         strategy = await get_strategy(session, strategy_id)
         if strategy is None:
@@ -200,7 +203,8 @@ async def _generate_report_async(strategy_id: str, report_id: str | None = None)
                 report_payload=report_payload,
                 job_id=job_id,
             )
-        except Exception as exc:  # pragma: no cover - defensive failure handling
+        except Exception as exc:
+            # pragma: no cover - defensive failure handling
             error_message = str(exc)
             await update_report(
                 session,
@@ -233,24 +237,67 @@ def stop_strategy(strategy_id: str) -> Dict[str, Any]:
     return asyncio.run(_stop_strategy_async(strategy_id))
 
 
-def generate_report(strategy_id: str, report_id: str | None = None) -> Dict[str, Any]:
+def generate_report(
+    strategy_id: str,
+    report_id: str | None = None,
+) -> Dict[str, Any]:
     """Produce a JSON + CSV report for the requested strategy."""
 
-    return asyncio.run(_generate_report_async(strategy_id, report_id))
+    return asyncio.run(
+        _generate_report_async(strategy_id, report_id),
+    )
 
 
-def strategy_toggle(strategy_id: str, target_state: Literal["started", "stopped"] = "started") -> Dict[str, Any]:
+def strategy_toggle(
+    strategy_id: str,
+    target_state: Literal["started", "stopped"] = "started",
+) -> Dict[str, Any]:
     """Small RQ-friendly wrapper around start/stop helpers."""
 
     try:
-        ts = target_state if target_state in ("started", "stopped") else "started"
+        ts = (
+            target_state
+            if target_state in ("started", "stopped")
+            else "started"
+        )
         if ts == "started":
             start_strategy(strategy_id=strategy_id)
-            return {"strategy_id": strategy_id, "status": "started"}
+            return {
+                "strategy_id": strategy_id,
+                "status": "started",
+            }
         stop_strategy(strategy_id=strategy_id)
-        return {"strategy_id": strategy_id, "status": "stopped"}
+        return {
+            "strategy_id": strategy_id,
+            "status": "stopped",
+        }
     except Exception as exc:  # pragma: no cover - defensive wrapper
-        return {"strategy_id": strategy_id, "status": "failed", "reason": str(exc)}
+        return {
+            "strategy_id": strategy_id,
+            "status": "failed",
+            "reason": str(exc),
+        }
 
 
-__all__ = ["start_strategy", "stop_strategy", "generate_report", "strategy_toggle"]
+def worker_heartbeat(
+    node_id: str,
+    *,
+    at: datetime | None = None,
+) -> Dict[str, Any]:
+    """Lightweight health check for worker processes."""
+
+    timestamp = (at or _utcnow()).isoformat()
+    return {
+        "node_id": node_id,
+        "status": "healthy",
+        "at": timestamp,
+    }
+
+
+__all__ = [
+    "start_strategy",
+    "stop_strategy",
+    "generate_report",
+    "strategy_toggle",
+    "worker_heartbeat",
+]
