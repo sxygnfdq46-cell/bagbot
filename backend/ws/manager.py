@@ -61,7 +61,7 @@ async def broadcast_strategy_state(
     state: str,
     payload: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any] | None:
-    """Synchronous wrapper for broadcasting strategy state changes."""
+    """Broadcast strategy state changes to WebSocket channel."""
     return await _broadcast_strategy_state_async(strategy_id, state, payload)
 
 
