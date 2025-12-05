@@ -1,4 +1,4 @@
-"""Integration test: toggle -> enqueue -> worker executes -> WS emit captured."""
+"""Integration flow: toggle enqueues and worker emits WS events."""
 from __future__ import annotations
 
 import os
@@ -14,7 +14,6 @@ from backend.db import session as db_session  # noqa: E402
 from backend.main import app  # noqa: E402
 from backend.models import Base  # noqa: E402
 from backend.workers import tasks  # noqa: E402
-
 
 
 @pytest.fixture(autouse=True)
@@ -54,12 +53,25 @@ async def _seed_strategy(**overrides: Dict[str, Any]):
 
 
 @pytest.mark.parametrize("anyio_backend", ["asyncio"])
-async def test_toggle_enqueue_and_worker_emits(monkeypatch, api_client, anyio_backend):
+async def test_toggle_enqueue_and_worker_emits(
+    monkeypatch, api_client, anyio_backend
+):
     events: List[Dict[str, Any]] = []
     captured_enqueue: Dict[str, Any] = {}
 
-    async def fake_ws(channel: str, event: str, payload: Dict[str, Any] | None = None, **kwargs: Any):
-        events.append({"channel": channel, "event": event, "payload": payload})
+    async def fake_ws(
+        channel: str,
+        event: str,
+        payload: Dict[str, Any] | None = None,
+        **kwargs: Any,
+    ):
+        events.append(
+            {
+                "channel": channel,
+                "event": event,
+                "payload": payload,
+            }
+        )
 
     def fake_enqueue(task_path: str, *args: Any, **kwargs: Any) -> str:
         captured_enqueue["task_path"] = task_path
@@ -67,8 +79,14 @@ async def test_toggle_enqueue_and_worker_emits(monkeypatch, api_client, anyio_ba
         captured_enqueue["kwargs"] = kwargs
         return "job-123"
 
-    monkeypatch.setattr("backend.api.strategies.websocket_broadcast", fake_ws)
-    monkeypatch.setattr("backend.services.manager.websocket_broadcast", fake_ws)
+    monkeypatch.setattr(
+        "backend.api.strategies.websocket_broadcast",
+        fake_ws,
+    )
+    monkeypatch.setattr(
+        "backend.services.manager.websocket_broadcast",
+        fake_ws,
+    )
     monkeypatch.setattr("backend.api.strategies.enqueue_task", fake_enqueue)
 
     strategy = await _seed_strategy()
@@ -83,13 +101,21 @@ async def test_toggle_enqueue_and_worker_emits(monkeypatch, api_client, anyio_ba
     # Simulate worker execution directly
     def fake_start_strategy(strategy_id: str):
         events.append(
-            {"channel": "signals", "event": "strategy.started", "payload": {"strategy_id": strategy_id}}
+            {
+                "channel": "signals",
+                "event": "strategy.started",
+                "payload": {"strategy_id": strategy_id},
+            }
         )
         return {"strategy_id": strategy_id, "status": "started"}
 
     def fake_stop_strategy(strategy_id: str):
         events.append(
-            {"channel": "signals", "event": "strategy.stopped", "payload": {"strategy_id": strategy_id}}
+            {
+                "channel": "signals",
+                "event": "strategy.stopped",
+                "payload": {"strategy_id": strategy_id},
+            }
         )
         return {"strategy_id": strategy_id, "status": "stopped"}
 
@@ -99,7 +125,12 @@ async def test_toggle_enqueue_and_worker_emits(monkeypatch, api_client, anyio_ba
     worker_result = tasks.strategy_toggle(strategy.id, payload["status"])
     assert worker_result["status"] == payload["status"]
 
-    assert any(ev["event"] == "strategy.started" for ev in events) or any(
-        ev["event"] == "strategy.stopped" for ev in events
+    started = any(ev["event"] == "strategy.started" for ev in events)
+    stopped = any(ev["event"] == "strategy.stopped" for ev in events)
+
+    assert started or stopped
+    has_strategy = any(
+        ev["payload"].get("strategy_id") == strategy.id for ev in events
     )
-    assert any(ev["payload"].get("strategy_id") == strategy.id for ev in events)
+
+    assert has_strategy

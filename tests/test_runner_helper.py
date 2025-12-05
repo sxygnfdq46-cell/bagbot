@@ -11,7 +11,11 @@ def test_run_job_calls_target(monkeypatch):
 
     monkeypatch.setattr(tasks, "strategy_toggle", fake_strategy_toggle)
 
-    result = run_job("backend.workers.tasks.strategy_toggle", "strat-1", "started")
+    result = run_job(
+        "backend.workers.tasks.strategy_toggle",
+        "strat-1",
+        "started",
+    )
 
     assert called == [("strat-1", "started")]
     assert result == {"strategy_id": "strat-1", "status": "started"}
