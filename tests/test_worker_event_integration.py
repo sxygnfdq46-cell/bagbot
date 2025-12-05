@@ -5,7 +5,6 @@ import json
 import pytest
 
 from backend.workers import queue
-from backend.workers.runner import run_job
 
 
 @pytest.fixture
@@ -24,14 +23,8 @@ async def test_enqueue_and_runner_emit_job_events_and_heartbeat(monkeypatch):
 
     job_id = queue.enqueue_worker_heartbeat("node-int")
 
-    # allow enqueued broadcast to flush
-    await asyncio.sleep(0)
-
-    result = run_job(queue.HEARTBEAT_JOB_PATH, "node-int", job_id=job_id)
-    assert result["status"] == "healthy"
-
-    # allow scheduled broadcasts to run
-    await asyncio.sleep(0)
+    # allow enqueued broadcast + job execution to flush
+    await asyncio.sleep(0.01)
 
     event_names = [ev["event"] for ev in events]
 

@@ -291,10 +291,19 @@ def worker_heartbeat(
     ts_ms = int(now.timestamp() * 1000)
 
     try:
-        asyncio.get_running_loop()
-        asyncio.create_task(broadcast_worker_heartbeat(node_id, ts=ts_ms))
+        loop = asyncio.get_running_loop()
     except RuntimeError:
-        asyncio.run(broadcast_worker_heartbeat(node_id, ts=ts_ms))
+        local_loop = asyncio.new_event_loop()
+        try:
+            local_loop.run_until_complete(
+                broadcast_worker_heartbeat(node_id, ts=ts_ms)
+            )
+        finally:
+            local_loop.close()
+    else:
+        loop.create_task(
+            broadcast_worker_heartbeat(node_id, ts=ts_ms)
+        )
 
     return {
         "node_id": node_id,
