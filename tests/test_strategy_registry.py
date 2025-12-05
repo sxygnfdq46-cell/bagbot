@@ -1,9 +1,20 @@
+import pytest
+
 from backend.services.strategy_registry import (
     StrategyMeta,
     load_default_registry,
     register_strategy,
     StrategyRegistry,
 )
+
+
+@pytest.fixture(autouse=True)
+def reset_default_registry():
+    """Reset the global default registry before each test."""
+    import backend.services.strategy_registry as reg_module
+    reg_module._default_registry = None
+    yield
+    reg_module._default_registry = None
 
 
 def test_register_and_get_strategy():
