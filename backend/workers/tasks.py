@@ -11,7 +11,17 @@ from typing import Literal
 
 from rq import get_current_job
 
-from backend.crud import create_report, get_report, get_strategy, update_report, update_strategy
+# Use service-layer helpers now that backend.crud is deprecated
+from backend.services.report_service import (
+    create_report,
+    get_report,
+    update_report,
+)
+
+from backend.services.strategy_service import (
+    get_strategy,
+    update_strategy,
+)
 from backend.db import session as db_session
 from backend.storage import report_manifest
 from backend.ws.manager import websocket_broadcast
