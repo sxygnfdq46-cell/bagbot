@@ -11,19 +11,10 @@ from typing import Literal
 
 from rq import get_current_job
 
-# prefer service-layer helpers (thin wrappers) rather than direct crud imports
-from backend.services.report_service import (
-    create_report,
-    get_report,
-    update_report,
-)
-from backend.services.strategy_service import (
-    get_strategy,
-    update_strategy,
-)
+from backend.crud import create_report, get_report, get_strategy, update_report, update_strategy
 from backend.db import session as db_session
 from backend.storage import report_manifest
-from backend.services.manager import websocket_broadcast
+from backend.ws.manager import websocket_broadcast
 
 _CHANNEL = "signals"
 
