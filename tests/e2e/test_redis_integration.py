@@ -9,9 +9,9 @@ This test suite validates:
 
 Requires: Real Redis service running (not fakeredis)
 """
+
 import asyncio
 import time
-from typing import Any, Dict
 
 import pytest
 import redis.asyncio as aioredis
@@ -20,9 +20,8 @@ from fastapi.testclient import TestClient
 from backend.main import app
 from backend.workers.orchestration import WorkerCoordinator
 from backend.workers.redis_job_store import RedisJobStore
+from backend.workers.retry_worker import redis_queue_monitor, redis_retry_worker
 from backend.workers.runner import runner_loop
-from backend.workers.retry_worker import redis_retry_worker, redis_queue_monitor
-
 
 # Test job functions
 _test_results = []
@@ -38,10 +37,10 @@ def failing_test_job(fail_count: int = 2) -> str:
     """A test job that fails a certain number of times before succeeding."""
     call_count = len([r for r in _test_results if "fail_attempt" in r])
     _test_results.append(f"fail_attempt:{call_count}")
-    
+
     if call_count < fail_count:
         raise ValueError(f"Simulated failure {call_count + 1}/{fail_count}")
-    
+
     _test_results.append("finally_succeeded")
     return "success_after_retries"
 
@@ -62,18 +61,18 @@ def anyio_backend():
 async def redis_client():
     """
     Create a real Redis client connection.
-    
+
     This fixture requires a Redis service to be running.
     For CI, ensure Redis service is started before tests.
     """
     redis_url = "redis://localhost:6379/15"  # Use db 15 for testing
     client = await aioredis.from_url(redis_url, decode_responses=True)
-    
+
     # Verify connection
     await client.ping()
-    
+
     yield client
-    
+
     # Cleanup: flush the test database
     await client.flushdb()
     await client.close()
@@ -82,10 +81,7 @@ async def redis_client():
 @pytest.fixture
 async def redis_store(redis_client):
     """Create a RedisJobStore with test namespace."""
-    store = RedisJobStore(
-        client=redis_client,
-        namespace="e2e_test_jobs"
-    )
+    store = RedisJobStore(client=redis_client, namespace="e2e_test_jobs")
     yield store
     # Cleanup handled by redis_client fixture
 
@@ -110,7 +106,7 @@ async def worker_coordinator(redis_client):
 async def test_exclusive_job_claiming(redis_store, worker_coordinator):
     """
     Test that multiple workers claim jobs exclusively.
-    
+
     Validates:
     - Jobs are stored in Redis
     - Only one worker can claim a job
@@ -123,19 +119,19 @@ async def test_exclusive_job_claiming(redis_store, worker_coordinator):
         "args": ["test_message"],
         "kwargs": {},
     }
-    
+
     # Store job and schedule it
     await redis_store.set_last_job(job_id, job_payload)
     await redis_store.schedule_retry(job_id, int(time.time() * 1000) - 100)
-    
+
     # Register two workers
     await worker_coordinator.register("worker-1")
     await worker_coordinator.register("worker-2")
-    
+
     # Start two runner loops
     shutdown_1 = asyncio.Event()
     shutdown_2 = asyncio.Event()
-    
+
     task_1 = asyncio.create_task(
         runner_loop(
             store=redis_store,
@@ -150,15 +146,15 @@ async def test_exclusive_job_claiming(redis_store, worker_coordinator):
             poll_interval_ms=50,
         )
     )
-    
+
     # Wait for job to complete
     await asyncio.sleep(0.5)
-    
+
     # Shutdown workers
     shutdown_1.set()
     shutdown_2.set()
     await asyncio.wait_for(asyncio.gather(task_1, task_2), timeout=3.0)
-    
+
     # Verify job was executed exactly once
     assert _test_results == ["success:test_message"], f"Actual results: {_test_results}"
     job_state = await redis_store.get_state(job_id)
@@ -172,7 +168,7 @@ async def test_exclusive_job_claiming(redis_store, worker_coordinator):
 async def test_retry_logic_and_backoff(redis_store):
     """
     Test that retry logic triggers correctly with scheduled backoff.
-    
+
     Validates:
     - Jobs that fail are scheduled for retry
     - Retry backoff is respected
@@ -186,36 +182,36 @@ async def test_retry_logic_and_backoff(redis_store):
         "args": [2],  # Fail 2 times before succeeding
         "kwargs": {},
     }
-    
+
     # Store job and schedule it
     await redis_store.set_last_job(job_id, job_payload)
     await redis_store.schedule_retry(job_id, int(time.time() * 1000) - 100)
-    
+
     # Run retry worker to process the job (it will fail and reschedule)
     await redis_retry_worker(redis_store, poll_interval_ms=0)
-    
+
     # Verify first attempt failed and was rescheduled
     state = await redis_store.get_state(job_id)
     assert state == "retry_scheduled"
     attempts = await redis_store.attempts(job_id)
     assert attempts == 1
     assert "fail_attempt:0" in _test_results
-    
+
     # Manually advance time and process retry
     await redis_store.schedule_retry(job_id, int(time.time() * 1000) - 100)
     await redis_retry_worker(redis_store, poll_interval_ms=0)
-    
+
     # Second attempt should also fail
     state = await redis_store.get_state(job_id)
     assert state == "retry_scheduled"
     attempts = await redis_store.attempts(job_id)
     assert attempts == 2
     assert "fail_attempt:1" in _test_results
-    
+
     # Third attempt should succeed
     await redis_store.schedule_retry(job_id, int(time.time() * 1000) - 100)
     await redis_retry_worker(redis_store, poll_interval_ms=0)
-    
+
     state = await redis_store.get_state(job_id)
     assert state == "done"
     attempts = await redis_store.attempts(job_id)
@@ -232,7 +228,7 @@ async def test_retry_logic_and_backoff(redis_store):
 async def test_coordinator_heartbeat_and_deregistration(worker_coordinator):
     """
     Test worker coordinator heartbeat updates and deregistration.
-    
+
     Validates:
     - Workers can register with coordinator
     - Heartbeat updates worker last_seen timestamp
@@ -240,30 +236,30 @@ async def test_coordinator_heartbeat_and_deregistration(worker_coordinator):
     - Stale workers are cleaned up
     """
     worker_id = "e2e-test-worker"
-    
+
     # Register worker
     await worker_coordinator.register(worker_id, metadata={"version": "1.0"})
-    
+
     # Verify worker is registered
     active_workers = await worker_coordinator.active_workers()
     assert worker_id in active_workers
-    
+
     # Get initial worker info
     worker_info = await worker_coordinator.get_worker(worker_id)
     assert worker_info["worker_id"] == worker_id
     assert worker_info["status"] == "online"
     assert worker_info["meta_version"] == "1.0"
     initial_last_seen = int(worker_info["last_seen_ms"])
-    
+
     # Wait a bit and send heartbeat
     await asyncio.sleep(0.1)
     await worker_coordinator.heartbeat(worker_id)
-    
+
     # Verify last_seen was updated
     updated_info = await worker_coordinator.get_worker(worker_id)
     updated_last_seen = int(updated_info["last_seen_ms"])
     assert updated_last_seen > initial_last_seen
-    
+
     # Test heartbeat loop with shutdown
     shutdown = asyncio.Event()
     heartbeat_task = asyncio.create_task(
@@ -273,26 +269,26 @@ async def test_coordinator_heartbeat_and_deregistration(worker_coordinator):
             shutdown_event=shutdown,
         )
     )
-    
+
     # Wait for a few heartbeats
     await asyncio.sleep(0.3)
-    
+
     # Get info before shutdown
     before_shutdown = await worker_coordinator.get_worker(worker_id)
     before_last_seen = int(before_shutdown["last_seen_ms"])
     assert before_last_seen > updated_last_seen
-    
+
     # Shutdown heartbeat loop
     shutdown.set()
     await asyncio.wait_for(heartbeat_task, timeout=2.0)
-    
+
     # Deregister worker
     await worker_coordinator.deregister(worker_id)
-    
+
     # Verify worker is removed
     active_workers = await worker_coordinator.active_workers()
     assert worker_id not in active_workers
-    
+
     # Verify worker info is deleted
     deregistered_info = await worker_coordinator.get_worker(worker_id)
     assert deregistered_info == {}
@@ -305,23 +301,23 @@ async def test_stale_worker_cleanup(worker_coordinator):
     # Register a worker
     worker_id = "stale-worker"
     await worker_coordinator.register(worker_id)
-    
+
     # Verify worker exists
     active_workers = await worker_coordinator.active_workers()
     assert worker_id in active_workers
-    
+
     # Simulate staleness by waiting beyond TTL (30 seconds in fixture)
     # For testing, we'll manually manipulate the last_seen timestamp
     redis_client = worker_coordinator._redis
     worker_key = worker_coordinator._worker_key(worker_id)
-    
+
     # Set last_seen to 60 seconds ago (beyond 30s TTL)
     stale_timestamp = int(time.time() * 1000) - 60000
     await redis_client.hset(worker_key, "last_seen_ms", stale_timestamp)
-    
+
     # Run cleanup
     stale_workers = await worker_coordinator.cleanup_stale()
-    
+
     # Verify stale worker was cleaned up
     assert worker_id in stale_workers
     active_workers = await worker_coordinator.active_workers()
@@ -332,7 +328,7 @@ async def test_stale_worker_cleanup(worker_coordinator):
 def test_metrics_endpoint_emits_required_metrics():
     """
     Test that /api/metrics endpoint emits all required Prometheus metrics.
-    
+
     Validates metrics:
     - bagbot_job_enqueue_total
     - bagbot_job_run_total
@@ -340,21 +336,21 @@ def test_metrics_endpoint_emits_required_metrics():
     - bagbot_worker_heartbeat_age_seconds (heartbeat_age_seconds)
     """
     client = TestClient(app)
-    
+
     # Call metrics endpoint
     response = client.get("/api/metrics")
-    
+
     assert response.status_code == 200
     assert response.headers["content-type"] == "text/plain; version=0.0.4; charset=utf-8"
-    
+
     metrics_text = response.text
-    
+
     # Verify all required metrics are present
     assert "bagbot_job_enqueue_total" in metrics_text
     assert "bagbot_job_run_total" in metrics_text
     assert "bagbot_retry_scheduled_total" in metrics_text
     assert "bagbot_heartbeat_age_seconds" in metrics_text
-    
+
     # Verify metrics have proper structure (HELP and TYPE lines)
     assert "# HELP bagbot_job_enqueue_total" in metrics_text
     assert "# TYPE bagbot_job_enqueue_total counter" in metrics_text
@@ -367,7 +363,7 @@ def test_metrics_endpoint_emits_required_metrics():
 async def test_queue_monitor_metrics(redis_store):
     """
     Test that queue monitor collects and publishes metrics correctly.
-    
+
     Validates:
     - Queue length is tracked
     - Running jobs are counted
@@ -378,14 +374,14 @@ async def test_queue_monitor_metrics(redis_store):
     await redis_store.set_state("job-enqueued-2", "enqueued")
     await redis_store.set_state("job-running-1", "running")
     await redis_store.set_state("job-done-1", "done")
-    
+
     # Run queue monitor
     stats = await redis_queue_monitor(redis_store, stale_ms=300_000)
-    
+
     # Verify stats
     assert stats["queue_len"] == 2  # Two enqueued jobs
-    assert stats["running"] == 1     # One running job
-    assert stats["stuck"] == 0        # No stuck jobs (not stale)
+    assert stats["running"] == 1  # One running job
+    assert stats["stuck"] == 0  # No stuck jobs (not stale)
     assert "heartbeat_age_ms" in stats
 
 
@@ -394,7 +390,7 @@ async def test_queue_monitor_metrics(redis_store):
 async def test_full_worker_lifecycle(redis_store, worker_coordinator):
     """
     Full end-to-end test of worker lifecycle.
-    
+
     Simulates:
     1. Worker registration
     2. Job enqueueing and processing
@@ -403,11 +399,11 @@ async def test_full_worker_lifecycle(redis_store, worker_coordinator):
     """
     worker_id = "e2e-lifecycle-worker"
     job_id = "lifecycle-test-job"
-    
+
     # 1. Register worker
     await worker_coordinator.register(worker_id)
     assert worker_id in await worker_coordinator.active_workers()
-    
+
     # 2. Enqueue job
     job_payload = {
         "job_id": job_id,
@@ -417,10 +413,10 @@ async def test_full_worker_lifecycle(redis_store, worker_coordinator):
     }
     await redis_store.set_last_job(job_id, job_payload)
     await redis_store.schedule_retry(job_id, int(time.time() * 1000) - 100)
-    
+
     # 3. Start worker with heartbeat
     shutdown = asyncio.Event()
-    
+
     heartbeat_task = asyncio.create_task(
         worker_coordinator.heartbeat_loop(
             worker_id,
@@ -428,7 +424,7 @@ async def test_full_worker_lifecycle(redis_store, worker_coordinator):
             shutdown_event=shutdown,
         )
     )
-    
+
     runner_task = asyncio.create_task(
         runner_loop(
             store=redis_store,
@@ -436,21 +432,18 @@ async def test_full_worker_lifecycle(redis_store, worker_coordinator):
             poll_interval_ms=50,
         )
     )
-    
+
     # Let worker run
     await asyncio.sleep(0.3)
-    
+
     # Verify job completed
     assert await redis_store.get_state(job_id) == "done"
     assert "success:lifecycle" in _test_results
-    
+
     # 4. Graceful shutdown
     shutdown.set()
-    await asyncio.wait_for(
-        asyncio.gather(heartbeat_task, runner_task),
-        timeout=3.0
-    )
-    
+    await asyncio.wait_for(asyncio.gather(heartbeat_task, runner_task), timeout=3.0)
+
     # 5. Deregister
     await worker_coordinator.deregister(worker_id)
     assert worker_id not in await worker_coordinator.active_workers()
