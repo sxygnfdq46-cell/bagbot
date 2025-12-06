@@ -9,6 +9,8 @@ on:
 jobs:
   e2e-redis:
     runs-on: ubuntu-latest
+    env:
+      ENCRYPTION_KEY: ${{ secrets.BAGBOT_ENCRYPTION_KEY }}
     services:
       redis:
         image: redis:7-alpine
