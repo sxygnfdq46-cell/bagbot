@@ -9,8 +9,13 @@ on:
 jobs:
   e2e-redis:
     runs-on: ubuntu-latest
+
     env:
       ENCRYPTION_KEY: ${{ secrets.BAGBOT_ENCRYPTION_KEY }}
+      REDIS_URL: redis://localhost:6379/0
+      JOB_STORE: redis
+      PROMETHEUS_MULTIPROC_DIR: /tmp/metrics
+
     services:
       redis:
         image: redis:7-alpine
@@ -22,12 +27,7 @@ jobs:
           --health-timeout 5s
           --health-retries 10
 
-    env:
-      REDIS_URL: redis://localhost:6379/0
-      JOB_STORE: redis
-      PROMETHEUS_MULTIPROC_DIR: /tmp/metrics
-      ENCRYPTION_KEY: ${{ secrets.BAGBOT_ENCRYPTION_KEY }}
-
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
