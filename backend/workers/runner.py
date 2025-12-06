@@ -46,6 +46,7 @@ async def run_job_async(
     *,
     loop: Optional[asyncio.AbstractEventLoop] = None,
     skip_claim: bool = False,
+    store: Optional[Any] = None,
 ) -> Any:
     """Async runner for a job dict; emits lifecycle events.
 
@@ -53,6 +54,7 @@ async def run_job_async(
     """
 
     loop = loop or asyncio.get_event_loop()
+    store_ref = store or default_store
     job_identifier = job.get("job_id", "job-inline")
     job_path = job.get("job_path")
     job_path_label = job_path or "unknown"
@@ -60,7 +62,7 @@ async def run_job_async(
     kwargs = job.get("kwargs", {})
 
     if not skip_claim:
-        claimed = await _maybe_await(default_store.claim(job_identifier))
+        claimed = await _maybe_await(store_ref.claim(job_identifier))
         if not claimed:
             logging.getLogger(__name__).info(
                 "job already running or finished; skipping",
@@ -73,19 +75,15 @@ async def run_job_async(
                 "status": "skipped",
                 "job_id": job_identifier,
                 "attempts": await _maybe_await(
-                    default_store.attempts(job_identifier)
+                    store_ref.attempts(job_identifier)
                 ),
             }
 
     attempts = job.get("attempts")
     if attempts is None:
-        attempts = await _maybe_await(
-            default_store.attempts(job_identifier)
-        )
+        attempts = await _maybe_await(store_ref.attempts(job_identifier))
     job["attempts"] = attempts
-    await _maybe_await(
-        default_store.set_last_job(job_identifier, job)
-    )
+    await _maybe_await(store_ref.set_last_job(job_identifier, job))
 
     started_monotonic = time.monotonic()
     ts_started = int(time.time() * 1000)
@@ -105,7 +103,7 @@ async def run_job_async(
     except Exception as exc:  # pragma: no cover - defensive capture
         ts_finished = int(time.time() * 1000)
         attempts_next = await _maybe_await(
-            default_store.increment_attempts(job_identifier)
+            store_ref.increment_attempts(job_identifier)
         )
         backoff_seconds = default_retry.backoff_fn(attempts_next)
         next_retry_ts = ts_finished + int(backoff_seconds * 1000)
@@ -132,11 +130,9 @@ async def run_job_async(
         )
 
         if attempts_next <= default_retry.max_attempts:
+            await _maybe_await(store_ref.set_last_job(job_identifier, job))
             await _maybe_await(
-                default_store.set_last_job(job_identifier, job)
-            )
-            await _maybe_await(
-                default_store.schedule_retry(job_identifier, next_retry_ts)
+                store_ref.schedule_retry(job_identifier, next_retry_ts)
             )
             default_metrics.worker_jobs_retried_total.inc()
             retry_scheduled_total.labels(job_path=job_path_label).inc()
@@ -148,7 +144,7 @@ async def run_job_async(
             }
 
         await _maybe_await(
-            default_store.set_state(
+            store_ref.set_state(
                 job_identifier,
                 "error",
                 last_error=str(exc),
@@ -158,9 +154,7 @@ async def run_job_async(
         raise
 
     ts_finished = int(time.time() * 1000)
-    await _maybe_await(
-        default_store.set_state(job_identifier, "done")
-    )
+    await _maybe_await(store_ref.set_state(job_identifier, "done"))
     default_metrics.worker_jobs_done_total.inc()
     default_metrics.worker_job_duration_seconds.observe(
         (ts_finished - ts_started) / 1000.0
@@ -219,6 +213,58 @@ async def retry_worker(now_ms: int | None = None) -> None:
         job_copy = dict(job)
         job_copy["job_id"] = job_id
         await run_job_async(job_copy)
+
+
+async def runner_loop(
+    *,
+    shutdown_event: Optional[asyncio.Event] = None,
+    store: Optional[Any] = None,
+    poll_interval_ms: int = 500,
+    loop: Optional[asyncio.AbstractEventLoop] = None,
+) -> None:
+    """Poll retry queue and execute jobs until shutdown_event is set."""
+
+    store_ref = store or default_store
+    loop = loop or asyncio.get_event_loop()
+
+    while True:
+        if shutdown_event and shutdown_event.is_set():
+            break
+
+        now_ms = int(time.time() * 1000)
+        jobs = await _maybe_await(store_ref.next_retry_jobs(now_ms))
+
+        if not jobs:
+            if poll_interval_ms <= 0:
+                break
+            try:
+                if shutdown_event:
+                    await asyncio.wait_for(
+                        shutdown_event.wait(),
+                        timeout=poll_interval_ms / 1000.0,
+                    )
+                    break
+                await asyncio.sleep(poll_interval_ms / 1000.0)
+            except asyncio.TimeoutError:
+                continue
+            continue
+
+        for job_id, job in jobs:
+            job_copy: Dict[str, Any] = dict(job)
+            job_copy["job_id"] = job_id
+
+            claimed = await _maybe_await(store_ref.claim(job_id))
+            if not claimed:
+                continue
+
+            attempts_val = await _maybe_await(store_ref.attempts(job_id))
+            job_copy["attempts"] = attempts_val
+            await run_job_async(
+                job_copy,
+                loop=loop,
+                skip_claim=True,
+                store=store_ref,
+            )
 
 
 def run_once(job: Dict[str, Any]) -> Any:
