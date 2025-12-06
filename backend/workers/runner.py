@@ -5,6 +5,7 @@ import importlib
 import logging
 import time
 import uuid
+import inspect
 from typing import Any, Dict, List, Optional
 
 from backend.workers.events import broadcast_job_event
@@ -29,6 +30,12 @@ def _build_job(
     }
 
 
+async def _maybe_await(value):
+    if inspect.isawaitable(value):
+        return await value
+    return value
+
+
 async def run_job_async(
     job: Dict[str, Any],
     *,
@@ -42,7 +49,7 @@ async def run_job_async(
     args = job.get("args", [])
     kwargs = job.get("kwargs", {})
 
-    claimed = default_store.claim(job_identifier)
+    claimed = await _maybe_await(default_store.claim(job_identifier))
     if not claimed:
         logging.getLogger(__name__).info(
             "job already running or finished; skipping",
@@ -51,12 +58,18 @@ async def run_job_async(
         return {
             "status": "skipped",
             "job_id": job_identifier,
-            "attempts": default_store.attempts(job_identifier),
+            "attempts": await _maybe_await(
+                default_store.attempts(job_identifier)
+            ),
         }
 
-    attempts = default_store.attempts(job_identifier)
+    attempts = await _maybe_await(
+        default_store.attempts(job_identifier)
+    )
     job["attempts"] = attempts
-    default_store.set_last_job(job_identifier, job)
+    await _maybe_await(
+        default_store.set_last_job(job_identifier, job)
+    )
 
     ts_started = int(time.time() * 1000)
     default_metrics.worker_jobs_started_total.inc()
@@ -74,7 +87,9 @@ async def run_job_async(
         result = getattr(mod, fn)(*args, **kwargs)
     except Exception as exc:  # pragma: no cover - defensive capture
         ts_finished = int(time.time() * 1000)
-        attempts_next = default_store.increment_attempts(job_identifier)
+        attempts_next = await _maybe_await(
+            default_store.increment_attempts(job_identifier)
+        )
         backoff_seconds = default_retry.backoff_fn(attempts_next)
         next_retry_ts = ts_finished + int(backoff_seconds * 1000)
 
@@ -92,8 +107,12 @@ async def run_job_async(
         )
 
         if attempts_next <= default_retry.max_attempts:
-            default_store.set_last_job(job_identifier, job)
-            default_store.schedule_retry(job_identifier, next_retry_ts)
+            await _maybe_await(
+                default_store.set_last_job(job_identifier, job)
+            )
+            await _maybe_await(
+                default_store.schedule_retry(job_identifier, next_retry_ts)
+            )
             default_metrics.worker_jobs_retried_total.inc()
             return {
                 "status": "retry_scheduled",
@@ -102,12 +121,20 @@ async def run_job_async(
                 "next_retry_at": next_retry_ts,
             }
 
-        default_store.set_state(job_identifier, "error", last_error=str(exc))
+        await _maybe_await(
+            default_store.set_state(
+                job_identifier,
+                "error",
+                last_error=str(exc),
+            )
+        )
         default_metrics.worker_jobs_failed_total.inc()
         raise
 
     ts_finished = int(time.time() * 1000)
-    default_store.set_state(job_identifier, "done")
+    await _maybe_await(
+        default_store.set_state(job_identifier, "done")
+    )
     default_metrics.worker_jobs_done_total.inc()
     default_metrics.worker_job_duration_seconds.observe(
         (ts_finished - ts_started) / 1000.0
@@ -126,7 +153,19 @@ def run_job(path: str, *args, job_id: str | None = None, **kwargs):
     """Backward-compatible sync wrapper for legacy callers."""
 
     job_identifier = job_id or f"job-{uuid.uuid4().hex[:12]}"
-    attempts = default_store.attempts(job_identifier)
+    attempts_val = default_store.attempts(job_identifier)
+    if inspect.isawaitable(attempts_val):
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            attempts = asyncio.run(attempts_val)
+        else:
+            raise RuntimeError(
+                "run_job cannot be called inside a running event loop when the"
+                " store is async; use run_job_async instead"
+            )
+    else:
+        attempts = attempts_val
 
     return run_once(
         _build_job(
@@ -143,7 +182,7 @@ async def retry_worker(now_ms: int | None = None) -> None:
     """Process scheduled retries that are due now."""
 
     now = now_ms or int(time.time() * 1000)
-    due_jobs = default_store.next_retry_jobs(now)
+    due_jobs = await _maybe_await(default_store.next_retry_jobs(now))
 
     for job_id, job in due_jobs:
         job_copy = dict(job)

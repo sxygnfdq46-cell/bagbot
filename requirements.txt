@@ -43,6 +43,7 @@ numpy==1.26.4
 redis==5.0.1
 aioredis==2.0.1
 celery==5.3.6
+fakeredis[aioredis]==2.23.2
 
 # AI & ML
 openai==1.12.0
