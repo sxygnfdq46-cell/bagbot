@@ -9,7 +9,7 @@ scrape_configs:
     scrape_interval: 15s
     
     # Scrape timeout - max time to wait for metrics response
-    scrape_timeout: 10s
+    scrape_timeout: 8s
     
     # Metrics path (API endpoint exposing Prometheus metrics)
     metrics_path: '/api/metrics'

@@ -27,8 +27,8 @@ groups:
           (
             rate(bagbot_job_run_total{result="error"}[5m]) 
             / 
-            rate(bagbot_job_run_total[5m])
-          ) > 0.2
+            (rate(bagbot_job_run_total[5m]) > 0)
+          ) > 0.2 and rate(bagbot_job_run_total[5m]) > 0
         for: 5m
         labels:
           severity: warning

@@ -88,9 +88,9 @@ BagBot exports the following Prometheus metrics via `/api/metrics`:
 
 - `bagbot_job_enqueue_total` - Total jobs enqueued (labels: job_path, result)
 - `bagbot_job_run_total` - Total jobs run (labels: job_path, result)
-- `bagbot_job_run_duration_seconds` - Job execution duration (labels: job_path, result)
+- `bagbot_job_run_duration_seconds` - Job execution duration histogram (labels: job_path, result)
 - `bagbot_retry_scheduled_total` - Total retries scheduled (labels: job_path)
-- `bagbot_heartbeat_age_seconds` - Worker heartbeat age in seconds (labels: worker_id)
+- `bagbot_heartbeat_age_seconds` - Worker heartbeat age in seconds gauge (labels: worker_id)
 
 ## Threshold Tuning
 
