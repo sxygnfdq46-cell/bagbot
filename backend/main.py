@@ -7,6 +7,7 @@ from backend.api import (
     brain,
     charts,
     dashboard,
+    metrics,
     health,
     settings,
     signals,
@@ -38,6 +39,7 @@ app.include_router(brain.router)
 app.include_router(admin_routes.router)
 app.include_router(settings.router)
 app.include_router(health.router)
+app.include_router(metrics.router)
 app.include_router(websocket_router)
 app.include_router(dashboard_ws_router, prefix="/ws")
 app.include_router(brain_ws_router, prefix="/ws")

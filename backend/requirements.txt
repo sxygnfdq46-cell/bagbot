@@ -10,3 +10,4 @@ python-binance
 watchdog
 numpy
 aiofiles
+prometheus-client==0.20.0

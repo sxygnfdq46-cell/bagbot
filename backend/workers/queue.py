@@ -9,7 +9,7 @@ from typing import Any
 
 from backend.workers.events import broadcast_job_event
 from backend.workers.job_store import default_store
-from backend.workers.metrics import default_metrics
+from backend.workers.metrics import default_metrics, job_enqueue_total
 from backend.workers.runner import _build_job, run_job_async
 
 
@@ -30,6 +30,7 @@ async def _prepare_enqueued_job(func_path: str, job_id: str, args, kwargs):
     await _maybe_await(default_store.set_state(job_id, "enqueued"))
     attempts = await _maybe_await(default_store.attempts(job_id))
     default_metrics.worker_jobs_enqueued_total.inc()
+    job_enqueue_total.labels(job_path=func_path, result="ok").inc()
     job = _build_job(
         func_path,
         job_id=job_id,

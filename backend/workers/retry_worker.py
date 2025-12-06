@@ -99,6 +99,9 @@ async def redis_queue_monitor(
     metrics.default_metrics.worker_jobs_running.set(running)
     metrics.default_metrics.worker_jobs_stuck.set(stuck)
     metrics.default_metrics.worker_latest_heartbeat_age_ms.set(heartbeat_age)
+    metrics.heartbeat_age_seconds.labels(worker_id="worker").set(
+        heartbeat_age / 1000.0
+    )
 
     return {
         "queue_len": queue_len,
