@@ -40,8 +40,12 @@ async def run_job_async(
     job: Dict[str, Any],
     *,
     loop: Optional[asyncio.AbstractEventLoop] = None,
+    skip_claim: bool = False,
 ) -> Any:
-    """Async runner for a job dict; emits lifecycle events."""
+    """Async runner for a job dict; emits lifecycle events.
+
+    skip_claim is used by retry workers that have already claimed the job.
+    """
 
     loop = loop or asyncio.get_event_loop()
     job_identifier = job.get("job_id", "job-inline")
@@ -49,23 +53,26 @@ async def run_job_async(
     args = job.get("args", [])
     kwargs = job.get("kwargs", {})
 
-    claimed = await _maybe_await(default_store.claim(job_identifier))
-    if not claimed:
-        logging.getLogger(__name__).info(
-            "job already running or finished; skipping",
-            extra={"job_id": job_identifier},
-        )
-        return {
-            "status": "skipped",
-            "job_id": job_identifier,
-            "attempts": await _maybe_await(
-                default_store.attempts(job_identifier)
-            ),
-        }
+    if not skip_claim:
+        claimed = await _maybe_await(default_store.claim(job_identifier))
+        if not claimed:
+            logging.getLogger(__name__).info(
+                "job already running or finished; skipping",
+                extra={"job_id": job_identifier},
+            )
+            return {
+                "status": "skipped",
+                "job_id": job_identifier,
+                "attempts": await _maybe_await(
+                    default_store.attempts(job_identifier)
+                ),
+            }
 
-    attempts = await _maybe_await(
-        default_store.attempts(job_identifier)
-    )
+    attempts = job.get("attempts")
+    if attempts is None:
+        attempts = await _maybe_await(
+            default_store.attempts(job_identifier)
+        )
     job["attempts"] = attempts
     await _maybe_await(
         default_store.set_last_job(job_identifier, job)
