@@ -52,7 +52,7 @@ rq==1.16.2
 # AI & ML
 openai==1.12.0
 
-# Developer / Testing
+# Developer / Testing (added for CI/test stability)
 pytest==8.4.2
 pytest-asyncio==1.2.0
 typing-extensions==4.12.2
