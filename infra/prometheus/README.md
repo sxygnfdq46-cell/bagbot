@@ -21,7 +21,7 @@ scrape_configs:
   # Include BagBot scrape job
   - job_name: 'bagbot-staging'
     scrape_interval: 15s
-    scrape_timeout: 10s
+    scrape_timeout: 8s
     metrics_path: '/api/metrics'
     scheme: https
     static_configs:
