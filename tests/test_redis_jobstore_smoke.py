@@ -209,8 +209,6 @@ async def test_smoke_runner_loop_with_coordinator(redis_store, coordinator):
     
     Validates full worker loop with job claiming, execution, and coordination.
     """
-    _smoke_test_results.clear()
-    
     worker_id = "smoke-runner-worker"
     await coordinator.register(worker_id, {"test": "smoke"})
     
@@ -333,6 +331,9 @@ async def test_smoke_job_attempts_increment(redis_store):
     
     Validates that job attempts are tracked correctly across retries.
     """
+    TEST_ERROR_MSG = "test error"
+    TEST_ERROR_MSG_2 = "test error 2"
+    
     job_id = "smoke-attempts-test"
     
     # First claim increments to 1
@@ -340,7 +341,7 @@ async def test_smoke_job_attempts_increment(redis_store):
     assert await redis_store.attempts(job_id) == 1
     
     # Mark as error and schedule retry
-    await redis_store.set_state(job_id, "error", last_error="test error")
+    await redis_store.set_state(job_id, "error", last_error=TEST_ERROR_MSG)
     
     # Schedule for retry
     await redis_store.schedule_retry(job_id, int(time.time() * 1000))
@@ -350,7 +351,7 @@ async def test_smoke_job_attempts_increment(redis_store):
     assert await redis_store.attempts(job_id) == 1, "Retry claim should not increment"
     
     # Mark as error again and claim from error state
-    await redis_store.set_state(job_id, "error", last_error="test error 2")
+    await redis_store.set_state(job_id, "error", last_error=TEST_ERROR_MSG_2)
     await redis_store.claim(job_id)
     assert await redis_store.attempts(job_id) == 2, "Claim from error should increment"
     

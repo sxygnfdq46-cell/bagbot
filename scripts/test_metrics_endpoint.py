@@ -16,6 +16,10 @@ import sys
 import requests
 
 
+# Prometheus metrics content type
+PROMETHEUS_CONTENT_TYPE = "text/plain; version=0.0.4; charset=utf-8"
+
+
 def test_metrics_endpoint(base_url: str = "http://localhost:8000") -> bool:
     """
     Test that /api/metrics endpoint returns Prometheus metrics.
@@ -42,7 +46,7 @@ def test_metrics_endpoint(base_url: str = "http://localhost:8000") -> bool:
     content = response.text
     
     # Check content type
-    if response.headers.get("Content-Type") != "text/plain; version=0.0.4; charset=utf-8":
+    if response.headers.get("Content-Type") != PROMETHEUS_CONTENT_TYPE:
         print(f"⚠️  Unexpected content type: {response.headers.get('Content-Type')}")
     
     # Expected metrics

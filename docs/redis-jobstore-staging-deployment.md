@@ -45,7 +45,7 @@ The following environment variables are automatically configured:
 1. **Merge to Main Branch**
    ```bash
    git checkout main
-   git merge copilot/enable-redis-job-store-staging
+   git merge <feature-branch>  # e.g., copilot/enable-redis-job-store-staging
    git push origin main
    ```
 
