@@ -1,28 +1,10 @@
-"""
-backend.models - safe re-export layer for CI tests
-"""
-
-from .base import Base
-__all__ = ["Base"]
+k"""package marker + safe re-exports for CI tests"""
 
 try:
-    from .order import Order
+    from .base import Base, SessionLocal, get_db
 except Exception:
-    Order = None
-else:
-    __all__.append("Order")
-
-try:
-    from .db import engine, SessionLocal
-except Exception:
-    engine = None
+    Base = None
     SessionLocal = None
-else:
-    __all__.extend(["engine", "SessionLocal"])
+    get_db = None
 
-try:
-    from .subscription import Subscription
-except Exception:
-    Subscription = None
-else:
-    __all__.append("Subscription")
+__all__ = ["Base", "SessionLocal", "get_db"]
