@@ -23,6 +23,7 @@ async def redis_retry_worker(
     store: Optional[Any] = None,
     *,
     poll_interval_ms: int = 0,
+    shutdown_event: Optional[asyncio.Event] = None,
     loop: Optional[asyncio.AbstractEventLoop] = None,
 ) -> None:
     """Drain due retries from RedisJobStore and re-run them.
@@ -34,9 +35,22 @@ async def redis_retry_worker(
     loop = loop or asyncio.get_event_loop()
 
     while True:
+        if shutdown_event and shutdown_event.is_set():
+            break
         now_ms = _now_ms()
         jobs = await _maybe_await(store.next_retry_jobs(now_ms))
         if not jobs:
+            if poll_interval_ms > 0:
+                try:
+                    if shutdown_event:
+                        await asyncio.wait_for(
+                            shutdown_event.wait(),
+                            timeout=poll_interval_ms / 1000.0,
+                        )
+                        break
+                    await asyncio.sleep(poll_interval_ms / 1000.0)
+                except asyncio.TimeoutError:
+                    continue
             break
 
         for job_id, job in jobs:
@@ -50,16 +64,31 @@ async def redis_retry_worker(
             attempts = await _maybe_await(store.attempts(job_id))
             job_copy["attempts"] = attempts
             metrics.default_metrics.worker_retry_triggered_total.inc()
-            await run_job_async(job_copy, loop=loop, skip_claim=True)
+            await run_job_async(
+                job_copy,
+                loop=loop,
+                skip_claim=True,
+                store=store,
+            )
 
         if poll_interval_ms:
-            await asyncio.sleep(poll_interval_ms / 1000.0)
+            try:
+                if shutdown_event:
+                    await asyncio.wait_for(
+                        shutdown_event.wait(),
+                        timeout=poll_interval_ms / 1000.0,
+                    )
+                    break
+                await asyncio.sleep(poll_interval_ms / 1000.0)
+            except asyncio.TimeoutError:
+                continue
 
 
 async def redis_queue_monitor(
     store: Optional[Any] = None,
     *,
     stale_ms: int = 300_000,
+    shutdown_event: Optional[asyncio.Event] = None,
 ) -> Dict[str, int]:
     """Collect queue stats from RedisJobStore and publish metrics."""
 
@@ -103,9 +132,48 @@ async def redis_queue_monitor(
         heartbeat_age / 1000.0
     )
 
+    if shutdown_event and shutdown_event.is_set():
+        return {
+            "queue_len": queue_len,
+            "running": running,
+            "stuck": stuck,
+            "heartbeat_age_ms": heartbeat_age,
+        }
+
     return {
         "queue_len": queue_len,
         "running": running,
         "stuck": stuck,
         "heartbeat_age_ms": heartbeat_age,
     }
+
+
+async def redis_queue_monitor_loop(
+    store: Optional[Any] = None,
+    *,
+    stale_ms: int = 300_000,
+    poll_interval_ms: int = 5000,
+    shutdown_event: Optional[asyncio.Event] = None,
+) -> None:
+    """Poll queue stats until shutdown_event is set."""
+
+    while True:
+        await redis_queue_monitor(
+            store=store,
+            stale_ms=stale_ms,
+            shutdown_event=shutdown_event,
+        )
+        if shutdown_event and shutdown_event.is_set():
+            break
+        if poll_interval_ms <= 0:
+            break
+        try:
+            if shutdown_event:
+                await asyncio.wait_for(
+                    shutdown_event.wait(),
+                    timeout=poll_interval_ms / 1000.0,
+                )
+                break
+            await asyncio.sleep(poll_interval_ms / 1000.0)
+        except asyncio.TimeoutError:
+            continue
