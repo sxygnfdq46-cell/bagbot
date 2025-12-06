@@ -1,8 +1,15 @@
 from __future__ import annotations
 
+import os
 import threading
 import time
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+# Redis is optional for local/test; guarded import keeps memory-only mode light
+try:
+    from backend.workers.redis_job_store import RedisJobStore
+except Exception:  # pragma: no cover - optional dependency path
+    RedisJobStore = None
 
 
 class JobRecord:
@@ -141,4 +148,11 @@ class JobStore:
             }
 
 
-default_store = JobStore()
+def get_default_store() -> Union[JobStore, Any]:
+    backend = os.getenv("JOB_STORE", "memory").lower()
+    if backend == "redis" and RedisJobStore is not None:
+        return RedisJobStore(redis_url=os.getenv("REDIS_URL"))
+    return JobStore()
+
+
+default_store = get_default_store()
