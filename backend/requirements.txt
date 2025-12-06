@@ -3,6 +3,7 @@ uvicorn[standard]
 requests
 httpx
 stripe
+cryptography==42.0.5
 sqlalchemy
 aiosqlite
 ccxt

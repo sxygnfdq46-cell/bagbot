@@ -1,0 +1,25 @@
+scrape_configs:
+  - job_name: "bagbot-api"
+    scrape_interval: 15s
+    metrics_path: /api/metrics
+    scheme: http
+    static_configs:
+      - targets:
+          # Replace with the BagBot API host:port in each env
+          - "localhost:8000"
+    relabel_configs:
+      # Optional: add env label when templating per environment
+      - source_labels: [__address__]
+        target_label: env
+        replacement: local
+
+  - job_name: "bagbot-workers"
+    scrape_interval: 15s
+    metrics_path: /api/metrics
+    scheme: http
+    static_configs:
+      - targets:
+          # If workers expose the same metrics endpoint via sidecar/port-forward
+          - "localhost:8000"
+        labels:
+          component: worker
