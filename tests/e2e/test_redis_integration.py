@@ -64,8 +64,14 @@ async def redis_client():
 
     This fixture requires a Redis service to be running.
     For CI, ensure Redis service is started before tests.
+
+    Configuration:
+    - REDIS_URL env var can override default URL
+    - Defaults to localhost:6379/15 (db 15 for test isolation)
     """
-    redis_url = "redis://localhost:6379/15"  # Use db 15 for testing
+    import os
+
+    redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/15")
     client = await aioredis.from_url(redis_url, decode_responses=True)
 
     # Verify connection
@@ -312,7 +318,9 @@ async def test_stale_worker_cleanup(worker_coordinator):
     worker_key = worker_coordinator._worker_key(worker_id)
 
     # Set last_seen to 60 seconds ago (beyond 30s TTL)
-    stale_timestamp = int(time.time() * 1000) - 60000
+    # 60 seconds = 60000ms, which is 2x the coordinator TTL from fixture
+    SIMULATED_STALE_MS = 60000
+    stale_timestamp = int(time.time() * 1000) - SIMULATED_STALE_MS
     await redis_client.hset(worker_key, "last_seen_ms", stale_timestamp)
 
     # Run cleanup
