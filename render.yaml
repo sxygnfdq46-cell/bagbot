@@ -1,4 +1,11 @@
 services:
+  # Redis Service (Job Store & Coordination)
+  - type: redis
+    name: bagbot-redis
+    plan: free
+    maxmemoryPolicy: noeviction
+    ipAllowList: []
+
   # Backend API Service (Python FastAPI)
   - type: web
     name: bagbot-backend
@@ -13,6 +20,13 @@ services:
         value: 3.11.9
       - key: SECRET_KEY
         generateValue: true
+      - key: JOB_STORE
+        value: redis
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: bagbot-redis
+          property: connectionString
 
   # Frontend Service (Next.js)
   - type: web
@@ -46,3 +60,10 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: JOB_STORE
+        value: redis
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: bagbot-redis
+          property: connectionString
