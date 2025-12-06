@@ -1,60 +1,36 @@
-"""Database models package."""
+"""Database models package.
 
-# Re-export common model objects used by tests.
-# Try common local module paths and fall back gracefully to avoid ImportError during test collection.
-from typing import TYPE_CHECKING
+Re-exports common model objects expected by tests.
+Provides safe fallbacks to avoid ImportError during test collection.
+"""
 
 # Import Base from known location
 from backend.models.base import Base
 
-# Initialize other expected exports as None
+# Initialize exports that don't exist yet as None
+# These are expected by tests but not implemented in current codebase
 Order = None
-get_db = None
-engine = None
-SessionLocal = None
 Subscription = None
 
-# Try importing from likely locations inside this package
-_try_paths = [
-    (".order", "Order"),
-    (".database", "get_db"),
-    (".db", "get_db"),
-    (".models", "Order"),
-    (".subscription", "Subscription"),
-]
+# Import available database utilities from backend.db
+# Use specific exception handling for clarity
+engine = None
+SessionLocal = None
+get_db = None
 
-for mod_path, symbol in _try_paths:
-    if symbol in globals() and globals()[symbol] is not None:
-        continue
-    try:
-        module = __import__(f"backend.models{mod_path}", fromlist=[symbol])
-        if hasattr(module, symbol):
-            globals()[symbol] = getattr(module, symbol)
-    except Exception:
-        try:
-            module = __import__(f"{mod_path}", fromlist=[symbol])
-            if hasattr(module, symbol):
-                globals()[symbol] = getattr(module, symbol)
-        except Exception:
-            pass
-
-# Try importing from backend.db for get_db, engine, SessionLocal
 try:
-    from backend.db.session import engine as _engine, AsyncSessionLocal as _AsyncSessionLocal
-    if engine is None:
-        engine = _engine
-    if SessionLocal is None:
-        SessionLocal = _AsyncSessionLocal
-except Exception:
+    from backend.db.session import (
+        engine as _engine,
+        AsyncSessionLocal as _SessionLocal,
+        get_async_session as _get_db,
+    )
+    engine = _engine
+    SessionLocal = _SessionLocal
+    get_db = _get_db
+except (ImportError, ModuleNotFoundError):
+    # backend.db.session not available yet, keep None defaults
     pass
 
-# Try importing get_async_session as get_db
-try:
-    from backend.db.session import get_async_session
-    if get_db is None:
-        get_db = get_async_session
-except Exception:
-    pass
+# Fixed __all__ list for consistent exports
+__all__ = ["Base", "Order", "get_db", "engine", "SessionLocal", "Subscription"]
 
-# If running type-checking or tests expect these symbol definitions, they're available now
-__all__ = [name for name in ("Base", "Order", "get_db", "engine", "SessionLocal", "Subscription") if name in globals()]
