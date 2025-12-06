@@ -1,3 +1,1 @@
-"""Workers package."""
-
-__all__ = []
+# keep package importable

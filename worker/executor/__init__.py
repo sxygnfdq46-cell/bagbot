@@ -1,2 +1,1 @@
-"""Executor module namespace. Contains execution skeleton (no real trading)."""
-
+# keep package importable
