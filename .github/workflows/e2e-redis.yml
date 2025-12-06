@@ -1,0 +1,67 @@
+name: E2E Redis Integration Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  e2e-redis:
+    runs-on: ubuntu-latest
+    
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install pytest pytest-asyncio anyio httpx 'pydantic[email]' email-validator
+      
+      - name: Wait for Redis to be ready
+        run: |
+          for i in {1..30}; do
+            if redis-cli -h localhost -p 6379 ping > /dev/null 2>&1; then
+              echo "Redis is ready!"
+              break
+            fi
+            echo "Waiting for Redis... (attempt $i/30)"
+            sleep 2
+          done
+          redis-cli -h localhost -p 6379 ping
+      
+      - name: Run e2e Redis tests
+        run: |
+          python -m pytest tests/e2e/test_redis_integration.py -v -m e2e_redis --tb=short
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-redis-test-results
+          path: |
+            .pytest_cache/
+            test-results/
+          retention-days: 7
