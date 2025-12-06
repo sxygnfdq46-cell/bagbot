@@ -4,6 +4,7 @@ import json
 import time
 from typing import Any, Dict, Optional
 
+from backend.workers.metrics import heartbeat_age_seconds
 from backend.ws.manager import websocket_broadcast
 
 SIGNALS_CHANNEL = "signals"
@@ -32,6 +33,7 @@ async def broadcast_worker_heartbeat(
         event="worker.heartbeat",
         payload=envelope["payload"],
     )
+    heartbeat_age_seconds.labels(worker_id=worker_id).set(0)
     # sanity: ensure JSON-serializable
     json.dumps(envelope)
     return envelope

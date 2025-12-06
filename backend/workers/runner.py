@@ -9,7 +9,12 @@ import inspect
 from typing import Any, Dict, List, Optional
 
 from backend.workers.events import broadcast_job_event
-from backend.workers.metrics import default_metrics
+from backend.workers.metrics import (
+    default_metrics,
+    job_run_duration_seconds,
+    job_run_total,
+    retry_scheduled_total,
+)
 from backend.workers.job_store import default_store
 from backend.workers.retry_policy import default_retry
 
@@ -50,6 +55,7 @@ async def run_job_async(
     loop = loop or asyncio.get_event_loop()
     job_identifier = job.get("job_id", "job-inline")
     job_path = job.get("job_path")
+    job_path_label = job_path or "unknown"
     args = job.get("args", [])
     kwargs = job.get("kwargs", {})
 
@@ -60,6 +66,9 @@ async def run_job_async(
                 "job already running or finished; skipping",
                 extra={"job_id": job_identifier},
             )
+            job_run_total.labels(
+                job_path=job_path_label, result="skipped"
+            ).inc()
             return {
                 "status": "skipped",
                 "job_id": job_identifier,
@@ -78,6 +87,7 @@ async def run_job_async(
         default_store.set_last_job(job_identifier, job)
     )
 
+    started_monotonic = time.monotonic()
     ts_started = int(time.time() * 1000)
     default_metrics.worker_jobs_started_total.inc()
     await broadcast_job_event(
@@ -100,6 +110,14 @@ async def run_job_async(
         backoff_seconds = default_retry.backoff_fn(attempts_next)
         next_retry_ts = ts_finished + int(backoff_seconds * 1000)
 
+        duration = time.monotonic() - started_monotonic
+        job_run_total.labels(
+            job_path=job_path_label, result="error"
+        ).inc()
+        job_run_duration_seconds.labels(
+            job_path=job_path_label, result="error"
+        ).observe(duration)
+
         await broadcast_job_event(
             job_identifier,
             job_path,
@@ -121,6 +139,7 @@ async def run_job_async(
                 default_store.schedule_retry(job_identifier, next_retry_ts)
             )
             default_metrics.worker_jobs_retried_total.inc()
+            retry_scheduled_total.labels(job_path=job_path_label).inc()
             return {
                 "status": "retry_scheduled",
                 "job_id": job_identifier,
@@ -146,6 +165,11 @@ async def run_job_async(
     default_metrics.worker_job_duration_seconds.observe(
         (ts_finished - ts_started) / 1000.0
     )
+    duration = time.monotonic() - started_monotonic
+    job_run_total.labels(job_path=job_path_label, result="done").inc()
+    job_run_duration_seconds.labels(
+        job_path=job_path_label, result="done"
+    ).observe(duration)
     await broadcast_job_event(
         job_identifier,
         job_path,
