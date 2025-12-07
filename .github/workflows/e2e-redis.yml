@@ -41,11 +41,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Install redis-cli
+        run: sudo apt-get update && sudo apt-get install -y redis-tools
+
       - name: Wait for Redis
         run: |
           timeout 30 bash -c 'until redis-cli -h 127.0.0.1 -p 6379 ping; do sleep 1; done'
 
       - name: Run e2e redis suite (targeted)
         run: |
-          export PYTHONPATH="$(pwd):$PYTHONPATH"
+          export PYTHONPATH="${pwd}:$PYTHONPATH"
           pytest -q -k "redis"
