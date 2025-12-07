@@ -59,12 +59,7 @@ python-dateutil==2.8.2
 pytz==2024.1
 typing-extensions==4.12.2
 prometheus-client==0.20.0
-<<<<<<< HEAD
-
 # Task Queue & Async Database
 rq
-aiosqlite
-email-validator
-=======
+aiosqlite==0.20.0
 email-validator==2.1.0.post1
->>>>>>> bc926fe (fix: restore model exports and deps)
