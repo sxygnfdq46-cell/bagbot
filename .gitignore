@@ -23,6 +23,11 @@ htmlcov/
 .mypy_cache/
 .ruff_cache/
 
+# Python package metadata
+*.egg-info/
+dist/
+build/
+
 # Large binary libs (don't commit wheels or compiled libs)
 *.so
 *.dylib
