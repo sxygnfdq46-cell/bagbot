@@ -50,5 +50,5 @@ jobs:
 
       - name: Run e2e redis suite (targeted)
         run: |
-          export PYTHONPATH="${pwd}:$PYTHONPATH"
+          export PYTHONPATH="$(pwd):$PYTHONPATH"
           pytest -q -k "redis"
