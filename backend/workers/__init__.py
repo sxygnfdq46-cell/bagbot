@@ -1,3 +1,3 @@
-"""Workers package."""
-
-__all__ = []
+"""
+Package marker for imports.
+"""
