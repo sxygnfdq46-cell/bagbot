@@ -1,3 +1,4 @@
+# keep package importable
 """
 bagbot.worker package.
 
