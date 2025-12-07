@@ -9,19 +9,13 @@ on:
 jobs:
   e2e-redis:
     runs-on: ubuntu-latest
-<<<<<<< HEAD
 
-=======
->>>>>>> bc926fe (fix: restore model exports and deps)
     env:
       ENCRYPTION_KEY: ${{ secrets.BAGBOT_ENCRYPTION_KEY }}
       REDIS_URL: redis://localhost:6379/0
       JOB_STORE: redis
       PROMETHEUS_MULTIPROC_DIR: /tmp/metrics
-<<<<<<< HEAD
 
-=======
->>>>>>> bc926fe (fix: restore model exports and deps)
     services:
       redis:
         image: redis:7-alpine
@@ -42,7 +36,7 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
