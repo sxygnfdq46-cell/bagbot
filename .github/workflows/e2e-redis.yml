@@ -1,0 +1,60 @@
+name: e2e-redis
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  e2e-redis:
+    runs-on: ubuntu-latest
+    env:
+      ENCRYPTION_KEY: ${{ secrets.BAGBOT_ENCRYPTION_KEY }}
+      REDIS_URL: redis://localhost:6379/0
+      JOB_STORE: redis
+      PROMETHEUS_MULTIPROC_DIR: /tmp/metrics
+
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Install redis-cli
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y redis-tools
+
+      - name: Install test requirements
+        run: |
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+
+      - name: Wait for Redis
+        run: |
+          timeout 60 bash -c 'until redis-cli -h 127.0.0.1 -p 6379 ping | grep -q PONG; do sleep 1; done'
+
+      - name: Run e2e redis suite (targeted)
+        run: |
+          export PYTHONPATH="$(pwd):$PYTHONPATH"
+          python -m pytest -q -k "redis"
