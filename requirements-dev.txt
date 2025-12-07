@@ -1,0 +1,3 @@
+rq
+aiosqlite
+email-validator
