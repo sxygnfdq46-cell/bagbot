@@ -25,7 +25,7 @@ _CANDIDATE_MODULES = (
 for _mod_name in _CANDIDATE_MODULES:
     try:
         _mod = import_module(_mod_name)
-    except Exception:
+    except (ModuleNotFoundError, ImportError):
         continue
     for _sym in ("engine", "SessionLocal", "AsyncSessionLocal", "get_db", "get_async_session"):
         if hasattr(_mod, _sym):
