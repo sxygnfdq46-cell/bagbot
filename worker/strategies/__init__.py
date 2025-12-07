@@ -1,3 +1,4 @@
+# keep package importable
 """
 Strategies Package - Trading Strategy Implementations
 

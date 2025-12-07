@@ -9,7 +9,6 @@ on:
 jobs:
   e2e-redis:
     runs-on: ubuntu-latest
-
     env:
       ENCRYPTION_KEY: ${{ secrets.BAGBOT_ENCRYPTION_KEY }}
       REDIS_URL: redis://localhost:6379/0
@@ -27,7 +26,6 @@ jobs:
           --health-timeout 5s
           --health-retries 10
 
-    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,7 +38,13 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt pytest
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Install redis-cli
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y redis-tools
 
       - name: Install test requirements
         run: |
@@ -48,28 +52,9 @@ jobs:
 
       - name: Wait for Redis
         run: |
-          python - <<'PY'
-          import socket, time, sys
-          host, port = "localhost", 6379
-          deadline = time.time() + 60
-          while time.time() < deadline:
-              with socket.socket() as s:
-                  try:
-                      s.settimeout(1)
-                      s.connect((host, port))
-                      sys.exit(0)
-                  except OSError:
-                      time.sleep(1)
-          sys.exit("Redis not ready")
-          PY
+          timeout 60 bash -c 'until redis-cli -h 127.0.0.1 -p 6379 ping | grep -q PONG; do sleep 1; done'
 
-      - name: Run e2e redis suite (tolerate missing tests until added)
+      - name: Run e2e redis suite (targeted)
         run: |
-          pytest -m "e2e_redis" tests || status=$?
-          if [ "${status:-0}" = "5" ]; then
-            echo "No e2e_redis tests collected yet; skipping."; exit 0
-          else
-            exit "${status:-0}"
-          fi
-        shell: bash
-
+          export PYTHONPATH="$(pwd):$PYTHONPATH"
+          python -m pytest -q -k "redis"
