@@ -1,1 +1,1 @@
-"""API routers module."""
+"""Backend API subpackage."""

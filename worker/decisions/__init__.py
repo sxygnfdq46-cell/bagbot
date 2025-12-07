@@ -1,1 +1,1 @@
-# Worker decisions package
+"""Worker decisions subpackage."""
