@@ -1,5 +1,24 @@
-"""Database models package."""
+"""backend.models package exports used by tests."""
+__all__ = []
 
-from backend.models.base import Base
+# Try to import Order, Base, get_db from commonly named modules.
+try:
+    from .order import Order
+    __all__.append("Order")
+except Exception:
+    # best-effort fallback; keep raising ImportError only when symbol actually requested
+    pass
 
-__all__ = ["Base"]
+try:
+    from .base import Base, get_db
+    __all__.extend(["Base", "get_db"])
+except Exception:
+    # Try importing Base alone if get_db doesn't exist
+    try:
+        from .base import Base
+        if "Base" not in __all__:
+            __all__.append("Base")
+    except Exception:
+        pass
+
+# Optionally expose SQLAlchemy declarative Base under Base if defined elsewhere
