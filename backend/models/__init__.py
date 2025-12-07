@@ -2,11 +2,12 @@
 __all__ = []
 
 # Try to import Order, Base, get_db from commonly named modules.
+# These imports use try/except to handle cases where modules or attributes don't exist yet.
 try:
     from .order import Order
     __all__.append("Order")
 except (ImportError, ModuleNotFoundError, AttributeError):
-    # best-effort fallback; keep raising ImportError only when symbol actually requested
+    # Best-effort fallback; ImportError will be raised only when the symbol is actually requested
     pass
 
 try:
@@ -20,5 +21,3 @@ except (ImportError, ModuleNotFoundError, AttributeError):
             __all__.append("Base")
     except (ImportError, ModuleNotFoundError, AttributeError):
         pass
-
-# Optionally expose SQLAlchemy declarative Base under Base if defined elsewhere
