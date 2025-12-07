@@ -1,2 +1,7 @@
-"""bagbot.worker.strategies package marker (created during rebase)."""
-__all__ = []
+"""bagbot.worker.strategies package marker (resolved during rebase)."""
+
+__all__ = [
+    "arsenal",
+    "fvg_strategy",
+    "plugin_registry",
+]
