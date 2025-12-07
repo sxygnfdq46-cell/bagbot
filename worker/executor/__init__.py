@@ -1,2 +1,2 @@
-"""Executor module namespace. Contains execution skeleton (no real trading)."""
+"""Worker executor subpackage."""
 
