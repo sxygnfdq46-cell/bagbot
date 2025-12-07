@@ -1,3 +1,5 @@
+"""Worker indicators subpackage."""
+
 from worker.indicators.sma import SMA
 from worker.indicators.ema import EMA
 from worker.indicators.rsi import RSI
