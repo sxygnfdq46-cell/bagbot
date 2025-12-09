@@ -1,9 +1,7 @@
-"""
-Strategies Package - Trading Strategy Implementations
+"""bagbot.worker.strategies package marker (resolved during rebase)."""
 
-This package contains all trading strategy implementations for BAGBOT2.
-"""
-
-from .micro_trend_follower import MicroTrendFollower
-
-__all__ = ["MicroTrendFollower"]
+__all__ = [
+    "arsenal",
+    "fvg_strategy",
+    "plugin_registry",
+]

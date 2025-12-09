@@ -1,0 +1,58 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Bagbot API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Root",
+        "responses": {
+          "200": {"description": "OK"}
+        },
+        "tags": ["health"]
+      }
+    },
+    "/api/health": {
+      "get": {
+        "summary": "Health check",
+        "responses": {
+          "200": {"description": "Service healthy"}
+        },
+        "tags": ["health"]
+      }
+    },
+    "/api/worker/status": {
+      "get": {
+        "summary": "Worker status",
+        "responses": {
+          "200": {"description": "Status"}
+        },
+        "tags": ["worker"]
+      }
+    },
+    "/api/worker/start": {
+      "post": {
+        "summary": "Start worker",
+        "responses": {
+          "200": {"description": "Started"}
+        },
+        "tags": ["worker"]
+      }
+    },
+    "/api/worker/stop": {
+      "post": {
+        "summary": "Stop worker",
+        "responses": {
+          "200": {"description": "Stopped"}
+        },
+        "tags": ["worker"]
+      }
+    }
+  },
+  "tags": [
+    {"name": "health"},
+    {"name": "worker"}
+  ]
+}

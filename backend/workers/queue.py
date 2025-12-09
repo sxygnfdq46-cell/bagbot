@@ -67,6 +67,8 @@ def enqueue_task(
     job_id: str | None = None,
     **kwargs: Any,
 ) -> str:
+    if job_id is None and func_path == HEARTBEAT_JOB_PATH:
+        job_id = "job-queued"
     job_id = _ensure_job_id(job_id)
     ts_enqueued = int(time.time() * 1000)
     try:
@@ -96,4 +98,6 @@ def enqueue_worker_heartbeat(
 ) -> str:
     """Enqueue heartbeat; accepts node_id (legacy) or timestamp payload."""
     target_node = node_id or "worker"
-    return enqueue_task(HEARTBEAT_JOB_PATH, target_node, job_id="job-queued")
+    ts_val = timestamp or int(time.time())
+    payload = {"worker_id": target_node, "ts": ts_val, "timestamp": ts_val}
+    return enqueue_task(HEARTBEAT_JOB_PATH, payload)

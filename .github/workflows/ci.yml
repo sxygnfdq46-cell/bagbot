@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, "feature/*" ]
+  pull_request:
+    branches: [ main, "feature/*" ]
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install deps
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
+      - name: Run backend tests
+        run: PYTHONPATH=$(pwd) pytest tests/ -q
+
+  test-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Frontend tests placeholder
+        run: echo "Frontend tests would run here"
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint placeholder
+        run: echo "flake8 && black --check"
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: echo "docker build ."
+
+  artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: artifacts/

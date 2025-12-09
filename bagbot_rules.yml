@@ -1,0 +1,40 @@
+groups:
+  - name: bagbot.worker.health
+    rules:
+      - alert: BagbotWorkerHeartbeatStale
+        expr: bagbot_heartbeat_age_seconds > 60
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "BagBot worker heartbeat stale"
+          description: "worker {{ $labels.worker_id }} heartbeat age is {{ $value }}s"
+
+      - alert: BagbotWorkerErrorsSpike
+        expr: rate(bagbot_job_run_total{result="error"}[5m]) > 1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "BagBot worker errors elevated"
+          description: "error rate {{ $value }} jobs/s for job {{ $labels.job_path }}"
+
+      - alert: BagbotRetryFlood
+        expr: rate(bagbot_retry_scheduled_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "BagBot retries elevated"
+          description: "retry scheduling over threshold for job {{ $labels.job_path }}"
+
+  - name: bagbot.api.health
+    rules:
+      - alert: BagbotMetricsMissing
+        expr: up{job="bagbot-api"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "BagBot /api/metrics unreachable"
+          description: "scrape failed for job bagbot-api"

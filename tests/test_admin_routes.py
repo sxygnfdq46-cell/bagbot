@@ -1,3 +1,13 @@
+import pytest
+from unittest.mock import Mock
+import sys
+
+@pytest.fixture
+def mocked_worker(monkeypatch):
+    """Provide a Mock for 'worker' that only exists for the duration of a test."""
+    fake = Mock()
+    monkeypatch.setitem(sys.modules, "worker", fake)
+    return fake
 """
 Unit tests for Admin API Routes
 
@@ -18,9 +28,6 @@ os.environ["ADMIN_TOKEN"] = "test-admin-token-123"
 os.environ["DEBUG"] = "true"
 
 # Mock worker.queue module to avoid import errors
-sys.modules['worker'] = Mock()
-sys.modules['worker.queue'] = Mock()
-sys.modules['worker.tasks'] = Mock()
 
 from backend.main import app
 from backend.api.admin_routes import load_trading_state, save_trading_state, STATE_FILE
@@ -372,5 +379,9 @@ class TestIntegration:
         assert status3.json()["paused"] is False
 
 
-if __name__ == "__main__":
-    pytest.main([__file__, "-v"])
+@pytest.fixture(autouse=True)
+def _fake_worker_submodules(mocked_worker):
+    """Auto-install the fake submodules on the mocked worker for each test."""
+    mocked_worker.queue = Mock()
+    mocked_worker.tasks = Mock()
+    return mocked_worker

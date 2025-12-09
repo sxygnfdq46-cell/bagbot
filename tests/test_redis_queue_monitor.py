@@ -1,4 +1,6 @@
+import os
 import time
+from pathlib import Path
 
 import pytest
 import fakeredis.aioredis
@@ -7,6 +9,10 @@ from backend.workers import job_store, metrics
 from backend.workers.metrics import Metrics
 from backend.workers.redis_job_store import RedisJobStore
 from backend.workers.retry_worker import redis_queue_monitor
+
+METRICS_DIR = Path(os.getenv("PROMETHEUS_MULTIPROC_DIR", "/tmp/metrics"))
+METRICS_DIR.mkdir(parents=True, exist_ok=True)
+os.environ["PROMETHEUS_MULTIPROC_DIR"] = str(METRICS_DIR)
 
 
 @pytest.fixture

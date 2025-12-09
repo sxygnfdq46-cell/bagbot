@@ -1,2 +1,2 @@
-"""Executor module namespace. Contains execution skeleton (no real trading)."""
-
+"""bagbot.worker.executor package marker (created to resolve merge conflict)."""
+__all__ = []

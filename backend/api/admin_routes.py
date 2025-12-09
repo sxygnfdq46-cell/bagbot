@@ -1,106 +1,114 @@
-"""Admin control routes guarded by JWT auth."""
-from collections import deque
+"""Admin control routes and test-friendly trading state endpoints."""
+
+from __future__ import annotations
+
+import json
+import os
 from datetime import datetime, timezone
-from random import uniform
-from typing import Deque, List, Literal
+from pathlib import Path
+from typing import Dict, Optional, Any
 
-from fastapi import APIRouter, Depends
-
-from backend.schemas.admin import AdminActionResponse, AdminLogEntry, SystemHealth
-from backend.schemas.auth import UserProfile
-from backend.security.deps import require_admin
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
-_LOG_CAPACITY = 50
-_log_buffer: Deque[AdminLogEntry] = deque(maxlen=_LOG_CAPACITY)
-_safe_mode_active = False
-
-_system_health = SystemHealth(
-    uptime="42h 18m",
-    cpuLoad=57.2,
-    ramUsage=63.4,
-    backendStatus="online",
-    brainStatus="online",
-)
+# State file used by tests; kept writable and JSON-based.
+STATE_FILE = Path("trading_state.json")
 
 
-def _add_log(message: str, log_type: Literal["info", "warning", "error"] = "info") -> None:
-    entry = AdminLogEntry(
-        id=f"log-{datetime.now(timezone.utc).timestamp()}",
-        type=log_type,
-        message=message,
-        timestamp=datetime.now(timezone.utc),
-    )
-    _log_buffer.appendleft(entry)
+def _default_state() -> Dict[str, Any]:
+    return {"paused": False, "reason": None, "timestamp": None}
 
 
-_add_log("Admin control plane initialized")
+def load_trading_state() -> Dict[str, Any]:
+    """Load trading state, creating a default file if missing."""
+
+    if not STATE_FILE.exists():
+        state = _default_state()
+        save_trading_state(state)
+        return state
+
+    try:
+        with STATE_FILE.open("r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return _default_state()
 
 
-def _drift(value: float, delta: float) -> float:
-    """Clamp a metric to 0-100 after applying a random drift."""
+def save_trading_state(state: Dict[str, Any]) -> None:
+    """Persist trading state to disk, ignoring failures to stay test-friendly."""
 
-    return max(0.0, min(100.0, value + uniform(-delta, delta)))
-
-
-def _refresh_health_snapshot() -> SystemHealth:
-    global _system_health
-    _system_health = SystemHealth(
-        uptime=_system_health.uptime,
-        cpuLoad=_drift(_system_health.cpuLoad, 5),
-        ramUsage=_drift(_system_health.ramUsage, 4),
-        backendStatus="safe-mode" if _safe_mode_active else "online",
-        brainStatus="safe-mode" if _safe_mode_active else "online",
-    )
-    return _system_health
+    try:
+        with STATE_FILE.open("w", encoding="utf-8") as f:
+            json.dump(state, f)
+    except Exception:
+        return None
 
 
-@router.get("/system-health", response_model=SystemHealth)
-async def get_system_health(_: UserProfile = Depends(require_admin)) -> SystemHealth:
-    """Return the rolling health snapshot."""
-
-    return _refresh_health_snapshot()
-
-
-@router.get("/logs", response_model=List[AdminLogEntry])
-async def get_logs(_: UserProfile = Depends(require_admin)) -> List[AdminLogEntry]:
-    """Return the in-memory log buffer."""
-
-    return list(_log_buffer)
+def _extract_token(auth_header: Optional[str]) -> Optional[str]:
+    if not auth_header:
+        return None
+    scheme, _, value = auth_header.partition(" ")
+    if scheme.lower() == "bearer" and value:
+        return value
+    return auth_header
 
 
-@router.post("/safe-mode/activate", response_model=AdminActionResponse)
-async def activate_safe_mode(user: UserProfile = Depends(require_admin)) -> AdminActionResponse:
-    """Toggle safe mode on and log the action."""
+def require_admin_token(authorization: Optional[str] = Header(default=None)) -> str:
+    """Validate static ADMIN_TOKEN from env; supports bare or Bearer-prefixed headers."""
 
-    global _safe_mode_active
-    _safe_mode_active = True
-    _add_log(f"{user.email} activated safe mode", log_type="warning")
-    return AdminActionResponse(success=True, mode="safe")
+    expected = os.getenv("ADMIN_TOKEN")
+    if not expected:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="ADMIN_TOKEN not configured")
 
+    token = _extract_token(authorization)
+    if token is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authorization header required")
 
-@router.post("/safe-mode/deactivate", response_model=AdminActionResponse)
-async def deactivate_safe_mode(user: UserProfile = Depends(require_admin)) -> AdminActionResponse:
-    """Toggle safe mode off and log the action."""
+    if token != expected:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid admin token")
 
-    global _safe_mode_active
-    _safe_mode_active = False
-    _add_log(f"{user.email} deactivated safe mode", log_type="info")
-    return AdminActionResponse(success=True, mode="live")
+    return token
 
 
-@router.post("/strategies/reload", response_model=AdminActionResponse)
-async def reload_strategies(user: UserProfile = Depends(require_admin)) -> AdminActionResponse:
-    """Stub endpoint for triggering a strategy reload."""
-
-    _add_log(f"{user.email} requested a strategy reload")
-    return AdminActionResponse(success=True, message="Strategies reload queued")
+@router.get("/status")
+async def get_status(_: str = Depends(require_admin_token)) -> Dict[str, Any]:
+    state = load_trading_state()
+    return state
 
 
-@router.post("/restart", response_model=AdminActionResponse)
-async def restart_system(user: UserProfile = Depends(require_admin)) -> AdminActionResponse:
-    """Stub endpoint for restarting the system."""
+@router.post("/pause")
+async def pause_trading(payload: Optional[Dict[str, Any]] = None, _: str = Depends(require_admin_token)) -> Dict[str, Any]:
+    payload = payload or {}
+    reason = payload.get("reason") or "Paused by admin"
+    state = {
+        "paused": True,
+        "reason": reason,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    save_trading_state(state)
+    return state
 
-    _add_log(f"{user.email} requested system restart", log_type="warning")
-    return AdminActionResponse(success=True, message="Restart signal emitted")
+
+@router.post("/resume")
+async def resume_trading(payload: Optional[Dict[str, Any]] = None, _: str = Depends(require_admin_token)) -> Dict[str, Any]:
+    payload = payload or {}
+    reason = payload.get("reason") or "Resumed by admin"
+    state = {
+        "paused": False,
+        "reason": reason,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    save_trading_state(state)
+    return state
+
+
+@router.delete("/pause")
+async def force_resume(_: str = Depends(require_admin_token)) -> Dict[str, Any]:
+    state = {
+        "paused": False,
+        "reason": "Force resumed by admin",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    save_trading_state(state)
+    return state

@@ -13,7 +13,7 @@ from backend.api import (
     signals,
     strategies,
 )
-from backend.api import admin_routes, auth_routes
+from backend.api import admin_routes, auth_routes, payments
 from backend.api.ws.dashboard_ws import router as dashboard_ws_router
 from backend.api.websocket_router import router as websocket_router
 from backend.ws.brain_ws import router as brain_ws_router
@@ -37,6 +37,7 @@ app.include_router(charts.router)
 app.include_router(bot.router)
 app.include_router(brain.router)
 app.include_router(admin_routes.router)
+app.include_router(payments.router)
 app.include_router(settings.router)
 app.include_router(health.router)
 app.include_router(metrics.router)
