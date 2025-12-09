@@ -1,12 +1,11 @@
-from __future__ import annotations
-
 """Stripe adapter with fake mode, lazy init, and normalized errors."""
+
+from __future__ import annotations
 
 import json
 import logging
 import os
 import sys
-import time
 import uuid
 from dataclasses import dataclass
 from typing import Any, Dict, Optional, Protocol
@@ -194,7 +193,11 @@ class PaymentsClient:
                 idempotency_key=self._get_request_id(request_id),
                 timeout=self.timeout_s,
             )
-            return PaymentResult(checkout_url=session.url, session_id=session.id, raw=getattr(session, "_last_response", {}) or {})
+            return PaymentResult(
+                checkout_url=session.url,
+                session_id=session.id,
+                raw=getattr(session, "_last_response", {}) or {},
+            )
         except Exception as exc:
             err = normalize_error(exc)
             self._count_error(err.code)
