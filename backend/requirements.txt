@@ -2,7 +2,7 @@ fastapi
 uvicorn[standard]
 requests
 httpx
-stripe
+stripe==11.3.0
 cryptography==42.0.5
 sqlalchemy
 aiosqlite
