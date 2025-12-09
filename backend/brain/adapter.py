@@ -1,12 +1,12 @@
-from __future__ import annotations
-
 """Brain integration adapter (import-safe, pure orchestrator)."""
 
-from typing import Any, Dict, Iterable, List, Optional
+from __future__ import annotations
 
-from backend.brain.utils.normalizer import normalize_signal
-from backend.brain.utils.fusion import fuse_signals, FusionConfig, DEFAULT_CONFIG
+from typing import Any, Dict, Iterable, Optional
+
 from backend.brain.utils.decision import build_decision_envelope
+from backend.brain.utils.fusion import DEFAULT_CONFIG, FusionConfig, fuse_signals
+from backend.brain.utils.normalizer import normalize_signal
 
 FAKE_DECISION = {
     "action": "hold",
@@ -52,7 +52,10 @@ def decide(
         return dict(FAKE_DECISION)
 
     cfg = config or {}
-    fusion_cfg = FusionConfig(weights=cfg.get("weights", DEFAULT_CONFIG.weights), neutral_threshold=cfg.get("threshold", DEFAULT_CONFIG.neutral_threshold))
+    fusion_cfg = FusionConfig(
+        weights=cfg.get("weights", DEFAULT_CONFIG.weights),
+        neutral_threshold=cfg.get("threshold", DEFAULT_CONFIG.neutral_threshold),
+    )
 
     normalized = [normalize_signal(raw_sig) for raw_sig in _iter_signals(signals)]
     fusion = fuse_signals(normalized, config=fusion_cfg)
