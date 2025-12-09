@@ -4,14 +4,25 @@ from __future__ import annotations
 import asyncio
 import contextlib
 from typing import Any, Dict, List, Optional
+import logging
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from backend.schemas.auth import UserProfile
 from backend.security.jwt import TokenError, validate_token
 from backend.services.dashboard_service import DashboardService
+from backend.utils.logging import log_event
+from backend.utils.metrics import MetricsClient
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
+
+_metrics: MetricsClient | None = None
+
+
+def set_metrics_client(client: MetricsClient) -> None:
+    global _metrics
+    _metrics = client
 
 BROADCAST_INTERVAL_SECONDS = 2
 HEARTBEAT_INTERVAL_SECONDS = 15
@@ -59,6 +70,39 @@ def _validate_user(websocket: WebSocket) -> UserProfile:
     return UserProfile(**user_data)
 
 
+def _on_connect(websocket: WebSocket) -> None:
+    request_id = websocket.headers.get("X-Request-ID")
+    log_event(
+        logger,
+        "ws.dashboard.connect",
+        request_id=request_id,
+        route="/ws/dashboard",
+        action="ws.connect",
+    )
+    if _metrics:
+        try:
+            _metrics.inc_gauge("ws_connections_active")
+        except Exception:
+            logger.debug("ws gauge inc failed", exc_info=True)
+
+
+def _on_disconnect(websocket: WebSocket) -> None:
+    request_id = websocket.headers.get("X-Request-ID")
+    log_event(
+        logger,
+        "ws.dashboard.disconnect",
+        request_id=request_id,
+        route="/ws/dashboard",
+        action="ws.disconnect",
+    )
+    if _metrics:
+        try:
+            _metrics.dec_gauge("ws_connections_active")
+            _metrics.inc_counter("ws_disconnects_total")
+        except Exception:
+            logger.debug("ws gauge dec failed", exc_info=True)
+
+
 async def _broadcast_loop(websocket: WebSocket) -> None:
     while True:
         system_status = await DashboardService.get_system_status()
@@ -99,6 +143,7 @@ async def dashboard_stream(websocket: WebSocket) -> None:
         return
 
     await websocket.accept()
+    _on_connect(websocket)
 
     broadcast_task = asyncio.create_task(_broadcast_loop(websocket))
     heartbeat_task = asyncio.create_task(_heartbeat_loop(websocket))
@@ -108,6 +153,7 @@ async def dashboard_stream(websocket: WebSocket) -> None:
     except WebSocketDisconnect:
         pass
     finally:
+        _on_disconnect(websocket)
         for task in (broadcast_task, heartbeat_task):
             task.cancel()
             with contextlib.suppress(asyncio.CancelledError):

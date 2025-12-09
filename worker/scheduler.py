@@ -15,6 +15,8 @@ from typing import Dict, Any, List, Optional
 from pathlib import Path
 
 from .mindset import TradingMindset, ActionType, EODAction
+from backend.utils.logging import log_event
+from backend.utils.metrics import MetricsClient
 
 # Import pause state checker
 try:
@@ -55,7 +57,8 @@ class DailyCycleScheduler:
         self,
         mindset: Optional[TradingMindset] = None,
         order_router: Optional[Any] = None,
-        log_dir: Optional[str] = None
+        log_dir: Optional[str] = None,
+        metrics: Optional[MetricsClient] = None,
     ):
         """
         Initialize scheduler.
@@ -66,6 +69,7 @@ class DailyCycleScheduler:
             log_dir: Directory for report logs (default: logs/reports/)
         """
         self.mindset = mindset or TradingMindset()
+        self.metrics = metrics or MetricsClient()
         
         if order_router:
             self.order_router = order_router
@@ -111,6 +115,17 @@ class DailyCycleScheduler:
             Report dictionary with execution results
         """
         cycle_start = datetime.now()
+        log_event(
+            logger,
+            "scheduler.cycle_start",
+            route="scheduler",
+            action="cycle_start",
+            extra={"dry_run": self.dry_run},
+        )
+        try:
+            self.metrics.inc_counter("scheduler_cycles_total")
+        except Exception:
+            logger.debug("scheduler cycle metric failed", exc_info=True)
         logger.info("=" * 70)
         logger.info(f"🔄 Starting daily cycle at {cycle_start.strftime('%Y-%m-%d %H:%M:%S')}")
         logger.info("=" * 70)
@@ -264,6 +279,14 @@ class DailyCycleScheduler:
         logger.info("=" * 70)
         logger.info(f"✅ Daily cycle completed in {report['duration_seconds']:.2f}s")
         logger.info("=" * 70)
+
+        log_event(
+            logger,
+            "scheduler.cycle_complete",
+            route="scheduler",
+            action="cycle_complete",
+            extra={"status": report.get("status"), "duration_seconds": report.get("duration_seconds")},
+        )
         
         return report
     
