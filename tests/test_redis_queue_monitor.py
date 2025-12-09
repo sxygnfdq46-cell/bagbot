@@ -15,6 +15,14 @@ def anyio_backend():
 
 
 @pytest.fixture
+def metrics_dir(monkeypatch, tmp_path):
+    path = tmp_path / "metrics"
+    path.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setenv("PROMETHEUS_MULTIPROC_DIR", str(path))
+    yield path
+
+
+@pytest.fixture
 async def redis_store(monkeypatch):
     client = fakeredis.aioredis.FakeRedis(decode_responses=True)
     store = RedisJobStore(client=client)
