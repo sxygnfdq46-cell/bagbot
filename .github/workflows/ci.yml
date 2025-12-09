@@ -7,8 +7,72 @@ on:
     branches: [ main, "feature/*" ]
 
 jobs:
+  payments-import-check:
+    runs-on: ubuntu-latest
+    # Guard to ensure payments adapter import stays side-effect free (no network, no keys).
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+      - name: Install minimal deps
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Import payments adapter (fake mode)
+        env:
+          PAYMENTS_FAKE_MODE: "1"
+        run: |
+          python -c "import backend.payments.adapter"
+
+  backup-artifacts-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run backup/duplicate artifact guard
+        id: backup-check
+        run: |
+          set +e
+          python3 scripts/check_no_backups.py | tee backup_check.txt
+          status=${PIPESTATUS[0]}
+          echo "exit_code=${status}" >> "$GITHUB_OUTPUT"
+          if [ "$status" -ne 0 ]; then
+            echo "has_hits=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_hits=false" >> "$GITHUB_OUTPUT"
+          fi
+          # Do not exit here; downstream step will fail fast when needed.
+      - name: Upload backup report
+        if: steps.backup-check.outputs.has_hits == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-artifacts-report
+          path: backup_check.txt
+          if-no-files-found: error
+      - name: Comment on PR with offending files
+        if: github.event_name == 'pull_request' && steps.backup-check.outputs.has_hits == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('backup_check.txt', 'utf8');
+            const message = `Backup or duplicate files were detected. BagBot enforces a clean repository tree. See offending files below.\n\n\`\`\`\n${body}\n\`\`\``;
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message,
+            });
+      - name: Fail fast if artifacts found
+        if: steps.backup-check.outputs.has_hits == 'true'
+        run: |
+          echo "Backup or duplicate files were detected. BagBot enforces a clean repository tree. See offending files below."
+          cat backup_check.txt
+          exit 1
+
   test-backend:
     runs-on: ubuntu-latest
+    needs: [backup-artifacts-check, payments-import-check]
     strategy:
       matrix:
         python-version: ["3.9"]
@@ -26,6 +90,7 @@ jobs:
 
   test-frontend:
     runs-on: ubuntu-latest
+    needs: [backup-artifacts-check, payments-import-check]
     steps:
       - uses: actions/checkout@v4
       - name: Frontend tests placeholder
@@ -33,6 +98,7 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
+    needs: [backup-artifacts-check, payments-import-check]
     steps:
       - uses: actions/checkout@v4
       - name: Lint placeholder
@@ -40,6 +106,7 @@ jobs:
 
   docker-build:
     runs-on: ubuntu-latest
+    needs: [backup-artifacts-check, payments-import-check]
     steps:
       - uses: actions/checkout@v4
       - name: Build image
@@ -47,6 +114,7 @@ jobs:
 
   artifacts:
     runs-on: ubuntu-latest
+    needs: [backup-artifacts-check, payments-import-check]
     steps:
       - uses: actions/checkout@v4
       - name: Upload reports
