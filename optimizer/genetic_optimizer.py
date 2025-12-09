@@ -20,10 +20,16 @@ import math
 import os
 import random
 import statistics
+import sys
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from pathlib import Path
 from typing import Any, List, Tuple, Callable, Optional
+
+# Ensure project root is on sys.path for module execution
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 # IMPORTS — adapt to your project layout
 from backtest.loader import load_candles

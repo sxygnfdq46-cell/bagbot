@@ -346,7 +346,7 @@ class BacktestEngine:
         total_trades = len(self.trades)
         winning_trades = sum(1 for t in self.trades if t.pnl > 0)
         losing_trades = sum(1 for t in self.trades if t.pnl < 0)
-        win_rate = (winning_trades / total_trades * 100) if total_trades > 0 else 0
+        win_rate = (winning_trades / total_trades * 100) if total_trades > 0 else 0.0
         
         # Calculate max drawdown
         max_drawdown = self._calculate_max_drawdown()

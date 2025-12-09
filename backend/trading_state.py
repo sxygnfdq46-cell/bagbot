@@ -11,8 +11,8 @@ from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 
-# Storage file path for trading state
-STATE_DIR = Path(__file__).parent.parent.parent / "data" / "state"
+# Storage file path for trading state (aligned with tests)
+STATE_DIR = Path(".")
 STATE_FILE = STATE_DIR / "trading_state.json"
 
 

@@ -25,8 +25,24 @@ from backend.db import session as db_session
 from backend.storage import report_manifest
 from backend.services.manager import websocket_broadcast
 from backend.workers.events import broadcast_worker_heartbeat
+import time
 
 _CHANNEL = "signals"
+
+
+def worker_heartbeat(payload: Dict[str, Any]):
+    """Broadcast heartbeat event; payload contains worker_id and ts."""
+    nested = payload.get("worker_id")
+    if isinstance(nested, dict):
+        worker_id = nested.get("worker_id", "worker")
+        ts = nested.get("ts") or nested.get("timestamp")
+    else:
+        worker_id = nested or "worker"
+        ts = payload.get("ts") or payload.get("timestamp")
+
+    ts = int(ts) if ts is not None else int(time.time())
+    asyncio.get_event_loop().create_task(broadcast_worker_heartbeat(worker_id, ts=ts))
+    return {"status": "ok", "worker_id": worker_id, "ts": ts}
 
 
 def _utcnow() -> datetime:
@@ -281,14 +297,32 @@ def strategy_toggle(
 
 
 def worker_heartbeat(
-    node_id: str,
+    payload_or_node_id: Any,
     *,
     at: datetime | None = None,
 ) -> Dict[str, Any]:
-    """Lightweight health check for worker processes."""
-    now = at or _utcnow()
-    timestamp = now.isoformat()
-    ts_ms = int(now.timestamp() * 1000)
+    """Broadcast a heartbeat from either a payload dict or a simple node_id."""
+
+    if isinstance(payload_or_node_id, dict):
+        payload = payload_or_node_id
+        nested = payload.get("worker_id")
+        if isinstance(nested, dict):
+            worker_id = nested.get("worker_id", "worker")
+            ts = nested.get("ts") or nested.get("timestamp")
+        else:
+            worker_id = nested or "worker"
+            ts = payload.get("ts") or payload.get("timestamp")
+        ts = int(ts) if ts is not None else int(time.time())
+        response = {"status": "ok", "worker_id": worker_id, "ts": ts}
+    else:
+        worker_id = payload_or_node_id or "worker"
+        now = at or _utcnow()
+        ts = int(now.timestamp() * 1000)
+        response = {
+            "node_id": worker_id,
+            "status": "healthy",
+            "at": now.isoformat(),
+        }
 
     try:
         loop = asyncio.get_running_loop()
@@ -296,20 +330,14 @@ def worker_heartbeat(
         local_loop = asyncio.new_event_loop()
         try:
             local_loop.run_until_complete(
-                broadcast_worker_heartbeat(node_id, ts=ts_ms)
+                broadcast_worker_heartbeat(worker_id, ts=ts)
             )
         finally:
             local_loop.close()
     else:
-        loop.create_task(
-            broadcast_worker_heartbeat(node_id, ts=ts_ms)
-        )
+        loop.create_task(broadcast_worker_heartbeat(worker_id, ts=ts))
 
-    return {
-        "node_id": node_id,
-        "status": "healthy",
-        "at": timestamp,
-    }
+    return response
 
 
 __all__ = [

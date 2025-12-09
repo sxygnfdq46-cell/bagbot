@@ -379,6 +379,8 @@ class TestIntegration:
         assert status3.json()["paused"] is False
 
 
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])\n
 @pytest.fixture(autouse=True)
 def _fake_worker_submodules(mocked_worker):
     """Auto-install the fake submodules on the mocked worker for each test."""
