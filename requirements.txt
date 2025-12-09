@@ -61,11 +61,4 @@ typing-extensions==4.12.2
 python-dateutil==2.8.2
 pytz==2024.1
 prometheus-client==0.20.0
-<<<<<<< HEAD
 PyYAML==6.0.1
-=======
-# Task Queue & Async Database
-rq
-aiosqlite==0.20.0
-email-validator==2.1.0.post1
->>>>>>> 550f9b2 (chore(ci): resolve merge conflict in requirements.txt (restore task-queue deps))
