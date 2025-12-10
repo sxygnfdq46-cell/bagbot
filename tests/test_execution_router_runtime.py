@@ -35,6 +35,7 @@ def test_fake_mode_deterministic():
     assert first["status"] == "success"
     assert first["order_id"] is not None
     assert first["fill_price"] is not None
+    assert first["reason"] == "fake_mode"
 
 
 def test_adapter_success(monkeypatch):
