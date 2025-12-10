@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 from typing import Any, Dict, Iterable, Optional
 
@@ -17,6 +18,9 @@ FAKE_DECISION = {
 }
 
 _FLAG_TRUE = {"1", "true", "yes", "on"}
+
+
+logger = logging.getLogger(__name__)
 
 
 def _use_orchestrator(env: Optional[dict[str, str]] = None) -> bool:
@@ -37,6 +41,17 @@ def _inc_metric(metrics_client: Any, action: str) -> None:
     if callable(inc):
         try:
             inc("brain_decisions_total", labels={"action": action} if "labels" in inc.__code__.co_varnames else action)
+        except Exception:
+            return
+
+
+def _inc_orch(metrics_client: Any, name: str, labels: Dict[str, Any]) -> None:
+    if not metrics_client:
+        return
+    inc = getattr(metrics_client, "inc", None) or getattr(metrics_client, "increment", None)
+    if callable(inc):
+        try:
+            inc(name, labels=labels)
         except Exception:
             return
 
@@ -70,9 +85,15 @@ def decide(
             )
             _inc_metric(metrics_client, orchestrated.get("action") or "hold")
             return orchestrated
-        except Exception:
-            # Fall back to local fusion if orchestrator path fails for any reason.
-            pass
+        except Exception as exc:
+            _inc_orch(metrics_client, "brain_orchestrator_requests_total", {"outcome": "failure"})
+            logger.warning(
+                "orchestrator_fallback",
+                extra={
+                    "event": "orchestrator_fallback",
+                    "error": str(exc),
+                },
+            )
 
     cfg = config or {}
     fusion_cfg = FusionConfig(

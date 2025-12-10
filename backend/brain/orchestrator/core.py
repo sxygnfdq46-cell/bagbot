@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Dict, List, Tuple
+import logging
+from typing import Any, Dict, List
 
 from .providers import PROVIDER_FUNCS, _fake_mode_enabled
 from .schema import OrchestratorResult, ProviderSignal, clamp_confidence
@@ -24,6 +25,9 @@ def _select_best(signals: List[ProviderSignal]) -> ProviderSignal:
     return sorted(signals, key=lambda s: (-s.confidence, s.provider_id))[0]
 
 
+logger = logging.getLogger(__name__)
+
+
 def orchestrate_providers(
     payload: Dict[str, Any],
     *,
@@ -33,10 +37,17 @@ def orchestrate_providers(
     env = os.environ
     use_fake = _fake_mode_enabled(env) if fake_mode is None else bool(fake_mode)
 
-    _inc(metrics_client, "brain_orchestrator_requests_total", {})
-
     signals: List[ProviderSignal] = []
     failures: List[str] = []
+
+    logger.info(
+        "orchestrator_start",
+        extra={
+            "event": "orchestrator_start",
+            "payload_keys": list(payload.keys()) if isinstance(payload, dict) else [],
+            "fake_mode": use_fake,
+        },
+    )
 
     for provider_id, func in PROVIDER_FUNCS.items():
         try:
@@ -48,6 +59,7 @@ def orchestrate_providers(
             _inc(metrics_client, "brain_orchestrator_provider_failure_total", {"provider": provider_id})
 
     if not signals:
+        _inc(metrics_client, "brain_orchestrator_requests_total", {"outcome": "failure"})
         result = OrchestratorResult(
             action="hold",
             confidence=0.3,
@@ -55,7 +67,15 @@ def orchestrate_providers(
             rationale=["no_providers_available"],
             meta={"signals_used": [], "failed_providers": failures, "fake_mode": use_fake},
         )
-        _inc(metrics_client, "brain_orchestrator_decisions_total", {"action": result.action})
+        _inc(metrics_client, "brain_orchestrator_decision_total", {"action": result.action})
+        logger.warning(
+            "orchestrator_no_providers",
+            extra={
+                "event": "orchestrator_no_providers",
+                "failed_providers": failures,
+                "fake_mode": use_fake,
+            },
+        )
         return {
             "action": result.action,
             "confidence": result.confidence,
@@ -79,7 +99,21 @@ def orchestrate_providers(
         },
     )
 
-    _inc(metrics_client, "brain_orchestrator_decisions_total", {"action": result.action})
+    _inc(metrics_client, "brain_orchestrator_requests_total", {"outcome": "success"})
+    _inc(metrics_client, "brain_orchestrator_decision_total", {"action": result.action or "unknown"})
+
+    logger.info(
+        "orchestrator_success",
+        extra={
+            "event": "orchestrator_success",
+            "selected_provider": result.provider,
+            "failed_providers": failures,
+            "signals_used": result.meta.get("signals_used", []),
+            "fake_mode": use_fake,
+            "confidence": result.confidence,
+            "action": result.action,
+        },
+    )
 
     return {
         "action": result.action,

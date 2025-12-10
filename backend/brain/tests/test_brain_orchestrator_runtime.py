@@ -16,6 +16,10 @@ class _StubMetrics:
         self.calls.append((name, labels or {}))
 
 
+def _count(calls, name, **label_eq):
+    return sum(1 for n, lbl in calls if n == name and all(lbl.get(k) == v for k, v in label_eq.items()))
+
+
 def test_import_safe_with_orchestrator_flag(monkeypatch):
     monkeypatch.setenv("BRAIN_FAKE_MODE", "1")
     monkeypatch.setenv("BRAIN_USE_ORCHESTRATOR", "1")
@@ -23,13 +27,18 @@ def test_import_safe_with_orchestrator_flag(monkeypatch):
 
     assert hasattr(adapter, "decide")
 
+    import backend.brain.orchestrator  # noqa: F401  pylint: disable=unused-import
+    import backend.worker.runner  # noqa: F401  pylint: disable=unused-import
+
 
 def test_delegates_to_orchestrator(monkeypatch):
     monkeypatch.setenv("BRAIN_USE_ORCHESTRATOR", "1")
     metrics = _StubMetrics()
 
     def fake_orchestrate(signals, metrics_client=None, fake_mode=None):
-        metrics_client.inc("brain_orchestrator_decisions_total", {"action": "buy"})
+        if metrics_client:
+            metrics_client.inc("brain_orchestrator_requests_total", {"outcome": "success"})
+            metrics_client.inc("brain_orchestrator_decision_total", {"action": "buy"})
         return {
             "action": "buy",
             "confidence": 0.9,
@@ -44,8 +53,9 @@ def test_delegates_to_orchestrator(monkeypatch):
 
     assert decision["action"] == "buy"
     assert decision["confidence"] == 0.9
-    assert ("brain_decisions_total", {"action": "buy"}) in metrics.calls
-    assert ("brain_orchestrator_decisions_total", {"action": "buy"}) in metrics.calls
+    assert _count(metrics.calls, "brain_decisions_total", action="buy") == 1
+    assert _count(metrics.calls, "brain_orchestrator_requests_total", outcome="success") == 1
+    assert _count(metrics.calls, "brain_orchestrator_decision_total", action="buy") == 1
 
 
 def test_orchestrator_fallback_on_error(monkeypatch):
@@ -61,10 +71,23 @@ def test_orchestrator_fallback_on_error(monkeypatch):
     decision = adapter.decide({"demo": {"type": "momentum", "strength": 0.1}}, metrics_client=metrics, fake_mode=True)
 
     assert decision["action"] == "hold"  # falls back to fake_mode canned decision
-    assert ("brain_decisions_total", {"action": "hold"}) in metrics.calls
+    assert _count(metrics.calls, "brain_orchestrator_requests_total", outcome="failure") == 1
+    assert _count(metrics.calls, "brain_decisions_total", action="hold") == 1
 
 
-def test_runner_integration_orchestrator_path(monkeypatch):
+def test_fake_mode_determinism(monkeypatch):
+    monkeypatch.setenv("BRAIN_USE_ORCHESTRATOR", "1")
+    monkeypatch.setenv("BRAIN_FAKE_MODE", "1")
+    metrics = _StubMetrics()
+
+    decision1 = adapter.decide({"demo": {"type": "momentum", "strength": 0.2}}, metrics_client=metrics, fake_mode=True)
+    decision2 = adapter.decide({"demo": {"type": "momentum", "strength": 0.2}}, metrics_client=metrics, fake_mode=True)
+
+    assert decision1 == decision2
+    assert _count(metrics.calls, "brain_orchestrator_decision_total") >= 2
+
+
+def test_metrics_injection_with_runner(monkeypatch):
     monkeypatch.setenv("BRAIN_USE_ORCHESTRATOR", "1")
     monkeypatch.setenv("BRAIN_FAKE_MODE", "1")
     metrics = _StubMetrics()
@@ -73,4 +96,5 @@ def test_runner_integration_orchestrator_path(monkeypatch):
 
     assert decision["action"] in {"buy", "hold"}
     assert decision["meta"].get("fake_mode") is True
+    assert _count(metrics.calls, "brain_orchestrator_requests_total", outcome="success") >= 1
     assert any(name == "brain_decisions_total" for name, _labels in metrics.calls)
