@@ -42,10 +42,17 @@ result = orchestrate_providers(payload: dict, *, metrics_client=None, fake_mode:
 
 ## Metrics (injected)
 If `metrics_client` supplied:
-- `brain_orchestrator_requests_total`
+- `brain_orchestrator_requests_total{outcome=success|failure}`
 - `brain_orchestrator_provider_success_total{provider=...}`
 - `brain_orchestrator_provider_failure_total{provider=...}`
-- `brain_orchestrator_decisions_total{action=...}`
+- `brain_orchestrator_decision_total{action=...}`
+- Adapter still emits `brain_decisions_total{action=...}` for compatibility
+
+## Logging
+- `orchestrator_start`: payload keys + fake mode toggle
+- `orchestrator_success`: selected provider, signals used, failures, confidence, action, fake mode
+- `orchestrator_no_providers`: warning when every provider fails
+- Adapter emits `orchestrator_fallback` warning if the orchestrator import/call raises and it returns to local fusion
 
 ## Runtime integration (later)
 - Runtime services can call `orchestrate_providers(payload, metrics_client=...)`.
@@ -56,5 +63,5 @@ If `metrics_client` supplied:
 - Env flag: `BRAIN_USE_ORCHESTRATOR=1` routes the brain adapter to `orchestrate_providers` before falling back to local fusion.
 - Runner shim (`backend.worker.runner.get_brain_decision`) honors `BRAIN_USE_ORCHESTRATOR` and `BRAIN_FAKE_MODE`; imports stay lazy for safety.
 - Payload: same shape used by `decide` today (dict of signals). Orchestrator normalizes internally.
-- Metrics to watch when enabled: `brain_orchestrator_requests_total`, `brain_orchestrator_provider_success_total`, `brain_orchestrator_provider_failure_total`, `brain_orchestrator_decisions_total{action=...}`, plus existing `brain_decisions_total` emitted by the adapter wrapper.
+- Metrics to watch when enabled: `brain_orchestrator_requests_total{outcome}`, `brain_orchestrator_provider_success_total`, `brain_orchestrator_provider_failure_total`, `brain_orchestrator_decision_total{action=...}`, plus existing `brain_decisions_total{action=...}` emitted by the adapter wrapper.
 - Rollout guidance: enable `BRAIN_USE_ORCHESTRATOR` in staging first (fake mode allowed), verify metrics/decisions, then enable in production.
