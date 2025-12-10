@@ -66,7 +66,7 @@ def _deterministic_fake(envelope: Dict[str, Any]) -> Dict[str, Any]:
     price = (order or {}).get("price")
 
     base_str = f"{instr}:{side}:{size}:{ord_type}:{price}"
-    digest = hashlib.sha1(base_str.encode()).hexdigest()
+    digest = hashlib.sha256(base_str.encode()).hexdigest()
     order_id = digest[:12]
 
     if str(ord_type).lower() == "limit" and price is not None:
