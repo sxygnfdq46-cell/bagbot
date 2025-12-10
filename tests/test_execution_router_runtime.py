@@ -73,7 +73,7 @@ def test_adapter_failure(monkeypatch):
 
     assert resp["status"] == "held"
     assert resp["reason"] == "adapter-error"
-    assert _count(metrics.calls, "execution_requests_total", outcome="failed") + _count(metrics.calls, "execution_requests_total", outcome="held") >= 1
+    assert _count(metrics.calls, "execution_requests_total", outcome="failed") >= 1
     assert _count(metrics.calls, "execution_failures_total") >= 1
 
 
