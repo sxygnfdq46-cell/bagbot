@@ -51,3 +51,10 @@ If `metrics_client` supplied:
 - Runtime services can call `orchestrate_providers(payload, metrics_client=...)`.
 - Keep `metrics_client` injectable (no globals).
 - Respect fake mode for canaries/CI; real providers can be wired behind these functions without changing the selection API.
+
+## Runtime wiring (shim)
+- Env flag: `BRAIN_USE_ORCHESTRATOR=1` routes the brain adapter to `orchestrate_providers` before falling back to local fusion.
+- Runner shim (`backend.worker.runner.get_brain_decision`) honors `BRAIN_USE_ORCHESTRATOR` and `BRAIN_FAKE_MODE`; imports stay lazy for safety.
+- Payload: same shape used by `decide` today (dict of signals). Orchestrator normalizes internally.
+- Metrics to watch when enabled: `brain_orchestrator_requests_total`, `brain_orchestrator_provider_success_total`, `brain_orchestrator_provider_failure_total`, `brain_orchestrator_decisions_total{action=...}`, plus existing `brain_decisions_total` emitted by the adapter wrapper.
+- Rollout guidance: enable `BRAIN_USE_ORCHESTRATOR` in staging first (fake mode allowed), verify metrics/decisions, then enable in production.
