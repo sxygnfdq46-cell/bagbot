@@ -102,3 +102,23 @@ def test_metrics_increment_paths(monkeypatch):
     )
     assert _count(metrics.calls, "execution_requests_total", outcome="held") >= 1
     assert _count(metrics.calls, "execution_failures_total", reason="adapter-not-available") >= 1
+
+
+def test_adapter_invalid_response(monkeypatch):
+    metrics = _StubMetrics()
+
+    class InvalidAdapter:
+        def send_order(self, envelope):
+            return None  # non-dict response
+
+    monkeypatch.setattr(execution_router_runtime, "_choose_adapter", lambda instrument: InvalidAdapter())
+
+    resp = execution_router_runtime.route_execution_request(
+        {"order": {"instrument": "BTC-USD", "side": "buy", "size": 1, "type": "market"}},
+        metrics_client=metrics,
+    )
+
+    assert resp["status"] == "held"
+    assert resp["reason"] == "adapter-invalid-response"
+    assert _count(metrics.calls, "execution_requests_total", outcome="held") == 1
+    assert _count(metrics.calls, "execution_failures_total", reason="adapter-invalid-response") == 1
