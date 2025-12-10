@@ -44,9 +44,27 @@ jobs:
           PYTHONPATH="$PWD" python -c "import backend.brain.adapter"
           PYTHONPATH="$PWD" python -c "import backend.worker.runner"
 
+  trade-engine-import-check:
+    runs-on: ubuntu-latest
+    # Guard to ensure trade engine runner shim is import-safe (no network, no router).
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+      - name: Install minimal deps
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Import trade engine runner (fake mode)
+        env:
+          TRADE_ENGINE_FAKE_MODE: "1"
+        run: |
+          PYTHONPATH="$PWD" python -c "import backend.worker.runner.trade_engine_runner"
+
   brain-e2e:
     runs-on: ubuntu-latest
-    needs: [backup-artifacts-check, payments-import-check, brain-import-check]
+    needs: [backup-artifacts-check, payments-import-check, brain-import-check, trade-engine-import-check]
     # Fast canary to validate brain runtime shim end-to-end in fake mode.
     steps:
       - uses: actions/checkout@v4
@@ -113,7 +131,7 @@ jobs:
 
   test-backend:
     runs-on: ubuntu-latest
-    needs: [backup-artifacts-check, payments-import-check, brain-import-check, brain-e2e]
+    needs: [backup-artifacts-check, payments-import-check, brain-import-check, trade-engine-import-check, brain-e2e]
     strategy:
       matrix:
         python-version: ["3.9"]
@@ -131,7 +149,7 @@ jobs:
 
   test-frontend:
     runs-on: ubuntu-latest
-    needs: [backup-artifacts-check, payments-import-check, brain-import-check, brain-e2e]
+    needs: [backup-artifacts-check, payments-import-check, brain-import-check, trade-engine-import-check, brain-e2e]
     steps:
       - uses: actions/checkout@v4
       - name: Frontend tests placeholder
@@ -139,7 +157,7 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
-    needs: [backup-artifacts-check, payments-import-check, brain-import-check, brain-e2e]
+    needs: [backup-artifacts-check, payments-import-check, brain-import-check, trade-engine-import-check, brain-e2e]
     steps:
       - uses: actions/checkout@v4
       - name: Lint placeholder
@@ -147,7 +165,7 @@ jobs:
 
   docker-build:
     runs-on: ubuntu-latest
-    needs: [backup-artifacts-check, payments-import-check, brain-import-check, brain-e2e]
+    needs: [backup-artifacts-check, payments-import-check, brain-import-check, trade-engine-import-check, brain-e2e]
     steps:
       - uses: actions/checkout@v4
       - name: Build image
@@ -155,7 +173,7 @@ jobs:
 
   artifacts:
     runs-on: ubuntu-latest
-    needs: [backup-artifacts-check, payments-import-check, brain-import-check, brain-e2e]
+    needs: [backup-artifacts-check, payments-import-check, brain-import-check, trade-engine-import-check, brain-e2e]
     steps:
       - uses: actions/checkout@v4
       - name: Upload reports
