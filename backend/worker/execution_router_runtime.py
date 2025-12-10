@@ -30,10 +30,14 @@ def _inc(metrics: Any, name: str, labels: Optional[Dict[str, Any]] = None, value
     if callable(inc):
         try:
             # Support increment(name, value, labels) or inc(name, labels)
-            if inc.__code__.co_argcount >= 3:  # type: ignore[attr-defined]
-                inc(name, value, labels=labels or {})
+            if "labels" in inc.__code__.co_varnames:
+                if "value" in inc.__code__.co_varnames:
+                    inc(name, value, labels=labels or {})
+                else:
+                    inc(name, labels=labels or {})
             else:
-                inc(name, labels=labels or {})
+                # Fallback: try with just name and value if possible
+                inc(name, value)
         except Exception:  # pragma: no cover - defensive
             return
 
