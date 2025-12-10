@@ -14,9 +14,9 @@ from backend.api import (
     strategies,
 )
 from backend.api import admin_routes, auth_routes, payments
+from backend.api.ws.brain_ws import router as brain_ws_router
 from backend.api.ws.dashboard_ws import router as dashboard_ws_router
 from backend.api.websocket_router import router as websocket_router
-from backend.ws.brain_ws import router as brain_ws_router
 from backend.ws.signals_ws import router as signals_ws_router
 
 app = FastAPI(title="Bagbot Backend", version="0.1.0")
