@@ -77,6 +77,26 @@ def test_adapter_failure(monkeypatch):
     assert _count(metrics.calls, "execution_failures_total") >= 1
 
 
+def test_adapter_invalid_response(monkeypatch):
+    metrics = _StubMetrics()
+
+    class BadResponseAdapter:
+        def send_order(self, envelope):
+            return "not-a-dict"  # Invalid response type
+
+    monkeypatch.setattr(execution_router_runtime, "_choose_adapter", lambda instrument: BadResponseAdapter())
+
+    resp = execution_router_runtime.route_execution_request(
+        {"order": {"instrument": "BTC-USD", "side": "buy", "size": 1, "type": "market"}},
+        metrics_client=metrics,
+    )
+
+    assert resp["status"] == "held"
+    assert resp["reason"] == "adapter-invalid-response"
+    assert _count(metrics.calls, "execution_requests_total", outcome="held") == 1
+    assert _count(metrics.calls, "execution_failures_total", reason="adapter-invalid-response") == 1
+
+
 def test_metrics_increment_paths(monkeypatch):
     metrics = _StubMetrics()
 
