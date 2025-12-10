@@ -163,3 +163,17 @@ jobs:
         with:
           name: reports
           path: artifacts/
+
+  doc-check:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install markdownlint-cli
+        run: npm install -g markdownlint-cli
+      - name: Lint brain orchestrator doc
+        run: markdownlint backend/docs/brain_orchestrator.md
