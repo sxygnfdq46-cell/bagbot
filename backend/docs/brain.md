@@ -27,6 +27,29 @@ raw signals -> Signal Normalizer -> normalized signals -> Fusion Reactor -> fuse
 - Fake mode: set `fake_mode=True` to get deterministic canned output for tests/CLI.
 - Metrics: pass an injected `metrics_client` with `inc(name, labels={...})`; the adapter increments `brain_decisions_total{action=...}`.
 
+## Runtime shim (runner)
+- Location: `backend/worker/runner.py` with `get_brain_decision(...)`.
+- Behavior: thin, import-safe wrapper that lazily imports `backend.brain.adapter.decide` and returns its decision.
+- Env flags: `BRAIN_FAKE_MODE=1` forces fake-mode decisions; otherwise, adapter runs normally.
+- Metrics: pass an injected `metrics_client` (supports `inc(name, labels=...)`); increments `brain_decisions_total{action=...}` without creating a global registry.
+
+### Smoke usage
+```bash
+PYTHONPATH="$PWD" BRAIN_FAKE_MODE=1 python - <<'PY'
+from backend.worker.runner import get_brain_decision
+
+decision = get_brain_decision({"demo": {"type": "momentum", "strength": 0.4}})
+print(decision)
+PY
+```
+
+### Tests to run locally
+- Import guards (no side effects):
+  - `PYTHONPATH="$PWD" BRAIN_FAKE_MODE=1 python -c "import backend.brain.adapter"`
+  - `PYTHONPATH="$PWD" BRAIN_FAKE_MODE=1 python -c "import backend.worker.runner"`
+- Runtime smoke + unit slice: `pytest -q -k "brain and runtime"`
+- Adapter slice (existing): `pytest -q backend/brain/tests -k adapter`
+
 ### CLI snippet (fake mode)
 ```
 PYTHONPATH="$PWD" BRAIN_FAKE_MODE=1 python - <<'PY'
