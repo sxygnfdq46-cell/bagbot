@@ -88,4 +88,10 @@ def get_intent_preview(decision: Dict[str, Any], snapshot: Dict[str, Any], *, me
         return _fail("exception", metrics_client)
 
 
-__all__ = ["get_intent_preview"]
+def preview_intent(decision: Dict[str, Any], snapshot: Dict[str, Any], *, metrics_client: Any = None, fake_mode: Optional[bool] = None) -> Dict[str, Any]:
+    """Alias to get_intent_preview for compatibility with pipeline expectations."""
+
+    return get_intent_preview(decision, snapshot, metrics_client=metrics_client, fake_mode=fake_mode)
+
+
+__all__ = ["get_intent_preview", "preview_intent"]
