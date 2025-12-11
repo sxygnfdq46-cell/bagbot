@@ -12,6 +12,10 @@ logger = logging.getLogger(__name__)
 _FAKE_TRUE = {"1", "true", "yes", "on"}
 
 
+def _trace_id(seed: str) -> str:
+    return hashlib.sha1(seed.encode()).hexdigest()[:16]
+
+
 def _fake_mode_enabled(fake_mode: Optional[bool]) -> bool:
     if fake_mode is not None:
         return bool(fake_mode)
@@ -20,6 +24,12 @@ def _fake_mode_enabled(fake_mode: Optional[bool]) -> bool:
 
 def _intent_preview_enabled() -> bool:
     return os.environ.get("INTENT_PREVIEW_ENABLED", "").strip().lower() in _FAKE_TRUE
+
+
+def _mock_feed_enabled() -> bool:
+    raw_mock = os.environ.get("SIGNALS_MOCK_FEED_ENABLED", "").strip().lower()
+    raw_fake = os.environ.get("SIGNALS_FAKE_MODE", "").strip().lower()
+    return raw_mock in _FAKE_TRUE or raw_fake in _FAKE_TRUE
 
 
 def _inc(metrics: Any, name: str, labels: Optional[Dict[str, Any]] = None) -> None:
@@ -51,12 +61,13 @@ def _fail(stage: str, reason: str, metrics: Any) -> Dict[str, Any]:
 def _fake_preview(envelope: Dict[str, Any]) -> Dict[str, Any]:
     base = str(envelope)
     digest = hashlib.sha1(base.encode()).hexdigest()
+    trace_id = _trace_id(base)
     action_cycle = ["buy", "sell", "hold"]
     action = action_cycle[int(digest[:2], 16) % 3]
-    brain = {"action": action, "confidence": (int(digest[2:4], 16) % 100) / 100.0, "rationale": ["fake_brain"], "meta": {"fake": True}}
-    trade = {"action": action, "envelope": {"action": action, "meta": {"fake": True}}, "reason": "fake_mode"}
-    router = {"status": "success", "order_id": digest[:12], "reason": "fake_mode", "meta": {"fake": True}}
-    preview = {"action": action, "size": (int(digest[4:8], 16) % 10000) / 100.0, "confidence": brain["confidence"], "rationale": ["fake_mode"], "risk_notes": ["fake_mode"], "meta": {"fake": True}}
+    brain = {"action": action, "confidence": (int(digest[2:4], 16) % 100) / 100.0, "rationale": ["fake_brain"], "meta": {"fake": True, "trace_id": trace_id}}
+    trade = {"action": action, "envelope": {"action": action, "meta": {"fake": True, "trace_id": trace_id}}, "reason": "fake_mode"}
+    router = {"status": "success", "order_id": digest[:12], "reason": "fake_mode", "meta": {"fake": True, "trace_id": trace_id}}
+    preview = {"action": action, "size": (int(digest[4:8], 16) % 10000) / 100.0, "confidence": brain["confidence"], "rationale": ["fake_mode"], "risk_notes": ["fake_mode"], "meta": {"fake": True, "trace_id": trace_id}}
     return brain, trade, router, preview
 
 
@@ -84,7 +95,7 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
             "trade_action": trade,
             "router_result": router,
             "intent_preview": preview if intent_enabled else None,
-            "meta": {"pipeline_fake_mode": True, "intent_preview_enabled": intent_enabled},
+            "meta": {"pipeline_fake_mode": True, "intent_preview_enabled": intent_enabled, "trace_id": router.get("meta", {}).get("trace_id")},
         }
 
     rationale: list[str] = []
@@ -155,8 +166,66 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
         "trade_action": trade_action,
         "router_result": router_result,
         "intent_preview": intent_preview,
-        "meta": {"pipeline_fake_mode": False, "intent_preview_enabled": intent_enabled},
+        "meta": {"pipeline_fake_mode": False, "intent_preview_enabled": intent_enabled, "trace_id": (router_result or {}).get("meta", {}).get("trace_id")},
     }
 
 
-__all__ = ["run_decision_pipeline"]
+def _extract_trace_id(result: Dict[str, Any]) -> Optional[str]:
+    try:
+        return (result.get("router_result") or {}).get("meta", {}).get("trace_id")
+    except Exception:
+        return None
+
+
+def run_pipeline_canary(*, metrics_client: Any = None, fake_mode: Optional[bool] = True) -> Dict[str, Any]:
+    """Run a staged-safe pipeline canary.
+
+    If signals mock feed is enabled via env flags, a single mock feed invocation
+    runs before the baseline pipeline envelope. Both run in fake mode by default
+    to avoid any network or adapter access.
+    """
+
+    mock_result: Optional[Dict[str, Any]] = None
+
+    if _mock_feed_enabled():
+        try:
+            from backend.signals.mock_feed import run_mock_feed_once  # lazy import for safety
+
+            mock_result = run_mock_feed_once(metrics_client=metrics_client)
+            mock_status = mock_result.get("status") if isinstance(mock_result, dict) else "unknown"
+            _inc(metrics_client, "signals_mock_feed_runs_total", {"outcome": mock_status})
+            logger.info(
+                "runtime_pipeline_mock_feed",
+                extra={
+                    "event": "runtime_pipeline_mock_feed",
+                    "status": mock_status,
+                    "fake_mode": True,
+                    "trace_id": _extract_trace_id(mock_result) if isinstance(mock_result, dict) else None,
+                },
+            )
+
+            if mock_status != "success":
+                return {
+                    "status": "hold",
+                    "reason": "mock_feed_failed",
+                    "rationale": [f"mock_feed_{mock_status}"],
+                    "brain_decision": None,
+                    "trade_action": None,
+                    "router_result": mock_result.get("router_result") if isinstance(mock_result, dict) else None,
+                    "intent_preview": None,
+                    "meta": {"mock_feed": mock_result, "pipeline_fake_mode": True},
+                }
+        except Exception as exc:  # pragma: no cover
+            logger.warning("runtime_pipeline_mock_feed_error", extra={"event": "runtime_pipeline_mock_feed_error", "error": str(exc)})
+            return _fail("mock_feed", "exception", metrics_client)
+
+    envelope = {"instrument": "BTC-USD", "snapshot": {}, "signals": {}}
+    response = run_decision_pipeline(envelope, metrics_client=metrics_client, fake_mode=fake_mode if fake_mode is not None else True)
+
+    if mock_result is not None:
+        response.setdefault("meta", {})["mock_feed"] = mock_result
+
+    return response
+
+
+__all__ = ["run_decision_pipeline", "run_pipeline_canary"]

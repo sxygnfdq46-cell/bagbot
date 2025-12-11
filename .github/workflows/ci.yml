@@ -143,6 +143,31 @@ jobs:
         run: |
           PYTHONPATH="$PWD" pytest -q tests/test_runtime_pipeline_e2e.py
 
+  pipeline-signals-mock-feed:
+    runs-on: ubuntu-latest
+    needs: [backup-artifacts-check, payments-import-check, brain-import-check, trade-engine-import-check, execution-router-import-check, intent-preview-import-check, pipeline-import-check]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+      - name: Install deps
+        run: |
+          pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install "pycares>=4,<5"
+          pip install pytest
+      - name: Run runtime pipeline mock-feed canary (fake modes)
+        env:
+          SIGNALS_MOCK_FEED_ENABLED: "1"
+          BRAIN_FAKE_MODE: "1"
+          TRADE_ENGINE_FAKE_MODE: "1"
+          RUNTIME_ROUTER_FAKE_MODE: "1"
+          INTENT_PREVIEW_FAKE_MODE: "1"
+          INTENT_PREVIEW_ENABLED: "1"
+        run: |
+          PYTHONPATH="$PWD" pytest -q tests/test_signals_pipeline_canary.py tests/test_signals_mock_feed.py
+
   docs-lint-intent-pipeline:
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -222,7 +247,7 @@ jobs:
 
   test-backend:
     runs-on: ubuntu-latest
-    needs: [backup-artifacts-check, payments-import-check, brain-import-check, trade-engine-import-check, execution-router-import-check, intent-preview-import-check, pipeline-import-check, pipeline-e2e, brain-e2e]
+    needs: [backup-artifacts-check, payments-import-check, brain-import-check, trade-engine-import-check, execution-router-import-check, intent-preview-import-check, pipeline-import-check, pipeline-e2e, pipeline-signals-mock-feed, brain-e2e]
     strategy:
       matrix:
         python-version: ["3.9"]
@@ -241,7 +266,7 @@ jobs:
 
   test-frontend:
     runs-on: ubuntu-latest
-    needs: [backup-artifacts-check, payments-import-check, brain-import-check, trade-engine-import-check, execution-router-import-check, intent-preview-import-check, pipeline-import-check, pipeline-e2e, brain-e2e]
+    needs: [backup-artifacts-check, payments-import-check, brain-import-check, trade-engine-import-check, execution-router-import-check, intent-preview-import-check, pipeline-import-check, pipeline-e2e, pipeline-signals-mock-feed, brain-e2e]
     steps:
       - uses: actions/checkout@v4
       - name: Frontend tests placeholder
@@ -249,7 +274,7 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
-    needs: [backup-artifacts-check, payments-import-check, brain-import-check, trade-engine-import-check, execution-router-import-check, intent-preview-import-check, pipeline-import-check, pipeline-e2e, brain-e2e]
+    needs: [backup-artifacts-check, payments-import-check, brain-import-check, trade-engine-import-check, execution-router-import-check, intent-preview-import-check, pipeline-import-check, pipeline-e2e, pipeline-signals-mock-feed, brain-e2e]
     steps:
       - uses: actions/checkout@v4
       - name: Lint placeholder
@@ -257,7 +282,7 @@ jobs:
 
   docker-build:
     runs-on: ubuntu-latest
-    needs: [backup-artifacts-check, payments-import-check, brain-import-check, trade-engine-import-check, execution-router-import-check, intent-preview-import-check, pipeline-import-check, pipeline-e2e, brain-e2e]
+    needs: [backup-artifacts-check, payments-import-check, brain-import-check, trade-engine-import-check, execution-router-import-check, intent-preview-import-check, pipeline-import-check, pipeline-e2e, pipeline-signals-mock-feed, brain-e2e]
     steps:
       - uses: actions/checkout@v4
       - name: Build image
@@ -265,7 +290,7 @@ jobs:
 
   artifacts:
     runs-on: ubuntu-latest
-    needs: [backup-artifacts-check, payments-import-check, brain-import-check, trade-engine-import-check, execution-router-import-check, intent-preview-import-check, pipeline-import-check, pipeline-e2e, brain-e2e]
+    needs: [backup-artifacts-check, payments-import-check, brain-import-check, trade-engine-import-check, execution-router-import-check, intent-preview-import-check, pipeline-import-check, pipeline-e2e, pipeline-signals-mock-feed, brain-e2e]
     steps:
       - uses: actions/checkout@v4
       - name: Upload reports
