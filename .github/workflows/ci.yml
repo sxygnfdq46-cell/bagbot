@@ -139,6 +139,8 @@ jobs:
           RUNTIME_ROUTER_FAKE_MODE: "1"
           INTENT_PREVIEW_FAKE_MODE: "1"
           INTENT_PREVIEW_ENABLED: "1"
+          RUNTIME_TRACING_ENABLED: "1"
+          RUNTIME_OBSERVABILITY_ENABLED: "1"
         run: |
           PYTHONPATH="$PWD" pytest -q tests/test_runtime_pipeline_e2e.py
 
@@ -149,7 +151,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Docs lint placeholder
-        run: echo "Doc lint skipped (advisory)"
+        run: echo "Doc lint skipped (advisory)" && test -f backend/docs/runtime_pipeline.md
 
   brain-e2e:
     runs-on: ubuntu-latest
