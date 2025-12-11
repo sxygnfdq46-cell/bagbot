@@ -1,8 +1,11 @@
 """Signal ingestion and normalization into runtime pipeline envelopes.
 
-Public entrypoint: ``consume_signal``.
-- Import-safe: lazy imports only when invoking downstream pipeline.
-- Fake-mode aware via ``SIGNALS_FAKE_MODE`` or ``BRAIN_FAKE_MODE``.
+Public entrypoints:
+- ``consume_signal``: existing signal normalization helper.
+- ``ingest_frame``: safe ingest hook for pre-normalized frames when
+    ``SIGNALS_INGEST_ENABLED`` is set.
+
+Both remain import-safe and fake-mode aware.
 """
 
 from __future__ import annotations
@@ -48,6 +51,50 @@ def _normalize_instrument(signal: Dict[str, Any]) -> Optional[str]:
         if isinstance(val, str) and val.strip():
             return val.strip()
     return None
+
+
+def ingest_frame(frame: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalize a pre-built frame into a pipeline envelope.
+
+    The frame is expected to already contain an instrument, timestamp, and
+    optional features/raw payload. No external services are invoked.
+    """
+
+    if not isinstance(frame, dict):
+        return _error("invalid_frame", {"message": "frame must be a dict"})
+
+    instrument = _normalize_instrument(frame) or frame.get("instrument")
+    if not instrument:
+        return _error("missing_instrument", {"message": "instrument/symbol is required"})
+
+    if _env_bool("SIGNALS_FAKE_MODE", False) or _env_bool("BRAIN_FAKE_MODE", False):
+        fake_snapshot = _fake_snapshot(frame)
+        return {
+            "status": "success",
+            "envelope": {
+                "instrument": fake_snapshot.get("instrument"),
+                "signals": {"raw": frame, "normalized": fake_snapshot},
+                "snapshot": fake_snapshot,
+                "fake_mode": True,
+            },
+        }
+
+    snapshot = frame.get("snapshot") if isinstance(frame.get("snapshot"), dict) else None
+    if snapshot is None:
+        snapshot = {
+            "instrument": instrument,
+            "timestamp": frame.get("timestamp") or time.time(),
+            "features": frame.get("features") or {},
+            "raw": frame,
+        }
+
+    envelope = {
+        "instrument": instrument,
+        "signals": frame,
+        "snapshot": snapshot,
+    }
+
+    return {"status": "success", "envelope": envelope}
 
 
 def consume_signal(signal: Dict[str, Any]) -> Dict[str, Any]:
@@ -102,4 +149,4 @@ def consume_signal(signal: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-__all__ = ["consume_signal"]
+__all__ = ["consume_signal", "ingest_frame"]

@@ -32,6 +32,10 @@ def _mock_feed_enabled() -> bool:
     return raw_mock in _FAKE_TRUE or raw_fake in _FAKE_TRUE
 
 
+def _ingest_enabled() -> bool:
+    return os.environ.get("SIGNALS_INGEST_ENABLED", "").strip().lower() in _FAKE_TRUE
+
+
 def _inc(metrics: Any, name: str, labels: Optional[Dict[str, Any]] = None) -> None:
     if not metrics:
         return
@@ -185,9 +189,34 @@ def run_pipeline_canary(*, metrics_client: Any = None, fake_mode: Optional[bool]
     to avoid any network or adapter access.
     """
 
+    ingest_result: Optional[Dict[str, Any]] = None
     mock_result: Optional[Dict[str, Any]] = None
+    envelope: Dict[str, Any] = {"instrument": "BTC-USD", "snapshot": {}, "signals": {}}
 
-    if _mock_feed_enabled():
+    if _ingest_enabled():
+        try:
+            from backend.signals.ingest import ingest_frame  # lazy import for safety
+
+            ingest_input = {"instrument": "BTC-USD", "timestamp": 1700000000, "features": {"price": 10000.0}, "raw": {"source": "ingest_canary"}}
+            ingest_result = ingest_frame(ingest_input)
+            ingest_status = ingest_result.get("status") if isinstance(ingest_result, dict) else "unknown"
+            if ingest_status != "success":
+                return {
+                    "status": "hold",
+                    "reason": "ingest_failed",
+                    "rationale": [f"ingest_{ingest_status}"],
+                    "brain_decision": None,
+                    "trade_action": None,
+                    "router_result": None,
+                    "intent_preview": None,
+                    "meta": {"ingest": ingest_result, "pipeline_fake_mode": True},
+                }
+            envelope = ingest_result.get("envelope", envelope)
+        except Exception as exc:  # pragma: no cover
+            logger.warning("runtime_pipeline_ingest_error", extra={"event": "runtime_pipeline_ingest_error", "error": str(exc)})
+            return _fail("ingest", "exception", metrics_client)
+
+    elif _mock_feed_enabled():
         try:
             from backend.signals.mock_feed import run_mock_feed_once  # lazy import for safety
 
@@ -214,15 +243,17 @@ def run_pipeline_canary(*, metrics_client: Any = None, fake_mode: Optional[bool]
                     "intent_preview": None,
                     "meta": {"mock_feed": mock_result, "pipeline_fake_mode": True},
                 }
+            envelope = mock_result.get("envelope", envelope)
         except Exception as exc:  # pragma: no cover
             logger.warning("runtime_pipeline_mock_feed_error", extra={"event": "runtime_pipeline_mock_feed_error", "error": str(exc)})
             return _fail("mock_feed", "exception", metrics_client)
 
-    envelope = {"instrument": "BTC-USD", "snapshot": {}, "signals": {}}
     response = run_decision_pipeline(envelope, metrics_client=metrics_client, fake_mode=fake_mode if fake_mode is not None else True)
 
     if mock_result is not None:
         response.setdefault("meta", {})["mock_feed"] = mock_result
+    if ingest_result is not None:
+        response.setdefault("meta", {})["ingest"] = ingest_result
 
     return response
 
