@@ -194,26 +194,26 @@ jobs:
           INTENT_PREVIEW_ENABLED: "1"
         run: |
           PYTHONPATH="$PWD" python - <<'PY'
-import json
-from backend.worker.runtime_pipeline import run_pipeline_canary
+          import json
+          from backend.worker.runtime_pipeline import run_pipeline_canary
 
-resp = run_pipeline_canary(fake_mode=True)
-status = resp.get("status")
-router_trace = (resp.get("router_result") or {}).get("meta", {}).get("trace_id")
-meta_trace = (resp.get("meta") or {}).get("trace_id")
+          resp = run_pipeline_canary(fake_mode=True)
+          status = resp.get("status")
+          router_trace = (resp.get("router_result") or {}).get("meta", {}).get("trace_id")
+          meta_trace = (resp.get("meta") or {}).get("trace_id")
 
-if status != "success":
-    raise SystemExit(f"canary failed: status={status}")
-if not router_trace:
-    raise SystemExit("canary missing router trace id")
-if meta_trace != router_trace:
-    raise SystemExit("canary trace mismatch between router and meta")
+          if status != "success":
+            raise SystemExit(f"canary failed: status={status}")
+          if not router_trace:
+            raise SystemExit("canary missing router trace id")
+          if meta_trace != router_trace:
+            raise SystemExit("canary trace mismatch between router and meta")
 
-with open("staging_canary.json", "w") as f:
-    json.dump(resp, f, indent=2, sort_keys=True)
+          with open("staging_canary.json", "w") as f:
+            json.dump(resp, f, indent=2, sort_keys=True)
 
-print(f"CANARY status={status} trace_id={router_trace}")
-PY
+          print(f"CANARY status={status} trace_id={router_trace}")
+          PY
       - name: Upload staging canary artifact
         uses: actions/upload-artifact@v4
         with:
