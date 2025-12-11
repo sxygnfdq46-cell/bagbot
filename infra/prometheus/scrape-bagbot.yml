@@ -1,0 +1,36 @@
+# Prometheus scrape configuration for BagBot
+# This file defines the scrape job for the BagBot metrics endpoint
+# Usage: Include this in your prometheus.yml scrape_configs section
+
+scrape_configs:
+  - job_name: 'bagbot-staging'
+    
+    # Scrape interval - how often to collect metrics
+    scrape_interval: 15s
+    
+    # Scrape timeout - max time to wait for metrics response
+    scrape_timeout: 8s
+    
+    # Metrics path (API endpoint exposing Prometheus metrics)
+    metrics_path: '/api/metrics'
+    
+    # Scheme: use https for staging environment
+    scheme: https
+    
+    # Static targets - replace with your actual staging URL
+    static_configs:
+      - targets:
+          - 'bagbot-backend.onrender.com'  # Staging backend URL from render.yaml
+        labels:
+          environment: 'staging'
+          service: 'bagbot'
+          component: 'backend'
+    
+    # Optional: Add authorization if metrics endpoint is protected
+    # authorization:
+    #   type: Bearer
+    #   credentials_file: /path/to/token/file
+    
+    # Optional: Configure TLS if needed
+    # tls_config:
+    #   insecure_skip_verify: false
