@@ -193,7 +193,6 @@ def run_pipeline_canary(*, metrics_client: Any = None, fake_mode: Optional[bool]
 
             mock_result = run_mock_feed_once(metrics_client=metrics_client)
             mock_status = mock_result.get("status") if isinstance(mock_result, dict) else "unknown"
-            _inc(metrics_client, "signals_mock_feed_runs_total", {"outcome": mock_status})
             logger.info(
                 "runtime_pipeline_mock_feed",
                 extra={
