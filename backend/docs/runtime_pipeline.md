@@ -71,6 +71,7 @@ Expect `pipeline_requests_total` stage counters increment and a structured succe
 - API: `backend.signals.ingest.ingest_frame(frame)` accepts a pre-built frame (instrument, timestamp, optional features/raw) and returns a normalized envelope.
 - Behavior: `run_pipeline_canary` will prefer ingest when the flag is on; otherwise it falls back to the mock feed (`SIGNALS_MOCK_FEED_ENABLED`) path.
 - Safety: no external network calls; fake modes still recommended for pipeline stages.
+- Telemetry: ingest helpers expose lightweight spans/metrics; metrics client receives `signals.ingest.invocations_total{path, outcome}`.
 
 ## Signals Mock Feed Canary
 - Purpose: run a deterministic signals snapshot through the pipeline in fake-mode (no network) for staging/CI safety.

@@ -14,6 +14,8 @@ import os
 import time
 from typing import Any, Dict, Optional
 
+from backend.signals.telemetry import capture_span, ensure_telemetry, record_metric
+
 _FAKE_TRUE = {"1", "true", "yes", "on"}
 
 
@@ -53,51 +55,59 @@ def _normalize_instrument(signal: Dict[str, Any]) -> Optional[str]:
     return None
 
 
-def ingest_frame(frame: Dict[str, Any]) -> Dict[str, Any]:
+def ingest_frame(frame: Dict[str, Any], *, metrics_client: Any = None, telemetry: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Normalize a pre-built frame into a pipeline envelope.
 
     The frame is expected to already contain an instrument, timestamp, and
     optional features/raw payload. No external services are invoked.
     """
 
-    if not isinstance(frame, dict):
-        return _error("invalid_frame", {"message": "frame must be a dict"})
+    telemetry = ensure_telemetry(telemetry) if telemetry is not None else None
 
-    instrument = _normalize_instrument(frame) or frame.get("instrument")
-    if not instrument:
-        return _error("missing_instrument", {"message": "instrument/symbol is required"})
+    with capture_span("ingest_frame", telemetry):
+        if not isinstance(frame, dict):
+            record_metric("signals.ingest.invocations_total", telemetry=telemetry, metrics_client=metrics_client, labels={"outcome": "error", "path": "ingest_frame"})
+            return _error("invalid_frame", {"message": "frame must be a dict"})
 
-    if _env_bool("SIGNALS_FAKE_MODE", False) or _env_bool("BRAIN_FAKE_MODE", False):
-        fake_snapshot = _fake_snapshot(frame)
-        return {
-            "status": "success",
-            "envelope": {
-                "instrument": fake_snapshot.get("instrument"),
-                "signals": {"raw": frame, "normalized": fake_snapshot},
-                "snapshot": fake_snapshot,
-                "fake_mode": True,
-            },
-        }
+        instrument = _normalize_instrument(frame) or frame.get("instrument")
+        if not instrument:
+            record_metric("signals.ingest.invocations_total", telemetry=telemetry, metrics_client=metrics_client, labels={"outcome": "error", "path": "ingest_frame"})
+            return _error("missing_instrument", {"message": "instrument/symbol is required"})
 
-    snapshot = frame.get("snapshot") if isinstance(frame.get("snapshot"), dict) else None
-    if snapshot is None:
-        snapshot = {
+        if _env_bool("SIGNALS_FAKE_MODE", False) or _env_bool("BRAIN_FAKE_MODE", False):
+            fake_snapshot = _fake_snapshot(frame)
+            record_metric("signals.ingest.invocations_total", telemetry=telemetry, metrics_client=metrics_client, labels={"outcome": "success", "path": "ingest_frame"})
+            return {
+                "status": "success",
+                "envelope": {
+                    "instrument": fake_snapshot.get("instrument"),
+                    "signals": {"raw": frame, "normalized": fake_snapshot},
+                    "snapshot": fake_snapshot,
+                    "fake_mode": True,
+                },
+                "telemetry": telemetry,
+            }
+
+        snapshot = frame.get("snapshot") if isinstance(frame.get("snapshot"), dict) else None
+        if snapshot is None:
+            snapshot = {
+                "instrument": instrument,
+                "timestamp": frame.get("timestamp") or time.time(),
+                "features": frame.get("features") or {},
+                "raw": frame,
+            }
+
+        envelope = {
             "instrument": instrument,
-            "timestamp": frame.get("timestamp") or time.time(),
-            "features": frame.get("features") or {},
-            "raw": frame,
+            "signals": frame,
+            "snapshot": snapshot,
         }
 
-    envelope = {
-        "instrument": instrument,
-        "signals": frame,
-        "snapshot": snapshot,
-    }
-
-    return {"status": "success", "envelope": envelope}
+        record_metric("signals.ingest.invocations_total", telemetry=telemetry, metrics_client=metrics_client, labels={"outcome": "success", "path": "ingest_frame"})
+        return {"status": "success", "envelope": envelope, "telemetry": telemetry}
 
 
-def consume_signal(signal: Dict[str, Any]) -> Dict[str, Any]:
+def consume_signal(signal: Dict[str, Any], *, metrics_client: Any = None, telemetry: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Normalize an inbound signal into a runtime pipeline envelope.
 
     Args:
@@ -108,45 +118,54 @@ def consume_signal(signal: Dict[str, Any]) -> Dict[str, Any]:
         or ``status: error`` with a reason/details payload.
     """
 
-    if not isinstance(signal, dict):
-        return _error("invalid_signal", {"message": "signal must be a dict"})
+    telemetry = ensure_telemetry(telemetry) if telemetry is not None else None
 
-    if _env_bool("SIGNALS_FAKE_MODE", False) or _env_bool("BRAIN_FAKE_MODE", False):
-        fake_snapshot = _fake_snapshot(signal)
+    with capture_span("consume_signal", telemetry):
+        if not isinstance(signal, dict):
+            record_metric("signals.ingest.invocations_total", telemetry=telemetry, metrics_client=metrics_client, labels={"outcome": "error", "path": "consume_signal"})
+            return _error("invalid_signal", {"message": "signal must be a dict"})
+
+        if _env_bool("SIGNALS_FAKE_MODE", False) or _env_bool("BRAIN_FAKE_MODE", False):
+            fake_snapshot = _fake_snapshot(signal)
+            record_metric("signals.ingest.invocations_total", telemetry=telemetry, metrics_client=metrics_client, labels={"outcome": "success", "path": "consume_signal"})
+            return {
+                "status": "success",
+                "envelope": {
+                    "instrument": fake_snapshot.get("instrument"),
+                    "signals": {"raw": signal, "normalized": fake_snapshot},
+                    "snapshot": fake_snapshot,
+                    "fake_mode": True,
+                },
+                "telemetry": telemetry,
+            }
+
+        instrument = _normalize_instrument(signal)
+        if not instrument:
+            record_metric("signals.ingest.invocations_total", telemetry=telemetry, metrics_client=metrics_client, labels={"outcome": "error", "path": "consume_signal"})
+            return _error("missing_instrument", {"message": "instrument/symbol is required"})
+
+        snapshot = signal.get("snapshot") if isinstance(signal.get("snapshot"), dict) else None
+        if snapshot is None:
+            # Build a minimal snapshot with timestamp + features bucket
+            snapshot = {
+                "instrument": instrument,
+                "timestamp": signal.get("timestamp") or time.time(),
+                "features": signal.get("features") or {},
+                "raw": signal,
+            }
+
+        envelope = {
+            "instrument": instrument,
+            "signals": signal,
+            "snapshot": snapshot,
+        }
+
+        record_metric("signals.ingest.invocations_total", telemetry=telemetry, metrics_client=metrics_client, labels={"outcome": "success", "path": "consume_signal"})
         return {
             "status": "success",
-            "envelope": {
-                "instrument": fake_snapshot.get("instrument"),
-                "signals": {"raw": signal, "normalized": fake_snapshot},
-                "snapshot": fake_snapshot,
-                "fake_mode": True,
-            },
+            "envelope": envelope,
+            "telemetry": telemetry,
         }
-
-    instrument = _normalize_instrument(signal)
-    if not instrument:
-        return _error("missing_instrument", {"message": "instrument/symbol is required"})
-
-    snapshot = signal.get("snapshot") if isinstance(signal.get("snapshot"), dict) else None
-    if snapshot is None:
-        # Build a minimal snapshot with timestamp + features bucket
-        snapshot = {
-            "instrument": instrument,
-            "timestamp": signal.get("timestamp") or time.time(),
-            "features": signal.get("features") or {},
-            "raw": signal,
-        }
-
-    envelope = {
-        "instrument": instrument,
-        "signals": signal,
-        "snapshot": snapshot,
-    }
-
-    return {
-        "status": "success",
-        "envelope": envelope,
-    }
 
 
 __all__ = ["consume_signal", "ingest_frame"]
