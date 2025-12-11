@@ -16,7 +16,7 @@ The signals ingest canary is a lightweight, reproducible test that verifies the 
 - **Runtime Pipeline**: Executes brain → trade engine → runtime router → intent preview
 - **Telemetry**: Captures spans (timing) and metrics (counters) for observability
 
-**Canonical Local Trace ID:** `602734a1559a62c1`
+**Example Local Trace ID:** `602734a1559a62c1` (deterministic for same input in fake mode)
 
 ---
 
@@ -238,7 +238,7 @@ The signals staging canary runs as part of the CI pipeline on every push and pul
 ```yaml
 pipeline-signals-ingest-canary:
   runs-on: ubuntu-latest
-  needs: [backup-artifacts-check, payments-import-check, ...]
+  needs: [backup-artifacts-check, payments-import-check, brain-import-check, trade-engine-import-check, execution-router-import-check, intent-preview-import-check, pipeline-import-check]
   steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
@@ -271,14 +271,14 @@ pipeline-signals-ingest-canary:
         meta_trace = (resp.get("meta") or {}).get("trace_id")
         
         if status != "success":
-          raise SystemExit(f"canary failed: status={status}")
+            raise SystemExit(f"canary failed: status={status}")
         if not router_trace:
-          raise SystemExit("canary missing router trace id")
+            raise SystemExit("canary missing router trace id")
         if meta_trace != router_trace:
-          raise SystemExit("canary trace mismatch between router and meta")
+            raise SystemExit("canary trace mismatch between router and meta")
         
         with open("staging_canary.json", "w") as f:
-          json.dump(resp, f, indent=2, sort_keys=True)
+            json.dump(resp, f, indent=2, sort_keys=True)
         
         print(f"CANARY status={status} trace_id={router_trace}")
         PY
@@ -311,8 +311,9 @@ pipeline-signals-ingest-canary:
 
 ✅ **Success Pattern:**
 ```
-CANARY status=success trace_id=602734a1559a62c1
+CANARY status=success trace_id=<16-char-hex>
 ```
+(Example: `trace_id=602734a1559a62c1` for deterministic fake mode input)
 
 ❌ **Failure Patterns:**
 - `canary failed: status=hold` → Pipeline stage failed
@@ -430,7 +431,7 @@ INTENT_PREVIEW_ENABLED=1
 
 - [x] Owner: Davis
 
-### 🔲 M8-B Follow-up Tasks (Telemetry Metrics Forwarding)
+### M8-B Follow-up Tasks (Telemetry Metrics Forwarding)
 
 - [ ] Integrate Prometheus metrics client for production
 - [ ] Configure metric forwarding to observability backend (e.g., Grafana)
@@ -438,7 +439,7 @@ INTENT_PREVIEW_ENABLED=1
 - [ ] Create dashboard for signals ingest telemetry
 - [ ] Document metrics retention and querying
 
-### 🔲 M7 Follow-up Tasks
+### M7 Follow-up Tasks
 
 - [ ] Review M7 deliverables and ensure compatibility with M8
 - [ ] Verify trace propagation in M7 components
