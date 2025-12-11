@@ -29,6 +29,7 @@ def test_import_safe(monkeypatch):
 
 def test_fake_mode_deterministic(monkeypatch):
     monkeypatch.setenv("INTENT_PREVIEW_FAKE_MODE", "1")
+    monkeypatch.setenv("INTENT_PREVIEW_ENABLED", "1")
     importlib.reload(intent_preview_runtime)
 
     first = intent_preview_runtime.get_intent_preview({"action": "buy", "instrument": "ETH-USD"}, {"price": 1500})
@@ -46,6 +47,7 @@ def test_runtime_success(monkeypatch):
 
     monkeypatch.setitem(sys.modules, "backend.execution.intent_preview", type("M", (), {"get_intent_preview": StubCore()}))
     monkeypatch.delenv("INTENT_PREVIEW_FAKE_MODE", raising=False)
+    monkeypatch.setenv("INTENT_PREVIEW_ENABLED", "1")
     importlib.reload(intent_preview_runtime)
 
     resp = intent_preview_runtime.get_intent_preview({"action": "buy", "instrument": "BTC-USD"}, {"price": 1000}, metrics_client=metrics)
@@ -62,6 +64,7 @@ def test_runtime_exception_fallback(monkeypatch):
 
     monkeypatch.setitem(sys.modules, "backend.execution.intent_preview", type("M", (), {"get_intent_preview": boom}))
     monkeypatch.delenv("INTENT_PREVIEW_FAKE_MODE", raising=False)
+    monkeypatch.setenv("INTENT_PREVIEW_ENABLED", "1")
     importlib.reload(intent_preview_runtime)
 
     resp = intent_preview_runtime.get_intent_preview({"action": "sell", "instrument": "SOL-USD"}, {"price": 25}, metrics_client=metrics)

@@ -14,14 +14,22 @@ class _StubMetrics:
         self.calls = []
 
     def inc(self, name, labels=None, **kwargs):
-        self.calls.append((name, labels or {}))
+        self.calls.append((name, labels or {}, kwargs.get("value")))
+
+    def observe(self, name, value=None, labels=None, **kwargs):  # pragma: no cover - optional path
+        self.calls.append((name, labels or {}, value))
 
     def increment(self, name, value=None, labels=None, **kwargs):  # pragma: no cover
-        self.calls.append((name, labels or {}))
+        self.calls.append((name, labels or {}, value))
 
 
 def _count(calls, name, **label_eq):
-    return sum(1 for n, lbl in calls if n == name and all(lbl.get(k) == v for k, v in label_eq.items()))
+    hits = 0
+    for entry in calls:
+        n, lbl = entry[0], entry[1] if len(entry) > 1 else {}
+        if n == name and all(lbl.get(k) == v for k, v in label_eq.items()):
+            hits += 1
+    return hits
 
 
 def test_import_safety(monkeypatch):
@@ -57,6 +65,8 @@ def test_pipeline_composes_stages(monkeypatch):
     monkeypatch.setitem(sys.modules, "backend.worker.intent_preview_runtime", preview_mod)
     monkeypatch.setattr(worker_pkg, "intent_preview_runtime", preview_mod, raising=False)
     monkeypatch.setenv("INTENT_PREVIEW_ENABLED", "1")
+    monkeypatch.setenv("RUNTIME_TRACING_ENABLED", "1")
+    monkeypatch.setenv("RUNTIME_OBSERVABILITY_ENABLED", "1")
 
     resp = runtime_pipeline.run_decision_pipeline({"instrument": "BTC-USD", "snapshot": {}, "signals": {}}, metrics_client=metrics)
 
@@ -65,8 +75,12 @@ def test_pipeline_composes_stages(monkeypatch):
     assert resp["trade_action"]["envelope"]["id"] == "t1"
     assert resp["router_result"]["order_id"] == "ord-1"
     assert resp["intent_preview"]["size"] == 1.0
+    assert resp["meta"].get("trace_id")
+    assert resp["router_result"].get("meta", {}).get("trace_id") == resp["meta"].get("trace_id")
     assert _count(metrics.calls, "pipeline_requests_total", stage="brain", outcome="success") == 1
     assert _count(metrics.calls, "pipeline_requests_total", stage="intent_preview", outcome="success") == 1
+    assert _count(metrics.calls, "pipeline_stage_latency_seconds", stage="brain") == 1
+    assert _count(metrics.calls, "pipeline_stage_latency_seconds", stage="runtime_router") == 1
 
 
 def test_pipeline_brain_failure(monkeypatch):
@@ -154,6 +168,32 @@ def test_pipeline_intent_preview_failure(monkeypatch):
     assert resp["status"] == "success"  # pipeline continues but logs rationale
     assert "intent_preview_failed" in resp["rationale"]
     assert _count(metrics.calls, "pipeline_failures_total", stage="intent_preview", reason="exception") == 1
+
+
+def test_pipeline_observability_disabled(monkeypatch):
+    metrics = _StubMetrics()
+
+    def fake_brain(*args, **kwargs):
+        return {"action": "buy"}
+
+    def fake_trade(*args, **kwargs):
+        return {"action": "buy"}
+
+    def fake_route(*args, **kwargs):
+        return {"status": "success"}
+
+    monkeypatch.setitem(sys.modules, "backend.worker.runner", types.SimpleNamespace(get_brain_decision=fake_brain))
+    monkeypatch.setitem(sys.modules, "backend.worker.runner.trade_engine_runner", types.SimpleNamespace(get_trade_action=fake_trade))
+    router_mod = types.SimpleNamespace(route=fake_route)
+    monkeypatch.setitem(sys.modules, "backend.worker.runtime_router", router_mod)
+    monkeypatch.setattr(worker_pkg, "runtime_router", router_mod, raising=False)
+    monkeypatch.setenv("INTENT_PREVIEW_ENABLED", "0")
+    monkeypatch.setenv("RUNTIME_OBSERVABILITY_ENABLED", "0")
+
+    resp = runtime_pipeline.run_decision_pipeline({"instrument": "BTC-USD"}, metrics_client=metrics)
+
+    assert resp["status"] == "success"
+    assert metrics.calls == []
 
 
 def test_invalid_envelope(monkeypatch):
