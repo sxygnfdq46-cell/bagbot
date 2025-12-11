@@ -198,7 +198,7 @@ def run_pipeline_canary(*, metrics_client: Any = None, fake_mode: Optional[bool]
             from backend.signals.ingest import ingest_frame  # lazy import for safety
 
             ingest_input = {"instrument": "BTC-USD", "timestamp": 1700000000, "features": {"price": 10000.0}, "raw": {"source": "ingest_canary"}}
-            ingest_result = ingest_frame(ingest_input)
+            ingest_result = ingest_frame(ingest_input, metrics_client=metrics_client, telemetry={})
             ingest_status = ingest_result.get("status") if isinstance(ingest_result, dict) else "unknown"
             if ingest_status != "success":
                 return {
