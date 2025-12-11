@@ -131,6 +131,7 @@ jobs:
         run: |
           pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install "pycares>=4,<5"
           pip install pytest
       - name: Run runtime pipeline e2e smoke (fake modes)
         env:
@@ -164,6 +165,7 @@ jobs:
         run: |
           pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install "pycares>=4,<5"
           pip install pytest
       - name: Run brain runtime e2e canary (fake mode)
         env:
@@ -232,6 +234,7 @@ jobs:
       - name: Install deps
         run: |
           pip install -r requirements.txt
+          pip install "pycares>=4,<5"
           pip install pytest
       - name: Run backend tests
         run: PYTHONPATH=$(pwd) pytest tests/ -q

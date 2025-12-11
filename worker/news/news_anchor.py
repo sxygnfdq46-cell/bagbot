@@ -29,7 +29,12 @@ from enum import Enum
 from dataclasses import dataclass
 import aiohttp
 
+from worker.pycares_compat import ensure_pycares_compat
+
 logger = logging.getLogger(__name__)
+
+# Apply pycares compatibility shim early so any aiodns usage is safe on hosted runners.
+ensure_pycares_compat()
 
 
 class MarketBias(Enum):
