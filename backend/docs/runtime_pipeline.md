@@ -66,11 +66,17 @@ python -c "from backend.worker.runtime_pipeline import run_decision_pipeline; pr
 ```
 Expect `pipeline_requests_total` stage counters increment and a structured success payload.
 
+## Signals Ingest Hook (M7-A)
+- Flag: `SIGNALS_INGEST_ENABLED=1` enables ingest path. Default is off to preserve mock feed behavior.
+- API: `backend.signals.ingest.ingest_frame(frame)` accepts a pre-built frame (instrument, timestamp, optional features/raw) and returns a normalized envelope.
+- Behavior: `run_pipeline_canary` will prefer ingest when the flag is on; otherwise it falls back to the mock feed (`SIGNALS_MOCK_FEED_ENABLED`) path.
+- Safety: no external network calls; fake modes still recommended for pipeline stages.
+
 ## Signals Mock Feed Canary
 - Purpose: run a deterministic signals snapshot through the pipeline in fake-mode (no network) for staging/CI safety.
 - Env flags: `SIGNALS_MOCK_FEED_ENABLED=1` (or `SIGNALS_FAKE_MODE=1`) gates the mock feed run. Fake-mode flags from above remain recommended.
-- Behavior: `run_pipeline_canary` calls the mock feed once, then executes the pipeline envelope in fake-mode. Emits `signals_mock_feed_runs_total` and logs with `trace_id` in `router_result.meta`.
-- Local canary example:
+- Behavior: `run_pipeline_canary` calls the mock feed once, then executes the pipeline envelope in fake-mode. Logs include `trace_id` in `router_result.meta`.
+- Local mock-feed canary example:
 ```
 PYTHONPATH="$PWD" \
 SIGNALS_MOCK_FEED_ENABLED=1 BRAIN_FAKE_MODE=1 TRADE_ENGINE_FAKE_MODE=1 RUNTIME_ROUTER_FAKE_MODE=1 INTENT_PREVIEW_FAKE_MODE=1 INTENT_PREVIEW_ENABLED=1 \
@@ -83,5 +89,24 @@ print(json.dumps(resp, indent=2, sort_keys=True))
 assert resp.get("status") == "success"
 assert resp.get("router_result", {}).get("meta", {}).get("trace_id")
 print("mock feed canary ok")
+PY
+```
+
+## Signals Ingest Canary (ingest enabled)
+- Purpose: validate ingest hook + pipeline in fake-mode without external calls.
+- Env flags: `SIGNALS_INGEST_ENABLED=1` plus fake-mode flags below.
+- Local ingest canary example:
+```
+PYTHONPATH="$PWD" \
+SIGNALS_INGEST_ENABLED=1 BRAIN_FAKE_MODE=1 TRADE_ENGINE_FAKE_MODE=1 RUNTIME_ROUTER_FAKE_MODE=1 INTENT_PREVIEW_FAKE_MODE=1 INTENT_PREVIEW_ENABLED=1 \
+python - <<'PY'
+import json
+from backend.worker.runtime_pipeline import run_pipeline_canary
+
+resp = run_pipeline_canary(fake_mode=True)
+print(json.dumps(resp, indent=2, sort_keys=True))
+assert resp.get("status") == "success"
+assert resp.get("router_result", {}).get("meta", {}).get("trace_id")
+print("ingest canary ok")
 PY
 ```
