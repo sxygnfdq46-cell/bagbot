@@ -3,7 +3,9 @@
 from backend.signals.ingest import ingest_frame
 
 
-def test_ingest_frame_normalizes_basic_frame():
+def test_ingest_frame_normalizes_basic_frame(monkeypatch):
+    monkeypatch.delenv("SIGNALS_FAKE_MODE", raising=False)
+    monkeypatch.delenv("BRAIN_FAKE_MODE", raising=False)
     frame = {"instrument": "BTC-USD", "timestamp": 123, "features": {"price": 1.0}}
     resp = ingest_frame(frame)
 
