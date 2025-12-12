@@ -42,6 +42,7 @@ def test_ingest_frame_records_error_metric(monkeypatch):
     resp = ingest_frame({}, metrics_client=metrics, telemetry=telemetry)
 
     assert resp["status"] == "error"
+    assert resp["trace_id"] == telemetry["trace_id"]
     assert _count(metrics.calls, "signals.ingest.invocations_total", outcome="error", path="ingest_frame") == 1
     assert telemetry["metrics"] and telemetry["metrics"][0]["labels"]["outcome"] == "error"
     assert telemetry["metrics"][0]["labels"]["trace_id"] == telemetry["trace_id"]
