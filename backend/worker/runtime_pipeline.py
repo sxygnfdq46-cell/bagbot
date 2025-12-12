@@ -172,7 +172,8 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
             trace_id=upstream_trace_id,
         )
         if upstream_trace_id and isinstance(brain_decision, dict):
-            brain_decision.setdefault("meta", {})["trace_id"] = upstream_trace_id
+            brain_decision.setdefault("meta", {})
+            brain_decision["meta"]["trace_id"] = upstream_trace_id
         _inc(metrics_client, "pipeline_requests_total", {"stage": "brain", "outcome": "success"})
         decisions.append(_build_decision_envelope(brain_decision or {}, upstream_trace_id))
         _inc(metrics_client, "runtime_decisions_total", {"source": "brain", "outcome": "success"})
@@ -189,7 +190,8 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
             metrics=metrics_client,
         )
         if upstream_trace_id and isinstance(trade_action, dict):
-            trade_action.setdefault("meta", {})["trace_id"] = upstream_trace_id
+            trade_action.setdefault("meta", {})
+            trade_action["meta"]["trace_id"] = upstream_trace_id
         _inc(metrics_client, "pipeline_requests_total", {"stage": "trade_engine", "outcome": "success"})
     except Exception as exc:  # pragma: no cover
         logger.warning("runtime_pipeline_trade_error", extra={"event": "runtime_pipeline_trade_error", "error": str(exc)})
@@ -200,7 +202,8 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
 
         router_result = runtime_router.route(trade_action or {}, metrics_client=metrics_client, fake_mode=envelope.get("fake_mode"))
         if upstream_trace_id and isinstance(router_result, dict):
-            router_result.setdefault("meta", {})["trace_id"] = upstream_trace_id
+            router_result.setdefault("meta", {})
+            router_result["meta"]["trace_id"] = upstream_trace_id
         _inc(metrics_client, "pipeline_requests_total", {"stage": "runtime_router", "outcome": "success"})
     except Exception as exc:  # pragma: no cover
         logger.warning("runtime_pipeline_router_error", extra={"event": "runtime_pipeline_router_error", "error": str(exc)})
