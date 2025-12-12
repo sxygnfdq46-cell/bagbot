@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import os
+import time
 from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
@@ -14,6 +15,11 @@ _FAKE_TRUE = {"1", "true", "yes", "on"}
 
 def _trace_id(seed: str) -> str:
     return hashlib.sha1(seed.encode()).hexdigest()[:16]
+
+
+def _decision_id(seed: str, trace_id: str) -> str:
+    base = f"{trace_id}|{seed}"
+    return hashlib.sha1(base.encode()).hexdigest()[:12]
 
 
 def _fake_mode_enabled(fake_mode: Optional[bool]) -> bool:
@@ -75,6 +81,46 @@ def _fake_preview(envelope: Dict[str, Any]) -> Dict[str, Any]:
     return brain, trade, router, preview
 
 
+def _build_decision_envelope(brain_decision: Dict[str, Any], trace_id: Optional[str]) -> Dict[str, Any]:
+    payload = brain_decision or {}
+    ts = payload.get("timestamp") or time.time()
+    seed = f"{payload.get('action')}|{payload.get('confidence')}|{ts}"
+    decision_trace = trace_id or (payload.get("meta") or {}).get("trace_id")
+    decision = {
+        "decision_id": _decision_id(seed, decision_trace or ""),
+        "trace_id": decision_trace,
+        "source": "brain",
+        "timestamp": ts,
+        "payload": payload,
+    }
+    return decision
+
+
+def _finalize_decisions(decisions: list[Dict[str, Any]], trace_id: Optional[str]) -> list[Dict[str, Any]]:
+    if not decisions:
+        return decisions
+    finalized = []
+    for decision in decisions:
+        if not isinstance(decision, dict):
+            continue
+        payload = decision.get("payload") or {}
+        ts = decision.get("timestamp") or payload.get("timestamp") or time.time()
+        action = payload.get("action")
+        confidence = payload.get("confidence")
+        seed = f"{action}|{confidence}|{ts}"
+        canonical_trace = decision.get("trace_id") or trace_id
+        finalized.append(
+            {
+                "decision_id": decision.get("decision_id") or _decision_id(seed, canonical_trace or ""),
+                "trace_id": canonical_trace,
+                "source": decision.get("source") or "brain",
+                "timestamp": ts,
+                "payload": payload,
+            }
+        )
+    return finalized
+
+
 def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = None, fake_mode: Optional[bool] = None) -> Dict[str, Any]:
     """Run unified decision pipeline brain -> trade engine -> runtime router -> intent preview."""
 
@@ -91,6 +137,9 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
         _inc(metrics_client, "pipeline_requests_total", {"stage": "runtime_router", "outcome": "success"})
         if intent_enabled:
             _inc(metrics_client, "pipeline_requests_total", {"stage": "intent_preview", "outcome": "success"})
+        trace_id = router.get("meta", {}).get("trace_id")
+        decision_envelope = _build_decision_envelope(brain, trace_id)
+        _inc(metrics_client, "runtime_decisions_total", {"source": "brain", "outcome": "success"})
         return {
             "status": "success",
             "reason": None,
@@ -99,7 +148,8 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
             "trade_action": trade,
             "router_result": router,
             "intent_preview": preview if intent_enabled else None,
-            "meta": {"pipeline_fake_mode": True, "intent_preview_enabled": intent_enabled, "trace_id": router.get("meta", {}).get("trace_id")},
+            "decisions": [decision_envelope],
+            "meta": {"pipeline_fake_mode": True, "intent_preview_enabled": intent_enabled, "trace_id": trace_id},
         }
 
     rationale: list[str] = []
@@ -107,6 +157,7 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
     trade_action: Optional[Dict[str, Any]] = None
     router_result: Optional[Dict[str, Any]] = None
     intent_preview: Optional[Dict[str, Any]] = None
+    decisions: list[Dict[str, Any]] = []
     upstream_trace_id = (envelope.get("meta") or {}).get("trace_id") if isinstance(envelope, dict) else None
 
     try:
@@ -120,6 +171,8 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
             trace_id=upstream_trace_id,
         )
         _inc(metrics_client, "pipeline_requests_total", {"stage": "brain", "outcome": "success"})
+        decisions.append(_build_decision_envelope(brain_decision or {}, upstream_trace_id))
+        _inc(metrics_client, "runtime_decisions_total", {"source": "brain", "outcome": "success"})
     except Exception as exc:  # pragma: no cover
         logger.warning("runtime_pipeline_brain_error", extra={"event": "runtime_pipeline_brain_error", "error": str(exc)})
         return _fail("brain", "exception", metrics_client)
@@ -167,6 +220,8 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
 
     status = "success"
     trace_id = (router_result or {}).get("meta", {}).get("trace_id") or upstream_trace_id
+    if decisions:
+        decisions = _finalize_decisions(decisions, trace_id)
     return {
         "status": status,
         "reason": None,
@@ -175,6 +230,7 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
         "trade_action": trade_action,
         "router_result": router_result,
         "intent_preview": intent_preview,
+        "decisions": decisions if decisions else None,
         "meta": {"pipeline_fake_mode": False, "intent_preview_enabled": intent_enabled, "trace_id": trace_id},
     }
 
