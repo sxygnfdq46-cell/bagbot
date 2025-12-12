@@ -18,10 +18,16 @@ Unified brain → trade → router → intent preview flow (import-safe, fake-mo
 - `pipeline_requests_total{stage, outcome=success|fail}` for stages: brain, trade_engine, runtime_router, intent_preview.
 - `pipeline_failures_total{stage, reason}` on errors.
 - Downstream metrics (brain_decisions_total, trade_engine_actions_total, runtime_router_requests_total, intent_preview_* when metrics_client provided).
+- `runtime_decisions_total{source, outcome}` increments when a brain decision is emitted as a runtime decision envelope.
 
 ## Trace IDs
 - On real paths, a single upstream `trace_id` (typically from ingest telemetry) is passed through brain → trade → router; the pipeline does not fabricate a new `trace_id` when one is present.
 - Fake-mode behavior is unchanged and still fabricates deterministic trace ids for staged canaries.
+
+## Decision Envelopes (M9-B)
+- Each pipeline run now emits a `decisions` array containing brain decisions as first-class runtime decisions.
+- Envelope shape: `{decision_id, trace_id, source="brain", timestamp, payload=<brain_decision dict>}`.
+- Included in runtime responses without removing existing fields; fake-mode and mock-feed responses also include `decisions` with deterministic ids.
 
 ## Flow
 ```
