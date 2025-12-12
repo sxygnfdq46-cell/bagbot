@@ -47,6 +47,7 @@ def decide(
     *,
     metrics_client: Any = None,
     fake_mode: bool = False,
+    trace_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Return a deterministic decision given raw signals.
 
@@ -57,7 +58,10 @@ def decide(
 
     if fake_mode:
         _inc_metric(metrics_client, FAKE_DECISION["action"])
-        return dict(FAKE_DECISION)
+        fake_resp = dict(FAKE_DECISION)
+        if trace_id:
+            fake_resp.setdefault("meta", {}).setdefault("trace_id", trace_id)
+        return fake_resp
 
     if _use_orchestrator():
         try:
@@ -69,6 +73,8 @@ def decide(
                 fake_mode=fake_mode,
             )
             _inc_metric(metrics_client, orchestrated.get("action") or "hold")
+            if trace_id and isinstance(orchestrated, dict):
+                orchestrated.setdefault("meta", {}).setdefault("trace_id", trace_id)
             return orchestrated
         except Exception:
             # Fall back to local fusion if orchestrator path fails for any reason.
@@ -90,6 +96,9 @@ def decide(
         "rationale": envelope.reasons,
         "meta": {"signals_used": envelope.signals_used},
     }
+
+    if trace_id:
+        result.setdefault("meta", {}).setdefault("trace_id", trace_id)
 
     _inc_metric(metrics_client, result["action"])
     return result

@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import inspect
 import os
 from typing import Any, Dict, Optional
 
@@ -32,6 +33,7 @@ def get_brain_decision(
     metrics_client: Any = None,
     adapter_module: Any = None,
     fake_mode: Optional[bool] = None,
+    trace_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Return a decision from the brain adapter.
 
@@ -42,12 +44,31 @@ def get_brain_decision(
 
     adapter = _load_adapter(adapter_module)
     use_fake_mode = _fake_mode_enabled() if fake_mode is None else fake_mode
-    return adapter.decide(
+    kwargs = {
+        "metrics_client": metrics_client,
+        "fake_mode": use_fake_mode,
+    }
+
+    try:
+        sig = inspect.signature(adapter.decide)
+        if trace_id is not None and "trace_id" in sig.parameters:
+            kwargs["trace_id"] = trace_id
+    except Exception:
+        if trace_id is not None:
+            kwargs["trace_id"] = trace_id  # best-effort
+
+    decision = adapter.decide(
         signals or {},
         config or {},
-        metrics_client=metrics_client,
-        fake_mode=use_fake_mode,
+        **kwargs,
     )
+
+    if trace_id and isinstance(decision, dict):
+        meta = decision.setdefault("meta", {}) if isinstance(decision, dict) else None
+        if isinstance(meta, dict) and not meta.get("trace_id"):
+            meta["trace_id"] = trace_id
+
+    return decision
 
 
 __all__ = ["get_brain_decision"]

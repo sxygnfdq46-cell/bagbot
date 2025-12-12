@@ -36,8 +36,11 @@ def test_import_safety(monkeypatch):
 def test_pipeline_composes_stages(monkeypatch):
     metrics = _StubMetrics()
 
-    def fake_brain(signals, config=None, metrics_client=None, fake_mode=None):
-        return {"action": "buy", "confidence": 0.9, "rationale": ["ok"], "meta": {"m": 1}}
+    def fake_brain(signals, config=None, metrics_client=None, fake_mode=None, trace_id=None):
+        meta = {"m": 1}
+        if trace_id:
+            meta["trace_id"] = trace_id
+        return {"action": "buy", "confidence": 0.9, "rationale": ["ok"], "meta": meta}
 
     def fake_trade(decision, fake_mode=None, metrics=None, router=None, engine_class=None):
         return {"action": "buy", "envelope": {"id": "t1"}}

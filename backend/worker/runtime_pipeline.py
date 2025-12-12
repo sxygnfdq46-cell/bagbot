@@ -107,6 +107,7 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
     trade_action: Optional[Dict[str, Any]] = None
     router_result: Optional[Dict[str, Any]] = None
     intent_preview: Optional[Dict[str, Any]] = None
+    upstream_trace_id = (envelope.get("meta") or {}).get("trace_id") if isinstance(envelope, dict) else None
 
     try:
         from backend.worker.runner import get_brain_decision  # lazy import
@@ -116,6 +117,7 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
             config=envelope.get("config"),
             metrics_client=metrics_client,
             fake_mode=envelope.get("fake_mode"),
+            trace_id=upstream_trace_id,
         )
         _inc(metrics_client, "pipeline_requests_total", {"stage": "brain", "outcome": "success"})
     except Exception as exc:  # pragma: no cover
@@ -130,6 +132,8 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
             fake_mode=envelope.get("fake_mode"),
             metrics=metrics_client,
         )
+        if upstream_trace_id and isinstance(trade_action, dict):
+            trade_action.setdefault("meta", {}).setdefault("trace_id", upstream_trace_id)
         _inc(metrics_client, "pipeline_requests_total", {"stage": "trade_engine", "outcome": "success"})
     except Exception as exc:  # pragma: no cover
         logger.warning("runtime_pipeline_trade_error", extra={"event": "runtime_pipeline_trade_error", "error": str(exc)})
@@ -162,7 +166,7 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
             rationale.append("intent_preview_failed")
 
     status = "success"
-    trace_id = (router_result or {}).get("meta", {}).get("trace_id") or (envelope.get("meta") or {}).get("trace_id")
+    trace_id = (router_result or {}).get("meta", {}).get("trace_id") or upstream_trace_id
     return {
         "status": status,
         "reason": None,
