@@ -359,6 +359,38 @@ Some workflows may require manual approval before running, especially for:
    - Review the workflow configuration to ensure it's safe
    - Verify the requester is authorized
 
+---
+
+## Promotion Workflow (M8-C)
+
+### When to promote
+- `pipeline-signals-ingest-canary` is green and artifact `staging-canary-json` is available.
+- Trace IDs match between `router_result.meta.trace_id` and `meta.trace_id` (and ingest telemetry trace_id when present).
+- Ingest telemetry spans/metrics are present and non-empty.
+
+### CI promotion job
+- Job: `promotion-validate-staging` (depends on `pipeline-signals-ingest-canary`).
+- Downloads `staging_canary.json` and validates via `backend/scripts/validate_promotion.py`.
+- Environment gate: `production-promotion` (approval required in GitHub Environments before promotion proceeds).
+
+### How to approve blocked workflows
+- In GitHub Actions, open the run; if `promotion-validate-staging` is waiting, click **Review deployments** and approve `production-promotion`.
+- Re-run the job if approval happened after timeout.
+
+### Production readiness criteria
+- `status == success` in `staging_canary.json`.
+- Trace IDs aligned: router/meta (and ingest telemetry if present).
+- `meta.ingest.telemetry.spans` and `meta.ingest.telemetry.metrics` exist and are non-empty.
+- `backend/scripts/validate_promotion.py` passes (CI job green).
+
+### Checking logs locally
+
+```bash
+PYTHONPATH="$PWD" python backend/scripts/validate_promotion.py staging_canary.json
+```
+
+This exits non-zero on failures and prints a JSON promotion summary on success.
+
 4. **Approve or Reject**
    - Click **"Review pending deployments"** button (if it's a deployment)
    - Or click **"Approve and run"** button for first-time contributors
