@@ -70,6 +70,36 @@ def test_consume_signal_propagates_trace_id_into_envelope(monkeypatch):
     assert resp["trace_id"] == telemetry["trace_id"]
 
 
+def test_ingest_frame_with_telemetry_none():
+    """Test that ingest_frame generates trace_id when telemetry=None."""
+    metrics = _StubMetrics()
+
+    resp = ingest_frame({"instrument": "BTC-USD", "timestamp": 1}, metrics_client=metrics, telemetry=None)
+
+    assert resp["status"] == "success"
+    assert resp["trace_id"] is not None
+    assert resp["telemetry"] is not None
+    assert resp["telemetry"]["trace_id"] == resp["trace_id"]
+    assert resp["envelope"]["meta"]["trace_id"] == resp["trace_id"]
+    assert resp["telemetry"]["spans"] and resp["telemetry"]["spans"][0]["name"] == "ingest_frame"
+    assert _count(metrics.calls, "signals.ingest.invocations_total", outcome="success", path="ingest_frame") == 1
+
+
+def test_consume_signal_with_telemetry_none():
+    """Test that consume_signal generates trace_id when telemetry=None."""
+    metrics = _StubMetrics()
+
+    resp = consume_signal({"instrument": "ETH-USD"}, metrics_client=metrics, telemetry=None)
+
+    assert resp["status"] == "success"
+    assert resp["trace_id"] is not None
+    assert resp["telemetry"] is not None
+    assert resp["telemetry"]["trace_id"] == resp["trace_id"]
+    assert resp["envelope"]["meta"]["trace_id"] == resp["trace_id"]
+    assert resp["telemetry"]["spans"] and resp["telemetry"]["spans"][0]["name"] == "consume_signal"
+    assert _count(metrics.calls, "signals.ingest.invocations_total", outcome="success", path="consume_signal") == 1
+
+
 def test_pipeline_canary_includes_ingest_telemetry(monkeypatch):
     metrics = _StubMetrics()
 
