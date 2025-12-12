@@ -65,7 +65,7 @@ def _fail(stage: str, reason: str, metrics: Any) -> Dict[str, Any]:
 def _fake_preview(envelope: Dict[str, Any]) -> Dict[str, Any]:
     base = str(envelope)
     digest = hashlib.sha1(base.encode()).hexdigest()
-    trace_id = _trace_id(base)
+    trace_id = (envelope.get("meta") or {}).get("trace_id") or _trace_id(base)
     action_cycle = ["buy", "sell", "hold"]
     action = action_cycle[int(digest[:2], 16) % 3]
     brain = {"action": action, "confidence": (int(digest[2:4], 16) % 100) / 100.0, "rationale": ["fake_brain"], "meta": {"fake": True, "trace_id": trace_id}}
@@ -162,6 +162,7 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
             rationale.append("intent_preview_failed")
 
     status = "success"
+    trace_id = (router_result or {}).get("meta", {}).get("trace_id") or (envelope.get("meta") or {}).get("trace_id")
     return {
         "status": status,
         "reason": None,
@@ -170,7 +171,7 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
         "trade_action": trade_action,
         "router_result": router_result,
         "intent_preview": intent_preview,
-        "meta": {"pipeline_fake_mode": False, "intent_preview_enabled": intent_enabled, "trace_id": (router_result or {}).get("meta", {}).get("trace_id")},
+        "meta": {"pipeline_fake_mode": False, "intent_preview_enabled": intent_enabled, "trace_id": trace_id},
     }
 
 
@@ -254,6 +255,10 @@ def run_pipeline_canary(*, metrics_client: Any = None, fake_mode: Optional[bool]
         response.setdefault("meta", {})["mock_feed"] = mock_result
     if ingest_result is not None:
         response.setdefault("meta", {})["ingest"] = ingest_result
+        if ingest_result.get("telemetry"):
+            response.setdefault("telemetry", {})["ingest"] = ingest_result["telemetry"]
+            # Preserve ingest trace_id as canonical if router trace is absent.
+            response.setdefault("meta", {}).setdefault("trace_id", ingest_result.get("trace_id"))
 
     return response
 

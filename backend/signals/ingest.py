@@ -62,31 +62,33 @@ def ingest_frame(frame: Dict[str, Any], *, metrics_client: Any = None, telemetry
     optional features/raw payload. No external services are invoked.
     """
 
-    telemetry = ensure_telemetry(telemetry) if telemetry is not None else None
+    telemetry = telemetry if telemetry is not None else {}
+    ensure_telemetry(telemetry)
 
     with capture_span("ingest_frame", telemetry):
+        trace_id = telemetry.get("trace_id")
+
         if not isinstance(frame, dict):
             record_metric("signals.ingest.invocations_total", telemetry=telemetry, metrics_client=metrics_client, labels={"outcome": "error", "path": "ingest_frame"})
-            return _error("invalid_frame", {"message": "frame must be a dict"})
+            return {**_error("invalid_frame", {"message": "frame must be a dict"}), "telemetry": telemetry, "trace_id": trace_id}
 
         instrument = _normalize_instrument(frame) or frame.get("instrument")
         if not instrument:
             record_metric("signals.ingest.invocations_total", telemetry=telemetry, metrics_client=metrics_client, labels={"outcome": "error", "path": "ingest_frame"})
-            return _error("missing_instrument", {"message": "instrument/symbol is required"})
+            return {**_error("missing_instrument", {"message": "instrument/symbol is required"}), "telemetry": telemetry, "trace_id": trace_id}
 
         if _env_bool("SIGNALS_FAKE_MODE", False) or _env_bool("BRAIN_FAKE_MODE", False):
             fake_snapshot = _fake_snapshot(frame)
             record_metric("signals.ingest.invocations_total", telemetry=telemetry, metrics_client=metrics_client, labels={"outcome": "success", "path": "ingest_frame"})
-            return {
-                "status": "success",
-                "envelope": {
-                    "instrument": fake_snapshot.get("instrument"),
-                    "signals": {"raw": frame, "normalized": fake_snapshot},
-                    "snapshot": fake_snapshot,
-                    "fake_mode": True,
-                },
-                "telemetry": telemetry,
+            envelope = {
+                "instrument": fake_snapshot.get("instrument"),
+                "signals": {"raw": frame, "normalized": fake_snapshot},
+                "snapshot": fake_snapshot,
+                "fake_mode": True,
+                "meta": {"trace_id": trace_id},
             }
+
+            return {"status": "success", "envelope": envelope, "telemetry": telemetry, "trace_id": trace_id}
 
         snapshot = frame.get("snapshot") if isinstance(frame.get("snapshot"), dict) else None
         if snapshot is None:
@@ -101,10 +103,11 @@ def ingest_frame(frame: Dict[str, Any], *, metrics_client: Any = None, telemetry
             "instrument": instrument,
             "signals": frame,
             "snapshot": snapshot,
+            "meta": {"trace_id": trace_id},
         }
 
         record_metric("signals.ingest.invocations_total", telemetry=telemetry, metrics_client=metrics_client, labels={"outcome": "success", "path": "ingest_frame"})
-        return {"status": "success", "envelope": envelope, "telemetry": telemetry}
+        return {"status": "success", "envelope": envelope, "telemetry": telemetry, "trace_id": trace_id}
 
 
 def consume_signal(signal: Dict[str, Any], *, metrics_client: Any = None, telemetry: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -118,31 +121,33 @@ def consume_signal(signal: Dict[str, Any], *, metrics_client: Any = None, teleme
         or ``status: error`` with a reason/details payload.
     """
 
-    telemetry = ensure_telemetry(telemetry) if telemetry is not None else None
+    telemetry = telemetry if telemetry is not None else {}
+    ensure_telemetry(telemetry)
 
     with capture_span("consume_signal", telemetry):
+        trace_id = telemetry.get("trace_id")
+
         if not isinstance(signal, dict):
             record_metric("signals.ingest.invocations_total", telemetry=telemetry, metrics_client=metrics_client, labels={"outcome": "error", "path": "consume_signal"})
-            return _error("invalid_signal", {"message": "signal must be a dict"})
+            return {**_error("invalid_signal", {"message": "signal must be a dict"}), "telemetry": telemetry, "trace_id": trace_id}
 
         if _env_bool("SIGNALS_FAKE_MODE", False) or _env_bool("BRAIN_FAKE_MODE", False):
             fake_snapshot = _fake_snapshot(signal)
             record_metric("signals.ingest.invocations_total", telemetry=telemetry, metrics_client=metrics_client, labels={"outcome": "success", "path": "consume_signal"})
-            return {
-                "status": "success",
-                "envelope": {
-                    "instrument": fake_snapshot.get("instrument"),
-                    "signals": {"raw": signal, "normalized": fake_snapshot},
-                    "snapshot": fake_snapshot,
-                    "fake_mode": True,
-                },
-                "telemetry": telemetry,
+            envelope = {
+                "instrument": fake_snapshot.get("instrument"),
+                "signals": {"raw": signal, "normalized": fake_snapshot},
+                "snapshot": fake_snapshot,
+                "fake_mode": True,
+                "meta": {"trace_id": trace_id},
             }
+
+            return {"status": "success", "envelope": envelope, "telemetry": telemetry, "trace_id": trace_id}
 
         instrument = _normalize_instrument(signal)
         if not instrument:
             record_metric("signals.ingest.invocations_total", telemetry=telemetry, metrics_client=metrics_client, labels={"outcome": "error", "path": "consume_signal"})
-            return _error("missing_instrument", {"message": "instrument/symbol is required"})
+            return {**_error("missing_instrument", {"message": "instrument/symbol is required"}), "telemetry": telemetry, "trace_id": trace_id}
 
         snapshot = signal.get("snapshot") if isinstance(signal.get("snapshot"), dict) else None
         if snapshot is None:
@@ -158,6 +163,7 @@ def consume_signal(signal: Dict[str, Any], *, metrics_client: Any = None, teleme
             "instrument": instrument,
             "signals": signal,
             "snapshot": snapshot,
+            "meta": {"trace_id": trace_id},
         }
 
         record_metric("signals.ingest.invocations_total", telemetry=telemetry, metrics_client=metrics_client, labels={"outcome": "success", "path": "consume_signal"})
@@ -165,6 +171,7 @@ def consume_signal(signal: Dict[str, Any], *, metrics_client: Any = None, teleme
             "status": "success",
             "envelope": envelope,
             "telemetry": telemetry,
+            "trace_id": trace_id,
         }
 
 
