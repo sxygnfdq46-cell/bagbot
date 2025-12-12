@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import inspect
 import os
 from typing import Any, Dict, Optional
 
@@ -43,12 +44,23 @@ def get_brain_decision(
 
     adapter = _load_adapter(adapter_module)
     use_fake_mode = _fake_mode_enabled() if fake_mode is None else fake_mode
+    kwargs = {
+        "metrics_client": metrics_client,
+        "fake_mode": use_fake_mode,
+    }
+
+    try:
+        sig = inspect.signature(adapter.decide)
+        if trace_id is not None and "trace_id" in sig.parameters:
+            kwargs["trace_id"] = trace_id
+    except Exception:
+        if trace_id is not None:
+            kwargs["trace_id"] = trace_id  # best-effort
+
     decision = adapter.decide(
         signals or {},
         config or {},
-        metrics_client=metrics_client,
-        fake_mode=use_fake_mode,
-        trace_id=trace_id,
+        **kwargs,
     )
 
     if trace_id and isinstance(decision, dict):
