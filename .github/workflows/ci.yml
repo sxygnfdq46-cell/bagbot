@@ -221,6 +221,30 @@ jobs:
           path: staging_canary.json
           if-no-files-found: error
 
+  promotion-validate-staging:
+    runs-on: ubuntu-latest
+    needs: [pipeline-signals-ingest-canary]
+    environment: production-promotion
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+      - name: Install deps
+        run: |
+          pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Download staging canary artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: staging-canary-json
+          path: artifacts/promotion
+      - name: Validate promotion readiness
+        env:
+          CANARY_PATH: artifacts/promotion/staging_canary.json
+        run: |
+          PYTHONPATH="$PWD" python backend/scripts/validate_promotion.py "$CANARY_PATH"
+
   docs-lint-intent-pipeline:
     runs-on: ubuntu-latest
     continue-on-error: true
