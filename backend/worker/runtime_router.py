@@ -52,12 +52,19 @@ def route(action: Dict[str, Any], *, metrics_client: Any = None, fake_mode: Opti
             return result
 
         # Real path: placeholder success; no external routing performed.
+        incoming_trace = None
+        if isinstance(action, dict):
+            incoming_trace = (action.get("meta") or {}).get("trace_id")
+
         result = {
             "status": "success",
             "order_id": (action or {}).get("order_id") or (action or {}).get("id") or "router-ok",
             "meta": {"routed": True, "action": (action or {}).get("action")},
             "reason": None,
         }
+
+        if incoming_trace:
+            result.setdefault("meta", {}).setdefault("trace_id", incoming_trace)
         _inc(metrics_client, "runtime_router_requests_total", {"outcome": "success"})
         return result
     except Exception as exc:  # pragma: no cover
