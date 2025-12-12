@@ -19,6 +19,10 @@ Unified brain → trade → router → intent preview flow (import-safe, fake-mo
 - `pipeline_failures_total{stage, reason}` on errors.
 - Downstream metrics (brain_decisions_total, trade_engine_actions_total, runtime_router_requests_total, intent_preview_* when metrics_client provided).
 
+## Trace IDs
+- On real paths, a single upstream `trace_id` (typically from ingest telemetry) is passed through brain → trade → router; the pipeline does not fabricate a new `trace_id` when one is present.
+- Fake-mode behavior is unchanged and still fabricates deterministic trace ids for staged canaries.
+
 ## Flow
 ```
 validate envelope
