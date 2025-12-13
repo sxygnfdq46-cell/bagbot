@@ -21,7 +21,7 @@ export type Trade = {
   id: string;
   symbol: string;
   size: number;
-  pnl: number;
+  pnl?: number;
   timestamp: string;
 };
 
