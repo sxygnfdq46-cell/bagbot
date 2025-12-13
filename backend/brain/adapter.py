@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from typing import Any, Dict, Iterable, Optional
 
 from backend.brain.utils.decision import build_decision_envelope
@@ -14,6 +15,13 @@ FAKE_DECISION = {
     "rationale": ["fake_mode enabled"],
     "meta": {"source": "fake"},
 }
+
+_FLAG_TRUE = {"1", "true", "yes", "on"}
+
+
+def _use_orchestrator(env: Optional[dict[str, str]] = None) -> bool:
+    env_ref = env or os.environ
+    return env_ref.get("BRAIN_USE_ORCHESTRATOR", "").strip().lower() in _FLAG_TRUE
 
 
 def _iter_signals(signals: Dict[str, Any]) -> Iterable[Dict[str, Any]]:
@@ -39,6 +47,7 @@ def decide(
     *,
     metrics_client: Any = None,
     fake_mode: bool = False,
+    trace_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Return a deterministic decision given raw signals.
 
@@ -49,7 +58,27 @@ def decide(
 
     if fake_mode:
         _inc_metric(metrics_client, FAKE_DECISION["action"])
-        return dict(FAKE_DECISION)
+        fake_resp = dict(FAKE_DECISION)
+        if trace_id:
+            fake_resp.setdefault("meta", {}).setdefault("trace_id", trace_id)
+        return fake_resp
+
+    if _use_orchestrator():
+        try:
+            from backend.brain.orchestrator import orchestrate_providers  # lazy import to keep import safety
+
+            orchestrated = orchestrate_providers(
+                signals or {},
+                metrics_client=metrics_client,
+                fake_mode=fake_mode,
+            )
+            _inc_metric(metrics_client, orchestrated.get("action") or "hold")
+            if trace_id and isinstance(orchestrated, dict):
+                orchestrated.setdefault("meta", {}).setdefault("trace_id", trace_id)
+            return orchestrated
+        except Exception:
+            # Fall back to local fusion if orchestrator path fails for any reason.
+            pass
 
     cfg = config or {}
     fusion_cfg = FusionConfig(
@@ -67,6 +96,9 @@ def decide(
         "rationale": envelope.reasons,
         "meta": {"signals_used": envelope.signals_used},
     }
+
+    if trace_id:
+        result.setdefault("meta", {}).setdefault("trace_id", trace_id)
 
     _inc_metric(metrics_client, result["action"])
     return result
