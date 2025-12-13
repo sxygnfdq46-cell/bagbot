@@ -184,21 +184,25 @@ const mapBackendSnapshot = (payload: BackendSnapshot): DashboardSnapshot => {
     change: 0
   }));
 
-  const positions: Position[] = (payload.positions ?? []).map((item) => ({
-    id: item.id,
-    symbol: item.asset,
-    size: item.size,
-    entryPrice: item.entryPrice,
-    currentPrice: item.entryPrice,
-    pnl: item.pnl,
-    status: undefined
-  }));
+  const positions: Position[] = (payload.positions ?? []).map((item) => {
+    const match = prices.find((price) => price.symbol === item.asset)?.price;
+    const currentPrice = match ?? item.entryPrice;
+    return {
+      id: item.id,
+      symbol: item.asset,
+      size: item.size,
+      entryPrice: item.entryPrice,
+      currentPrice,
+      pnl: item.pnl,
+      status: undefined
+    };
+  });
 
   const trades: Trade[] = (payload.trades ?? []).map((item) => ({
     id: item.id,
     symbol: item.asset,
     size: item.size,
-    pnl: (item.side?.toLowerCase?.() === 'sell' ? 1 : -1) * item.price * item.size,
+    pnl: undefined,
     timestamp: item.timestamp
   }));
 
