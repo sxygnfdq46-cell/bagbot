@@ -130,6 +130,21 @@ def _finalize_decisions(decisions: list[Dict[str, Any]], trace_id: Optional[str]
     return finalized
 
 
+def _emit_outcome(decisions: list[Dict[str, Any]], router_result: Optional[Dict[str, Any]], metrics_client: Any) -> None:
+    try:
+        from backend.services import attribution_service, outcome_emitter  # lazy import
+    except Exception:  # pragma: no cover
+        return
+
+    try:
+        decision = decisions[0] if decisions else None
+        outcome = outcome_emitter.emit_outcome(decision, router_result, metrics_client=metrics_client)
+        if outcome and decision:
+            attribution_service.correlate(decision, outcome)
+    except Exception:  # pragma: no cover
+        return
+
+
 def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = None, fake_mode: Optional[bool] = None) -> Dict[str, Any]:
     """Run unified decision pipeline brain -> trade engine -> runtime router -> intent preview."""
 
@@ -149,6 +164,7 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
         trace_id = router.get("meta", {}).get("trace_id")
         decision_envelope = _build_decision_envelope(brain, trace_id)
         _inc(metrics_client, "runtime_decisions_total", {"source": "brain", "outcome": "success"})
+        _emit_outcome([decision_envelope], router, metrics_client)
         return {
             "status": "success",
             "reason": None,
@@ -244,6 +260,7 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
     trace_id = upstream_trace_id
     if decisions:
         decisions = _finalize_decisions(decisions, trace_id)
+    _emit_outcome(decisions or [], router_result, metrics_client)
     return {
         "status": status,
         "reason": None,
