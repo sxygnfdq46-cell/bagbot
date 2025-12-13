@@ -14,6 +14,13 @@ _FAKE_TRUE = {"1", "true", "yes", "on"}
 # No-op comment to retrigger backend workflows.
 
 
+def _log_warning(event: str, error: str) -> None:
+    try:
+        logger.warning(event, extra={"event": event, "error": error})
+    except Exception:  # pragma: no cover
+        return
+
+
 def _trace_id(seed: str) -> str:
     return hashlib.sha1(seed.encode()).hexdigest()[:16]
 
@@ -54,9 +61,10 @@ def _inc(metrics: Any, name: str, labels: Optional[Dict[str, Any]] = None) -> No
             return
 
 
-def _fail(stage: str, reason: str, metrics: Any) -> Dict[str, Any]:
+def _fail(stage: str, reason: str, metrics: Any, trace_id: Optional[str] = None) -> Dict[str, Any]:
     _inc(metrics, "pipeline_failures_total", {"stage": stage, "reason": reason})
     _inc(metrics, "pipeline_requests_total", {"stage": stage, "outcome": "fail"})
+    meta = {"trace_id": trace_id} if trace_id else {}
     return {
         "status": "hold",
         "reason": reason,
@@ -65,7 +73,7 @@ def _fail(stage: str, reason: str, metrics: Any) -> Dict[str, Any]:
         "trade_action": None,
         "router_result": None,
         "intent_preview": None,
-        "meta": {},
+        "meta": meta,
     }
 
 
@@ -129,7 +137,7 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
     intent_enabled = _intent_preview_enabled()
 
     if not isinstance(envelope, dict) or not envelope.get("instrument"):
-        return _fail("validate", "invalid_envelope", metrics_client)
+        return _fail("validate", "invalid_envelope", metrics_client, trace_id=None)
 
     if use_fake:
         brain, trade, router, preview = _fake_preview(envelope)
@@ -171,15 +179,17 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
             fake_mode=envelope.get("fake_mode"),
             trace_id=upstream_trace_id,
         )
-        if upstream_trace_id and isinstance(brain_decision, dict):
+        if not isinstance(brain_decision, dict):
+            return _fail("brain", "invalid_brain_response", metrics_client, trace_id=upstream_trace_id)
+        if upstream_trace_id:
             brain_decision.setdefault("meta", {})
             brain_decision["meta"]["trace_id"] = upstream_trace_id
         _inc(metrics_client, "pipeline_requests_total", {"stage": "brain", "outcome": "success"})
         decisions.append(_build_decision_envelope(brain_decision or {}, upstream_trace_id))
         _inc(metrics_client, "runtime_decisions_total", {"source": "brain", "outcome": "success"})
     except Exception as exc:  # pragma: no cover
-        logger.warning("runtime_pipeline_brain_error", extra={"event": "runtime_pipeline_brain_error", "error": str(exc)})
-        return _fail("brain", "exception", metrics_client)
+        _log_warning("runtime_pipeline_brain_error", str(exc))
+        return _fail("brain", "exception", metrics_client, trace_id=upstream_trace_id)
 
     try:
         from backend.worker.runner.trade_engine_runner import get_trade_action  # lazy import
@@ -189,25 +199,29 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
             fake_mode=envelope.get("fake_mode"),
             metrics=metrics_client,
         )
-        if upstream_trace_id and isinstance(trade_action, dict):
+        if not isinstance(trade_action, dict):
+            return _fail("trade_engine", "invalid_trade_response", metrics_client, trace_id=upstream_trace_id)
+        if upstream_trace_id:
             trade_action.setdefault("meta", {})
             trade_action["meta"]["trace_id"] = upstream_trace_id
         _inc(metrics_client, "pipeline_requests_total", {"stage": "trade_engine", "outcome": "success"})
     except Exception as exc:  # pragma: no cover
-        logger.warning("runtime_pipeline_trade_error", extra={"event": "runtime_pipeline_trade_error", "error": str(exc)})
-        return _fail("trade_engine", "exception", metrics_client)
+        _log_warning("runtime_pipeline_trade_error", str(exc))
+        return _fail("trade_engine", "exception", metrics_client, trace_id=upstream_trace_id)
 
     try:
         from backend.worker import runtime_router  # lazy import
 
         router_result = runtime_router.route(trade_action or {}, metrics_client=metrics_client, fake_mode=envelope.get("fake_mode"))
-        if upstream_trace_id and isinstance(router_result, dict):
+        if not isinstance(router_result, dict):
+            return _fail("runtime_router", "invalid_router_response", metrics_client, trace_id=upstream_trace_id)
+        if upstream_trace_id:
             router_result.setdefault("meta", {})
             router_result["meta"]["trace_id"] = upstream_trace_id
         _inc(metrics_client, "pipeline_requests_total", {"stage": "runtime_router", "outcome": "success"})
     except Exception as exc:  # pragma: no cover
-        logger.warning("runtime_pipeline_router_error", extra={"event": "runtime_pipeline_router_error", "error": str(exc)})
-        return _fail("runtime_router", "exception", metrics_client)
+        _log_warning("runtime_pipeline_router_error", str(exc))
+        return _fail("runtime_router", "exception", metrics_client, trace_id=upstream_trace_id)
 
     if intent_enabled:
         try:
@@ -221,7 +235,7 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
             )
             _inc(metrics_client, "pipeline_requests_total", {"stage": "intent_preview", "outcome": "success"})
         except Exception as exc:  # pragma: no cover
-            logger.warning("runtime_pipeline_intent_error", extra={"event": "runtime_pipeline_intent_error", "error": str(exc)})
+            _log_warning("runtime_pipeline_intent_error", str(exc))
             _inc(metrics_client, "pipeline_failures_total", {"stage": "intent_preview", "reason": "exception"})
             _inc(metrics_client, "pipeline_requests_total", {"stage": "intent_preview", "outcome": "fail"})
             rationale.append("intent_preview_failed")

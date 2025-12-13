@@ -128,6 +128,48 @@ def test_pipeline_router_failure(monkeypatch):
     assert _count(metrics.calls, "pipeline_failures_total", stage="runtime_router", reason="exception") == 1
 
 
+def test_pipeline_brain_invalid_response(monkeypatch):
+    metrics = _StubMetrics()
+
+    def bad_brain(*args, **kwargs):
+        return None
+
+    monkeypatch.setitem(sys.modules, "backend.worker.runner", types.SimpleNamespace(get_brain_decision=bad_brain))
+
+    resp = runtime_pipeline.run_decision_pipeline({"instrument": "BTC-USD", "meta": {"trace_id": "t-1"}}, metrics_client=metrics)
+
+    assert resp["status"] == "hold"
+    assert resp["reason"] == "invalid_brain_response"
+    assert resp["meta"].get("trace_id") == "t-1"
+    assert _count(metrics.calls, "pipeline_failures_total", stage="brain", reason="invalid_brain_response") == 1
+
+
+def test_pipeline_router_invalid_response(monkeypatch):
+    metrics = _StubMetrics()
+
+    def fake_brain(*args, **kwargs):
+        return {"action": "buy"}
+
+    def fake_trade(*args, **kwargs):
+        return {"action": "buy"}
+
+    def bad_route(*args, **kwargs):
+        return None
+
+    monkeypatch.setitem(sys.modules, "backend.worker.runner", types.SimpleNamespace(get_brain_decision=fake_brain))
+    monkeypatch.setitem(sys.modules, "backend.worker.runner.trade_engine_runner", types.SimpleNamespace(get_trade_action=fake_trade))
+    router_mod = types.SimpleNamespace(route=bad_route)
+    monkeypatch.setitem(sys.modules, "backend.worker.runtime_router", router_mod)
+    monkeypatch.setattr(worker_pkg, "runtime_router", router_mod, raising=False)
+
+    resp = runtime_pipeline.run_decision_pipeline({"instrument": "BTC-USD", "meta": {"trace_id": "t-2"}}, metrics_client=metrics)
+
+    assert resp["status"] == "hold"
+    assert resp["reason"] == "invalid_router_response"
+    assert resp["meta"].get("trace_id") == "t-2"
+    assert _count(metrics.calls, "pipeline_failures_total", stage="runtime_router", reason="invalid_router_response") == 1
+
+
 def test_pipeline_intent_preview_failure(monkeypatch):
     metrics = _StubMetrics()
 
