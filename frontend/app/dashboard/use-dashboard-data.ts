@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { dashboardApi, type MarketPrice, type Position, type SystemStatus, type Trade } from '@/lib/api/dashboard';
-import { wsClient } from '@/lib/ws-client';
 
 export type PricePoint = { timestamp: number; value: number };
 
@@ -13,6 +12,7 @@ export type DashboardState = {
   positions: Position[];
   trades: Trade[];
   status: SystemStatus | null;
+  notice?: string;
 };
 
 const INITIAL_STATE: DashboardState = {
@@ -20,7 +20,8 @@ const INITIAL_STATE: DashboardState = {
   prices: [],
   positions: [],
   trades: [],
-  status: null
+  status: null,
+  notice: undefined
 };
 
 export function useDashboardData() {
@@ -45,6 +46,7 @@ export function useDashboardData() {
         positions: snapshot.positions,
         trades: snapshot.trades,
         status: snapshot.status,
+        notice: snapshot.notice,
         error: undefined
       });
     } catch (error) {
@@ -60,31 +62,6 @@ export function useDashboardData() {
   useEffect(() => {
     load();
   }, [load]);
-  useEffect(() => {
-    const unsubPrices = wsClient.subscribe('prices', (data) => {
-      if (!mounted.current || !Array.isArray(data)) return;
-      setState((prev) => ({ ...prev, prices: data as MarketPrice[] }));
-    });
-    const unsubPositions = wsClient.subscribe('positions', (data) => {
-      if (!mounted.current || !Array.isArray(data)) return;
-      setState((prev) => ({ ...prev, positions: data as Position[] }));
-    });
-    const unsubTrades = wsClient.subscribe('trades', (data) => {
-      if (!mounted.current || !Array.isArray(data)) return;
-      setState((prev) => ({ ...prev, trades: data as Trade[] }));
-    });
-    const unsubStatus = wsClient.subscribe('status', (data) => {
-      if (!mounted.current || !data || typeof data !== 'object') return;
-      setState((prev) => ({ ...prev, status: data as SystemStatus }));
-    });
-
-    return () => {
-      unsubPrices();
-      unsubPositions();
-      unsubTrades();
-      unsubStatus();
-    };
-  }, []);
 
   const portfolioValue = useMemo(
     () => state.positions.reduce((acc, position) => acc + position.currentPrice * position.size, 0),

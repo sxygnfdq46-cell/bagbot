@@ -16,7 +16,7 @@ const currency = (value: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value ?? 0);
 
 export default function DashboardPage() {
-  const { loading, error, prices, positions, trades, status, portfolioValue, totalPnl, chartPoints, reload } =
+  const { loading, error, prices, positions, trades, status, portfolioValue, totalPnl, chartPoints, reload, notice } =
     useDashboardData();
   const { notify } = useToast();
   const heroMode = status?.mode ? status.mode.toUpperCase() : 'STANDBY';
@@ -31,6 +31,9 @@ export default function DashboardPage() {
   return (
     <ProtectedRoute>
       <TerminalShell className="stack-gap-lg">
+        <div className="rounded-xl border border-[color:var(--border-soft)] bg-base/70 px-4 py-3 text-sm text-[color:var(--accent-gold)]">
+          OBSERVATION MODE — READ-ONLY (NO LIVE TRADING)
+        </div>
         <GlobalHeroBadge
           badge="PORTFOLIO"
           metaText="LIVE INTELLIGENCE"
@@ -44,6 +47,12 @@ export default function DashboardPage() {
             </div>
           }
         />
+        {notice && (
+          <p className="text-sm text-[color:var(--accent-gold)]">Backend fallback: {notice}</p>
+        )}
+        {error && (
+          <p className="text-sm text-red-400">Dashboard data issue: {error}</p>
+        )}
         <section className="stack-gap-sm w-full">
           <header className="stack-gap-xxs w-full">
             <MetricLabel className="text-[color:var(--accent-gold)]">Portfolio Overview</MetricLabel>
