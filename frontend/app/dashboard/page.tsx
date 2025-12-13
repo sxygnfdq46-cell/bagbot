@@ -205,8 +205,16 @@ export default function DashboardPage() {
                 </div>
                 <div className="text-right">
                   <p>{trade.size} units</p>
-                  <p className={trade.pnl >= 0 ? 'text-[color:var(--accent-green)]' : 'text-red-400'}>
-                    {currency(trade.pnl)}
+                  <p
+                    className={
+                      typeof trade.pnl === 'number'
+                        ? trade.pnl >= 0
+                          ? 'text-[color:var(--accent-green)]'
+                          : 'text-red-400'
+                        : 'text-[color:var(--accent-cyan)]'
+                    }
+                  >
+                    {typeof trade.pnl === 'number' ? currency(trade.pnl) : 'PnL unavailable'}
                   </p>
                 </div>
               </div>
