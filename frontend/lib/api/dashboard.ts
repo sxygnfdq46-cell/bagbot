@@ -1,3 +1,4 @@
+import { api, ApiError } from '@/lib/api-client';
 import { mockResponse, nowIso } from '@/lib/api/mock-service';
 
 export type MarketPrice = {
@@ -35,6 +36,44 @@ export type DashboardSnapshot = {
   positions: Position[];
   trades: Trade[];
   status: SystemStatus;
+  source?: 'backend' | 'mock';
+  notice?: string;
+};
+
+type BackendPrice = {
+  asset: string;
+  price: number;
+  timestamp?: string;
+};
+
+type BackendPosition = {
+  id: string;
+  asset: string;
+  size: number;
+  entryPrice: number;
+  pnl: number;
+  updatedAt?: string;
+};
+
+type BackendTrade = {
+  id: string;
+  asset: string;
+  side: string;
+  price: number;
+  size: number;
+  timestamp: string;
+};
+
+type BackendStatus = {
+  health?: string;
+  latencyMs?: number;
+};
+
+type BackendSnapshot = {
+  prices?: BackendPrice[];
+  positions?: BackendPosition[];
+  trades?: BackendTrade[];
+  status?: BackendStatus;
 };
 
 let marketSnapshot: MarketPrice[] = [
@@ -134,13 +173,61 @@ const buildSnapshot = (): DashboardSnapshot => ({
   prices: marketSnapshot,
   positions: positionsSnapshot,
   trades: tradesSnapshot,
-  status: statusSnapshot
+  status: statusSnapshot,
+  source: 'mock'
 });
+
+const mapBackendSnapshot = (payload: BackendSnapshot): DashboardSnapshot => {
+  const prices: MarketPrice[] = (payload.prices ?? []).map((item) => ({
+    symbol: item.asset,
+    price: item.price,
+    change: 0
+  }));
+
+  const positions: Position[] = (payload.positions ?? []).map((item) => ({
+    id: item.id,
+    symbol: item.asset,
+    size: item.size,
+    entryPrice: item.entryPrice,
+    currentPrice: item.entryPrice,
+    pnl: item.pnl,
+    status: undefined
+  }));
+
+  const trades: Trade[] = (payload.trades ?? []).map((item) => ({
+    id: item.id,
+    symbol: item.asset,
+    size: item.size,
+    pnl: (item.side?.toLowerCase?.() === 'sell' ? 1 : -1) * item.price * item.size,
+    timestamp: item.timestamp
+  }));
+
+  const status: SystemStatus = {
+    mode: payload.status?.health,
+    latencyMs: payload.status?.latencyMs,
+    uptime: undefined
+  };
+
+  return {
+    prices,
+    positions,
+    trades,
+    status,
+    source: 'backend'
+  };
+};
 
 export const dashboardApi = {
   getSnapshot: async (): Promise<DashboardSnapshot> => {
-    mutateSnapshot();
-    return mockResponse(buildSnapshot());
+    try {
+      const backend = await api.get<BackendSnapshot>('/api/dashboard/snapshot');
+      return mapBackendSnapshot(backend);
+    } catch (error) {
+      const detail = error instanceof ApiError ? error.message : 'Backend snapshot unavailable';
+      mutateSnapshot();
+      const fallback = await mockResponse(buildSnapshot());
+      return { ...fallback, notice: detail };
+    }
   },
   getLivePrices: async (): Promise<MarketPrice[]> => mockResponse(marketSnapshot),
   getPositions: async (): Promise<Position[]> => mockResponse(positionsSnapshot),
