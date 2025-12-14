@@ -18,6 +18,7 @@ from backend.api.ws.brain_ws import router as brain_ws_router
 from backend.api.ws.dashboard_ws import router as dashboard_ws_router
 from backend.api.websocket_router import router as websocket_router
 from backend.ws.signals_ws import router as signals_ws_router
+from backend.services.brain_service import start_brain_observer, stop_brain_observer
 
 app = FastAPI(title="Bagbot Backend", version="0.1.0")
 
@@ -45,6 +46,17 @@ app.include_router(websocket_router)
 app.include_router(dashboard_ws_router, prefix="/ws")
 app.include_router(brain_ws_router, prefix="/ws")
 app.include_router(signals_ws_router, prefix="/ws")
+
+
+@app.on_event("startup")
+async def _start_brain_observer() -> None:
+    # Non-blocking, read-only observation loop to stream decisions into telemetry buffers
+    await start_brain_observer()
+
+
+@app.on_event("shutdown")
+async def _stop_brain_observer() -> None:
+    await stop_brain_observer()
 
 
 @app.get("/", tags=["root"])
