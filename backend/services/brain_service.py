@@ -176,7 +176,6 @@ async def get_brain_status() -> StatusSnapshot:
         _mutate_status()
         return _status_snapshot
 
-
 def _ingest_decision(decision: Dict[str, Any], trace_id: Optional[str]) -> None:
     """Project a brain decision into activity + logs for observability."""
 
