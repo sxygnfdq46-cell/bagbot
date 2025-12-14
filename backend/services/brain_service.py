@@ -1,10 +1,21 @@
-"""Mock data producers for the brain WebSocket feed."""
+"""Mock data producers for the brain WebSocket feed.
+
+This module now also drives a read-only observation loop that runs the
+existing decision pipeline in fake mode and projects those decisions into the
+telemetry buffers consumed by the Brain UI.
+"""
 from __future__ import annotations
 
+import asyncio
+import os
 import random
 from collections import deque
+from contextlib import suppress
 from datetime import datetime, timedelta
-from typing import Deque, List
+from typing import Any, Deque, Dict, List, Optional
+
+from backend.signals.mock_feed import run_mock_feed_once
+from backend.signals.telemetry import ensure_telemetry
 
 from backend.schemas.brain import ActivityEvent, BrainMetrics, LogLine, StatusSnapshot
 
@@ -40,6 +51,8 @@ _status_snapshot = StatusSnapshot(
 )
 
 _log_buffer: Deque[LogLine] = deque(maxlen=50)
+_observation_task: Optional[asyncio.Task] = None
+_OBSERVER_INTERVAL_SECONDS = float(os.environ.get("BRAIN_OBSERVER_INTERVAL_SECONDS", "8"))
 
 
 def _append_log(level: str, message: str) -> None:
@@ -54,6 +67,12 @@ def _append_log(level: str, message: str) -> None:
 
 
 _append_log("info", "Brain telemetry initialized")
+
+
+def _ensure_fake_mode() -> None:
+    os.environ.setdefault("SIGNALS_MOCK_FEED_ENABLED", "1")
+    os.environ.setdefault("SIGNALS_FAKE_MODE", "1")
+    os.environ.setdefault("BRAIN_FAKE_MODE", "1")
 
 
 def _mutate_activity() -> None:
@@ -155,3 +174,79 @@ async def get_brain_status() -> StatusSnapshot:
 
     _mutate_status()
     return _status_snapshot
+
+
+def _ingest_decision(decision: Dict[str, Any], trace_id: Optional[str]) -> None:
+    """Project a brain decision into activity + logs for observability."""
+
+    if not isinstance(decision, dict):
+        return
+
+    meta = decision.get("meta") or {}
+    trace_id = trace_id or meta.get("trace_id")
+    action = str(decision.get("action") or "hold")
+    confidence = float(decision.get("confidence") or 0.0)
+
+    event = ActivityEvent(
+        id=f"decision-{datetime.utcnow().timestamp()}",
+        label=f"Decision: {action}",
+        location="Observation Loop",
+        intensity=max(0.1, min(1.0, confidence)),
+        status="stable",
+        timestamp=datetime.utcnow(),
+    )
+
+    # Prepend the latest decision to the activity buffer
+    global _activity_events
+    _activity_events = [event, *_activity_events][:10]
+
+    # Record a log line with trace continuity
+    detail = f"brain_decision action={action} confidence={confidence:.2f}"
+    if trace_id:
+        detail = f"{detail} trace_id={trace_id}"
+    _append_log("info", detail)
+
+    # Keep metrics snapshot aligned with observed decisions
+    decisions_per_minute = max(1, min(120, _metrics_snapshot.decisionsPerMinute + 1))
+    _metrics_snapshot.decisionsPerMinute = decisions_per_minute
+    _status_snapshot.lastDecision = f"{action} ({confidence:.2f})"
+
+
+async def _observation_cycle() -> None:
+    telemetry: Dict[str, Any] = ensure_telemetry({})
+    _ensure_fake_mode()
+    response = await asyncio.to_thread(run_mock_feed_once, None, metrics_client=None)
+    brain_decision = response.get("brain_decision") if isinstance(response, dict) else None
+    if isinstance(brain_decision, dict):
+        brain_decision.setdefault("meta", {}).setdefault("trace_id", telemetry.get("trace_id"))
+    _ingest_decision(brain_decision or {}, telemetry.get("trace_id"))
+
+
+async def _observation_loop() -> None:
+    while True:
+        await _observation_cycle()
+        await asyncio.sleep(_OBSERVER_INTERVAL_SECONDS)
+
+
+async def start_brain_observer() -> None:
+    """Start the background observation loop (idempotent)."""
+
+    global _observation_task
+    if _observation_task and not _observation_task.done():
+        return
+
+    _ensure_fake_mode()
+    _observation_task = asyncio.create_task(_observation_loop())
+
+
+async def stop_brain_observer() -> None:
+    """Stop the background observation loop if running."""
+
+    global _observation_task
+    if not _observation_task:
+        return
+
+    _observation_task.cancel()
+    with suppress(asyncio.CancelledError):
+        await _observation_task
+    _observation_task = None
