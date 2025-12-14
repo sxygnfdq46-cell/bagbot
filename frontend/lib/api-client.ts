@@ -39,7 +39,7 @@ export type ApiRequestOptions = Omit<RequestInit, 'body'> & {
 };
 
 export const resolveWsUrl = (path = '/ws') => {
-  const base = WS_BASE_URL;
+  const base = WS_BASE_URL || (API_BASE_URL ? API_BASE_URL.replace(/^http/, 'ws') : '');
   if (!base) return path;
   return `${base}${path}`;
 };

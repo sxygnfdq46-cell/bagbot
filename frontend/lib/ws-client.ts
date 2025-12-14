@@ -84,6 +84,9 @@ class WebSocketClient {
     this.setStatus('connecting');
 
     try {
+      if (process.env.NODE_ENV !== 'production') {
+        console.info('[ws-client] connecting', url);
+      }
       this.socket = new WebSocket(url);
     } catch (error) {
       if (process.env.NODE_ENV !== 'production') {
