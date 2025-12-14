@@ -4,7 +4,7 @@ export type WsStatus = 'connecting' | 'connected' | 'disconnected';
 type MessageHandler = (data: unknown) => void;
 
 const isBrowser = typeof window !== 'undefined';
-const DEFAULT_PATH = '/ws';
+const DEFAULT_PATH = '/ws/brain';
 const RECONNECT_DELAY_MS = 5000;
 
 class WebSocketClient {
