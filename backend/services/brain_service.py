@@ -53,6 +53,7 @@ _status_snapshot = StatusSnapshot(
 _log_buffer: Deque[LogLine] = deque(maxlen=50)
 _observation_task: Optional[asyncio.Task] = None
 _OBSERVER_INTERVAL_SECONDS = float(os.environ.get("BRAIN_OBSERVER_INTERVAL_SECONDS", "8"))
+_state_lock = asyncio.Lock()
 
 
 def _append_log(level: str, message: str) -> None:
@@ -150,30 +151,30 @@ def _mutate_logs() -> None:
 
 async def get_brain_activity() -> List[ActivityEvent]:
     """Return the most recent brain activity events."""
-
-    _mutate_activity()
-    return list(_activity_events)
+    async with _state_lock:
+        _mutate_activity()
+        return list(_activity_events)
 
 
 async def get_brain_metrics() -> BrainMetrics:
     """Return the current aggregate brain metrics."""
-
-    _mutate_metrics()
-    return _metrics_snapshot
+    async with _state_lock:
+        _mutate_metrics()
+        return _metrics_snapshot
 
 
 async def get_brain_logs() -> List[LogLine]:
     """Return the rolling brain log buffer."""
-
-    _mutate_logs()
-    return list(_log_buffer)
+    async with _state_lock:
+        _mutate_logs()
+        return list(_log_buffer)
 
 
 async def get_brain_status() -> StatusSnapshot:
     """Return the latest brain state snapshot."""
-
-    _mutate_status()
-    return _status_snapshot
+    async with _state_lock:
+        _mutate_status()
+        return _status_snapshot
 
 
 def _ingest_decision(decision: Dict[str, Any], trace_id: Optional[str]) -> None:
@@ -219,12 +220,16 @@ async def _observation_cycle() -> None:
     brain_decision = response.get("brain_decision") if isinstance(response, dict) else None
     if isinstance(brain_decision, dict):
         brain_decision.setdefault("meta", {}).setdefault("trace_id", telemetry.get("trace_id"))
-    _ingest_decision(brain_decision or {}, telemetry.get("trace_id"))
+    async with _state_lock:
+        _ingest_decision(brain_decision or {}, telemetry.get("trace_id"))
 
 
 async def _observation_loop() -> None:
     while True:
-        await _observation_cycle()
+        try:
+            await _observation_cycle()
+        except Exception as exc:  # pragma: no cover - resilience guard
+            _append_log("warning", f"observation_cycle_error: {exc}")
         await asyncio.sleep(_OBSERVER_INTERVAL_SECONDS)
 
 
