@@ -14,6 +14,7 @@ import {
   type BrainLoadMetrics,
   type BrainLoadResponse
 } from '@/lib/api/brain';
+import { wsClient, type WsStatus } from '@/lib/ws-client';
 import GlobalHeroBadge from '@/components/ui/global-hero-badge';
 import MetricLabel from '@/components/ui/metric-label';
 import TerminalShell from '@/components/ui/terminal-shell';
@@ -64,12 +65,14 @@ function ActivityMapPanel() {
   const { notify } = useToast();
   const [events, setEvents] = useState<BrainActivityEvent[]>([]);
   const [status, setStatus] = useState<BrainActivityResponse['status']>('syncing');
+  const [wsStatus, setWsStatus] = useState<WsStatus>('disconnected');
 
   useEffect(() => {
     let warnedOffline = false;
     let mounted = true;
     const notifyOffline = () =>
       notify({ title: 'Activity stream offline', description: 'Using cached neural telemetry', variant: 'error' });
+
     const load = async () => {
       try {
         const response = await brainApi.getActivityMap();
@@ -89,11 +92,42 @@ function ActivityMapPanel() {
       }
     };
 
+    const unsubscribeActivity = wsClient.subscribe('brain_activity', (data) => {
+      if (!mounted) return;
+      if (Array.isArray(data)) {
+        setEvents(
+          data.map((event) => ({
+            id: String(event.id),
+            label: String(event.label ?? 'Decision'),
+            location: String(event.location ?? 'Observation'),
+            intensity: Number(event.intensity ?? 0),
+            status: (event.status as BrainActivityEvent['status']) ?? 'stable',
+            timestamp: String(event.timestamp ?? '')
+          }))
+        );
+        setStatus('live');
+      }
+    });
+
+    const unsubscribeWsStatus = wsClient.onStatusChange((next) => {
+      setWsStatus(next);
+      if (next === 'disconnected' && !warnedOffline) {
+        setStatus((prev) => (prev === 'live' ? 'offline' : prev));
+        warnedOffline = true;
+      }
+      if (next === 'connected') {
+        warnedOffline = false;
+        setStatus('live');
+      }
+    });
+
     load();
-    const interval = setInterval(load, 4500);
+    const interval = setInterval(load, 12000);
     return () => {
       mounted = false;
       clearInterval(interval);
+      unsubscribeActivity?.();
+      unsubscribeWsStatus?.();
     };
   }, [notify]);
 
@@ -104,7 +138,7 @@ function ActivityMapPanel() {
         <span
           className={`rounded-full px-3 py-1 ${status === 'live' ? 'bg-[color:var(--accent-green)] text-black' : status === 'syncing' ? 'bg-[color:var(--accent-gold)]/30' : 'border border-[color:var(--border-soft)]'}`}
         >
-          {status === 'live' ? 'Live' : status === 'syncing' ? 'Syncing' : 'Offline'}
+          {status === 'live' ? 'Live' : status === 'syncing' ? 'Syncing' : wsStatus === 'connecting' ? 'Connecting' : 'Offline'}
         </span>
       </div>
       <div className="mt-4 stack-gap-sm">
@@ -282,6 +316,7 @@ function DecisionTimelinePanel() {
   useEffect(() => {
     let mounted = true;
     setLoading(true);
+
     brainApi
       .getRecentDecisions()
       .then((response) => {
@@ -293,8 +328,21 @@ function DecisionTimelinePanel() {
       .finally(() => {
         if (mounted) setLoading(false);
       });
+
+    const unsubscribeActivity = wsClient.subscribe('brain_activity', (data) => {
+      if (!mounted || !Array.isArray(data)) return;
+      const nextDecisions: BrainDecision[] = data.map((event) => ({
+        id: String(event.id ?? `decision-${Date.now()}`),
+        timestamp: String(event.timestamp ?? ''),
+        outcome: String(event.label ?? 'decision'),
+        confidence: Math.max(0, Math.min(1, Number(event.intensity ?? 0)))
+      }));
+      setDecisions(nextDecisions);
+    });
+
     return () => {
       mounted = false;
+      unsubscribeActivity?.();
     };
   }, [notify]);
 
