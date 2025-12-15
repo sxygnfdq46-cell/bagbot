@@ -15,7 +15,8 @@ import {
   type Candle,
   type ChartOverviewStat,
   type LiveFeedEvent,
-  type MiniChart
+  type MiniChart,
+  type ChartSnapshot
 } from "@/lib/api/charts";
 import { resolveWsUrl } from "@/lib/api-client";
 
@@ -45,7 +46,7 @@ export default function ChartsPage() {
   const heroHint = `Asset ${asset}`;
 
   const persistSnapshot = useCallback(
-    (snapshot: Partial<ReturnType<typeof chartsApi.getSnapshot>>) => {
+    (snapshot: Partial<ChartSnapshot>) => {
       try {
         const cache = {
           candles: snapshot.candles,

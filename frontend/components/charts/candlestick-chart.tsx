@@ -173,16 +173,6 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
     return round(clamp(scaledX - halfWidth, 12, containerWidth - TOOLTIP_WIDTH - 12));
   }, [containerWidth, crosshairVisible, crosshairX, viewWidth]);
 
-  const showSkeleton = candles.length === 0;
-
-  if (showSkeleton) {
-    return (
-      <div ref={containerRef} className="w-full" style={{ minHeight: totalHeight }}>
-        <Skeleton className="w-full" style={{ height: chartHeight + volumeHeight + PADDING_Y * 2 }} />
-      </div>
-    );
-  }
-
   const updateHoverFromEvent = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (!containerRef.current || !candles.length) return;
     const rect = containerRef.current.getBoundingClientRect();
@@ -245,7 +235,17 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
         </g>
       );
     });
-  }, [markers, candles, bucketWidth, priceExtremes.min, priceRange, chartHeight]);
+  }, [markers, candles, bucketWidth, priceExtremes.min, priceRange, chartHeight, scaleY]);
+
+  const showSkeleton = candles.length === 0;
+
+  if (showSkeleton) {
+    return (
+      <div ref={containerRef} className="w-full" style={{ minHeight: totalHeight }}>
+        <Skeleton className="w-full" style={{ height: chartHeight + volumeHeight + PADDING_Y * 2 }} />
+      </div>
+    );
+  }
 
   return (
     <div ref={containerRef} className="relative w-full" style={{ minHeight: totalHeight }}>
