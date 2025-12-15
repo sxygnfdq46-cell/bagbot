@@ -56,6 +56,20 @@ class AuthService:
 
         normalized_email = payload.email.lower()
         record = self._users.get(normalized_email)
+
+        observation_mode = os.environ.get("BAGBOT_OBSERVATION_MODE", "0") == "1"
+        if record is None and observation_mode:
+            # Allow observation-only bootstrap credentials without enabling admin powers
+            observer_record = {
+                "id": f"observer-{normalized_email}",
+                "name": payload.email.split("@")[0] or "Observer",
+                "email": normalized_email,
+                "role": "observer",
+                "password_hash": hash_password(payload.password or "observer-pass"),
+            }
+            self._users[normalized_email] = observer_record
+            record = observer_record
+
         if record is None or not verify_password(payload.password, record["password_hash"]):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 

@@ -23,3 +23,9 @@ class LoginResponse(BaseModel):
 
     token: str
     user: UserProfile
+
+
+class ForgotPasswordRequest(BaseModel):
+    """Minimal payload for password reset request."""
+
+    email: EmailStr

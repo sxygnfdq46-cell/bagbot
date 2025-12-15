@@ -4,6 +4,21 @@ import type { NextRequest } from 'next/server';
 const AUTH_COOKIE = 'bagbot-auth-token';
 const PUBLIC_PATHS = ['/login', '/api/health'];
 
+const decodeRole = (token: string | undefined | null): string | null => {
+  if (!token) return null;
+  const parts = token.split('.');
+  if (parts.length < 2) return null;
+  try {
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+    const payload = atob(padded);
+    const parsed = JSON.parse(payload) as { role?: string; user?: { role?: string } };
+    return parsed.user?.role || parsed.role || null;
+  } catch {
+    return null;
+  }
+};
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -24,9 +39,17 @@ export function middleware(request: NextRequest) {
 
   const token = request.cookies.get(AUTH_COOKIE)?.value;
   const isAuthenticated = Boolean(token);
+  const role = decodeRole(token);
 
   // Redirect authenticated users away from login
   if (pathname === '/login' && isAuthenticated) {
+    const url = request.nextUrl.clone();
+    url.pathname = role === 'admin' ? '/admin' : '/dashboard';
+    return NextResponse.redirect(url);
+  }
+
+  // Admin routes require admin role
+  if (pathname.startsWith('/admin') && role !== 'admin') {
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';
     return NextResponse.redirect(url);

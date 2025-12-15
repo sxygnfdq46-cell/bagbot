@@ -6,6 +6,7 @@ import { tokenStore } from '@/lib/token-store';
 
 type TokenClaims = {
   role?: string;
+  user?: { role?: string };
   [key: string]: unknown;
 };
 
@@ -30,7 +31,11 @@ const decodeClaims = (token: string | null): TokenClaims | null => {
   }
 };
 
-export const getRoleFromToken = (token: string | null) => decodeClaims(token)?.role ?? null;
+export const getRoleFromToken = (token: string | null) => {
+  const claims = decodeClaims(token);
+  if (!claims) return null;
+  return (claims.user as { role?: string } | undefined)?.role ?? claims.role ?? null;
+};
 
 export const authStore = {
   getToken: () => tokenStore.getToken(),
