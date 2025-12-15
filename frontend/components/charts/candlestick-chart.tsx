@@ -9,11 +9,18 @@ import { CrosshairLines, CrosshairTooltip } from "@/components/charts/crosshair"
 
 export type ChartHoverPayload = Candle & { index: number; time: number };
 
+export type ChartMarker = {
+  id: string;
+  action: string;
+  timestamp: number;
+};
+
 export type CandlestickChartProps = {
   candles: Candle[];
   mode?: "full" | "mini";
   loading?: boolean;
   onHover?: (candle: ChartHoverPayload | null) => void;
+  markers?: ChartMarker[];
 };
 
 const PRICE_TICKS = 5;
@@ -27,6 +34,11 @@ const TOOLTIP_WIDTH = 196;
 
 const fallingColor = "rgba(255,99,132,0.85)";
 const risingColor = "var(--accent-green)";
+const markerColors: Record<string, string> = {
+  buy: "var(--accent-green)",
+  sell: "rgba(255,99,132,0.85)",
+  hold: "rgba(255,255,255,0.65)",
+};
 
 const formatTimeLabel = (timestamp: number) => {
   const date = new Date(timestamp);
@@ -36,7 +48,7 @@ const formatTimeLabel = (timestamp: number) => {
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 const round = (value: number) => Math.round(value * 100) / 100;
 
-export default function CandlestickChart({ candles, mode = "full", loading = false, onHover }: CandlestickChartProps) {
+export default function CandlestickChart({ candles, mode = "full", loading = false, onHover, markers = [] }: CandlestickChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
@@ -206,6 +218,35 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
     setHoverIndex(null);
   };
 
+  const markerNodes = useMemo(() => {
+    if (!markers.length || !candles.length) return null;
+
+    const matchIndex = (timestamp: number) => {
+      const idx = candles.findIndex((candle) => candle.timestamp >= timestamp);
+      return idx === -1 ? candles.length - 1 : idx;
+    };
+
+    return markers.slice(-60).map((marker) => {
+      const normalizedAction = marker.action?.toLowerCase?.() || "hold";
+      const index = matchIndex(marker.timestamp);
+      const candle = candles[index];
+      const centerX = round(PADDING_X + bucketWidth * index + bucketWidth / 2);
+      const priceY = scaleY(candle?.close ?? candles[candles.length - 1]?.close ?? 0);
+      const color = markerColors[normalizedAction] ?? markerColors.hold;
+      const size = 10;
+      const points = normalizedAction === "sell"
+        ? `${centerX},${priceY - size} ${centerX - size},${priceY + size} ${centerX + size},${priceY + size}`
+        : `${centerX},${priceY + size} ${centerX - size},${priceY - size} ${centerX + size},${priceY - size}`;
+
+      return (
+        <g key={marker.id} aria-label={`decision-${normalizedAction}`}>
+          <polygon points={points} fill={color} opacity={0.9} />
+          <circle cx={centerX} cy={priceY} r={3} fill="rgba(0,0,0,0.5)" opacity={0.35} />
+        </g>
+      );
+    });
+  }, [markers, candles, bucketWidth, priceExtremes.min, priceRange, chartHeight]);
+
   return (
     <div ref={containerRef} className="relative w-full" style={{ minHeight: totalHeight }}>
       <svg
@@ -246,6 +287,8 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
             </text>
           </g>
         ))}
+
+        {markerNodes}
 
         {candles.map((candle, index) => {
           const centerX = round(PADDING_X + bucketWidth * index + bucketWidth / 2);

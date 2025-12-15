@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Card from "@/components/ui/card";
 import Button from "@/components/ui/button";
 import Skeleton from "@/components/ui/skeleton";
-import CandlestickChart, { type ChartHoverPayload } from "@/components/charts/candlestick-chart";
+import CandlestickChart, { type ChartHoverPayload, type ChartMarker } from "@/components/charts/candlestick-chart";
 import OhlcPanel from "@/components/charts/ohlc-panel";
 import Sparkline from "@/components/ui/sparkline";
 import GlobalHeroBadge from "@/components/ui/global-hero-badge";
@@ -17,9 +17,14 @@ import {
   type LiveFeedEvent,
   type MiniChart
 } from "@/lib/api/charts";
+import { resolveWsUrl } from "@/lib/api-client";
 
 const TIMEFRAMES = chartsApi.listTimeframes();
 const ASSETS = chartsApi.listAssets();
+const CACHE_KEY = (asset: string, timeframe: string) => `charts-cache-${asset}-${timeframe}`;
+const MAX_CANDLES = 220;
+const MAX_MARKERS = 80;
+const OBS_BADGE = "OBSERVATION MODE — READ-ONLY";
 
 export default function ChartsPage() {
   const [timeframe, setTimeframe] = useState(TIMEFRAMES[0]);
@@ -29,12 +34,33 @@ export default function ChartsPage() {
   const [overviewStats, setOverviewStats] = useState<ChartOverviewStat[]>([]);
   const [pulse, setPulse] = useState<number[]>([]);
   const [feed, setFeed] = useState<LiveFeedEvent[]>([]);
+  const [markers, setMarkers] = useState<ChartMarker[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [chartMode, setChartMode] = useState<"full" | "mini">("full");
   const [hoveredCandle, setHoveredCandle] = useState<ChartHoverPayload | null>(null);
+  const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
   const heroFeedStatus = `SYNCED • ${timeframe.toUpperCase()}`;
   const heroHint = `Asset ${asset}`;
+
+  const persistSnapshot = useCallback(
+    (snapshot: Partial<ReturnType<typeof chartsApi.getSnapshot>>) => {
+      try {
+        const cache = {
+          candles: snapshot.candles,
+          miniCharts: snapshot.miniCharts,
+          overview: snapshot.overview,
+          pulse: snapshot.pulse,
+          feed: snapshot.feed,
+        };
+        sessionStorage.setItem(CACHE_KEY(asset, timeframe), JSON.stringify(cache));
+      } catch (_error) {
+        /* ignore cache write failures */
+      }
+    },
+    [asset, timeframe]
+  );
 
   const applySnapshot = useCallback((snapshot: Awaited<ReturnType<typeof chartsApi.getSnapshot>>) => {
     setCandles(snapshot.candles);
@@ -43,9 +69,28 @@ export default function ChartsPage() {
     setPulse(snapshot.pulse);
     setFeed(snapshot.feed);
     setHoveredCandle(null);
-  }, []);
+    persistSnapshot(snapshot);
+  }, [persistSnapshot]);
 
-  const loadSnapshot = useCallback(() => chartsApi.getSnapshot(asset, timeframe), [asset, timeframe]);
+  const loadSnapshot = useCallback(async () => {
+    try {
+      const cached = typeof window !== 'undefined' ? sessionStorage.getItem(CACHE_KEY(asset, timeframe)) : null;
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed?.candles?.length) {
+          setCandles(parsed.candles);
+          setMiniCharts(parsed.miniCharts ?? []);
+          setOverviewStats(parsed.overview ?? []);
+          setPulse(parsed.pulse ?? []);
+          setFeed(parsed.feed ?? []);
+          setHoveredCandle(null);
+        }
+      }
+    } catch (_error) {
+      /* ignore cache read failures */
+    }
+    return chartsApi.getSnapshot(asset, timeframe);
+  }, [asset, timeframe]);
 
   useEffect(() => {
     let mounted = true;
@@ -109,6 +154,88 @@ export default function ChartsPage() {
     };
   }, [asset]);
 
+  useEffect(() => {
+    // Synthetic price drift to keep the surface moving while in observation-only mode.
+    const mutateNextCandle = () => {
+      setCandles((current) => {
+        if (!current.length) return current;
+        const last = current[current.length - 1];
+        const drift = (Math.random() - 0.5) * Math.max(1, last.close * 0.0015);
+        const close = Math.max(0.01, last.close + drift);
+        const high = Math.max(last.high, close + Math.random() * Math.max(1, last.close * 0.0008));
+        const low = Math.min(last.low, close - Math.random() * Math.max(1, last.close * 0.0008));
+        const volume = Math.max(10, last.volume * (0.9 + Math.random() * 0.2));
+        const next: Candle = {
+          timestamp: Date.now(),
+          open: last.close,
+          high,
+          low,
+          close,
+          volume,
+        };
+        const trimmed = [...current.slice(-(MAX_CANDLES - 1)), next];
+        return trimmed;
+      });
+    };
+
+    const interval = setInterval(mutateNextCandle, 2600);
+    return () => clearInterval(interval);
+  }, [asset, timeframe]);
+
+  useEffect(() => {
+    // Persist the current view so refresh keeps playback continuity.
+    if (!candles.length) return;
+    persistSnapshot({ candles, miniCharts, overview: overviewStats, pulse, feed });
+  }, [candles, miniCharts, overviewStats, pulse, feed, persistSnapshot]);
+
+  useEffect(() => {
+    setMarkers([]);
+    setFallbackNotice(null);
+
+    const url = resolveWsUrl('/ws/brain');
+    let closed = false;
+    try {
+      const ws = new WebSocket(url);
+      wsRef.current = ws;
+
+      ws.onmessage = (event) => {
+        try {
+          const message = JSON.parse(typeof event.data === 'string' ? event.data : 'null');
+          if (!message) return;
+          const channel = message.channel || message.type;
+          if (channel === 'brain_decision') {
+            const decision = message.data || message;
+            const action = String(decision?.action || 'hold').toLowerCase();
+            const timestamp = Date.parse(decision?.timestamp || '') || Date.now();
+            const id = String(decision?.id || `${timestamp}-${action}`);
+            setMarkers((prev) => [...prev, { id, action, timestamp }].slice(-MAX_MARKERS));
+          }
+        } catch (error) {
+          console.warn('[charts] ws parse error', error);
+        }
+      };
+
+      ws.onerror = () => {
+        if (closed) return;
+        setFallbackNotice('Live brain feed unavailable — showing simulated playback');
+      };
+
+      ws.onclose = () => {
+        closed = true;
+        setFallbackNotice('Live brain feed unavailable — showing simulated playback');
+      };
+    } catch (error) {
+      console.warn('[charts] ws init failed', error);
+      setFallbackNotice('Live brain feed unavailable — showing simulated playback');
+    }
+
+    return () => {
+      closed = true;
+      wsRef.current?.close();
+      wsRef.current = null;
+    };
+  }, [asset, timeframe]);
+
   return (
     <TerminalShell className="stack-gap-lg w-full">
       <GlobalHeroBadge
@@ -136,6 +263,12 @@ export default function ChartsPage() {
       </section>
 
       <Card title="Candlestick Surface" subtitle="Premium OHLC command center">
+        <div className="rounded-xl border border-[color:var(--border-soft)] bg-base/60 px-4 py-2 text-xs uppercase tracking-[0.35em] text-[color:var(--accent-gold)]">
+          {OBS_BADGE}
+          {fallbackNotice && (
+            <span className="ml-3 text-[color:var(--accent-cyan)] normal-case tracking-tight">{fallbackNotice}</span>
+          )}
+        </div>
         <div className="stack-gap-lg">
           <div className="stack-gap-xxs">
             <div className="flex flex-wrap items-end gap-4">
@@ -195,7 +328,13 @@ export default function ChartsPage() {
           </div>
 
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-            <CandlestickChart candles={candles} mode={chartMode} loading={loading || refreshing} onHover={setHoveredCandle} />
+            <CandlestickChart
+              candles={candles}
+              mode={chartMode}
+              loading={loading || refreshing}
+              onHover={setHoveredCandle}
+              markers={markers}
+            />
             <div className="stack-gap-sm">
               <OhlcPanel candle={activeCandle} loading={loading || refreshing} />
               <div className="rounded-2xl border border-dashed border-[color:var(--border-soft)] p-3 text-xs">
