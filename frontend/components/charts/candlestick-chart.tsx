@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent } from "react";
 import Skeleton from "@/components/ui/skeleton";
 import type { Candle } from "@/lib/api/charts";
 import { VolumeBars } from "@/components/charts/volume-bars";
@@ -31,6 +31,11 @@ const AXIS_BOTTOM_GAP = 40;
 const MIN_BUCKET_WIDTH = 7;
 const MIN_VIEWBOX_WIDTH = 480;
 const TOOLTIP_WIDTH = 196;
+const MIN_VISIBLE_CANDLES = 20;
+const BASE_VISIBLE_CANDLES = 120;
+const ZOOM_MIN = 0.6;
+const ZOOM_MAX = 3;
+const ZOOM_STEP = 0.12;
 
 const fallingColor = "rgba(255,99,132,0.85)";
 const risingColor = "var(--accent-green)";
@@ -53,10 +58,25 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
   const [containerWidth, setContainerWidth] = useState(0);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [pointerMode, setPointerMode] = useState<"idle" | "hover" | "touch-preview">("idle");
+  const [panOffset, setPanOffset] = useState(0);
+  const [zoom, setZoom] = useState(1);
+  const [isLive, setIsLive] = useState(true);
+  const dragState = useRef<{ active: boolean; startX: number; startOffset: number }>({ active: false, startX: 0, startOffset: 0 });
 
   const chartHeight = mode === "full" ? 340 : 220;
   const volumeHeight = mode === "full" ? 110 : 70;
   const totalHeight = chartHeight + volumeHeight + PADDING_Y * 2 + AXIS_BOTTOM_GAP;
+
+  const totalCandles = Math.max(candles.length, 1);
+  const desiredVisible = Math.round(
+    Math.min(BASE_VISIBLE_CANDLES, Math.max(candles.length, MIN_VISIBLE_CANDLES)) / Math.max(zoom, ZOOM_MIN)
+  );
+  const visibleCount = clamp(desiredVisible, 1, totalCandles);
+  const maxOffset = Math.max(0, candles.length - visibleCount);
+  const effectiveOffset = clamp(panOffset, 0, maxOffset);
+  const startIndex = Math.max(0, candles.length - visibleCount - effectiveOffset);
+  const endIndex = Math.min(candles.length, startIndex + visibleCount);
+  const renderCandles = candles.slice(startIndex, endIndex);
 
   useEffect(() => {
     const node = containerRef.current;
@@ -85,16 +105,28 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
   }, []);
 
   useEffect(() => {
-    if (hoverIndex != null && hoverIndex >= candles.length) {
+    if (hoverIndex != null && hoverIndex >= renderCandles.length) {
       setHoverIndex(null);
       setPointerMode("idle");
     }
-  }, [candles.length, hoverIndex]);
+  }, [renderCandles.length, hoverIndex]);
+
+  useEffect(() => {
+    if (isLive) {
+      setPanOffset(0);
+    }
+  }, [candles.length, isLive]);
+
+  useEffect(() => {
+    if (panOffset === 0 && !isLive) {
+      setIsLive(true);
+    }
+  }, [panOffset, isLive]);
 
   const buildPayload = (index: number): ChartHoverPayload | null => {
-    const candle = candles[index];
+    const candle = renderCandles[index];
     if (!candle) return null;
-    return { ...candle, index, time: candle.timestamp };
+    return { ...candle, index: startIndex + index, time: candle.timestamp };
   };
 
   const hoverPayload = hoverIndex != null ? buildPayload(hoverIndex) : null;
@@ -104,10 +136,10 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
   }, [hoverPayload, onHover]);
 
   const priceExtremes = useMemo(() => {
-    if (!candles.length) return { min: 0, max: 1 };
-    let min = candles[0].low;
-    let max = candles[0].high;
-    for (const candle of candles) {
+    if (!renderCandles.length) return { min: 0, max: 1 };
+    let min = renderCandles[0].low;
+    let max = renderCandles[0].high;
+    for (const candle of renderCandles) {
       min = Math.min(min, candle.low);
       max = Math.max(max, candle.high);
     }
@@ -115,21 +147,24 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
     const guardRange = rawRange || Math.max(Math.abs(max), 1) * 0.0005;
     const padding = guardRange * 0.02;
     return { min: min - padding, max: max + padding };
-  }, [candles]);
+  }, [renderCandles]);
 
-  const maxVolume = useMemo(() => (candles.length ? Math.max(...candles.map((c) => c.volume)) : 1), [candles]);
+  const maxVolume = useMemo(() => (renderCandles.length ? Math.max(...renderCandles.map((c) => c.volume)) : 1), [renderCandles]);
 
-  const minSeriesWidth = PADDING_X * 2 + Math.max(candles.length, 1) * MIN_BUCKET_WIDTH;
+  const minSeriesWidth = PADDING_X * 2 + Math.max(renderCandles.length, 1) * MIN_BUCKET_WIDTH;
   const viewWidth = Math.max(containerWidth || 0, minSeriesWidth, MIN_VIEWBOX_WIDTH);
   const availableWidth = viewWidth - PADDING_X * 2;
-  const bucketWidth = availableWidth / Math.max(candles.length, 1);
+  const bucketWidth = availableWidth / Math.max(renderCandles.length, 1);
   const candleBodyWidth = Math.min(Math.max(6, bucketWidth * 0.6), Math.max(bucketWidth - 2, 6));
   const priceRange = priceExtremes.max - priceExtremes.min || 1;
 
-  const scaleY = (price: number) => {
-    const normalized = (price - priceExtremes.min) / priceRange;
-    return round(PADDING_Y + chartHeight - normalized * chartHeight);
-  };
+  const scaleY = useCallback(
+    (price: number) => {
+      const normalized = (price - priceExtremes.min) / priceRange;
+      return round(PADDING_Y + chartHeight - normalized * chartHeight);
+    },
+    [priceExtremes.min, priceRange, chartHeight]
+  );
 
   const priceTicks = useMemo(() => {
     const ticks = [] as Array<{ value: number; y: number }>;
@@ -143,21 +178,21 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
 
   const dynamicTimeLabels = Math.max(2, containerWidth < 520 ? BASE_TIME_LABELS - 1 : BASE_TIME_LABELS);
   const timeLabels = useMemo(() => {
-    if (!candles.length) return [] as Array<{ label: string; x: number }>;
+    if (!renderCandles.length) return [] as Array<{ label: string; x: number }>;
     const labels: Array<{ label: string; x: number }> = [];
-    const step = Math.max(1, Math.floor(candles.length / dynamicTimeLabels));
-    for (let i = 0; i < candles.length; i += step) {
-      const candle = candles[i];
+    const step = Math.max(1, Math.floor(renderCandles.length / dynamicTimeLabels));
+    for (let i = 0; i < renderCandles.length; i += step) {
+      const candle = renderCandles[i];
       const centerX = round(PADDING_X + bucketWidth * i + bucketWidth / 2);
       labels.push({ label: formatTimeLabel(candle.timestamp), x: centerX });
     }
-    const last = candles[candles.length - 1];
-    const lastX = round(PADDING_X + bucketWidth * (candles.length - 1) + bucketWidth / 2);
+    const last = renderCandles[renderCandles.length - 1];
+    const lastX = round(PADDING_X + bucketWidth * (renderCandles.length - 1) + bucketWidth / 2);
     if (!labels.find((label) => label.x === lastX)) {
       labels.push({ label: formatTimeLabel(last.timestamp), x: lastX });
     }
     return labels.slice(0, dynamicTimeLabels + 1);
-  }, [candles, bucketWidth, dynamicTimeLabels]);
+  }, [renderCandles, bucketWidth, dynamicTimeLabels]);
 
   const volumeBaseY = PADDING_Y + chartHeight + 24 + volumeHeight;
 
@@ -175,15 +210,35 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
     return round(clamp(scaledX - halfWidth, 12, containerWidth - TOOLTIP_WIDTH - 12));
   }, [containerWidth, crosshairVisible, crosshairX, viewWidth]);
 
+  const applyPanDelta = (deltaCandles: number) => {
+    if (!deltaCandles) return;
+    setPanOffset((current) => {
+      const next = clamp(current + deltaCandles, 0, maxOffset);
+      setIsLive(next === 0);
+      return next;
+    });
+  };
+
   const updateHoverFromEvent = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (!containerRef.current || !candles.length) return;
+    if (!containerRef.current || !renderCandles.length) return;
     const rect = containerRef.current.getBoundingClientRect();
     const ratio = clamp((event.clientX - rect.left) / rect.width, 0, 1);
-    const index = Math.min(candles.length - 1, Math.round(ratio * (candles.length - 1)));
+    const index = Math.min(renderCandles.length - 1, Math.round(ratio * (renderCandles.length - 1)));
     setHoverIndex(index);
   };
 
   const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (dragState.current.active) {
+      const deltaX = event.clientX - dragState.current.startX;
+      const deltaCandles = Math.round(deltaX / Math.max(bucketWidth, 6));
+      const next = clamp(dragState.current.startOffset + deltaCandles, 0, maxOffset);
+      setPanOffset(next);
+      setIsLive(next === 0);
+      setPointerMode("idle");
+      setHoverIndex(null);
+      return;
+    }
+
     if (event.pointerType === "touch" && event.buttons === 1) {
       setPointerMode("idle");
       setHoverIndex(null);
@@ -194,36 +249,99 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
   };
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (event.pointerType !== "touch") return;
-    setPointerMode("touch-preview");
-    updateHoverFromEvent(event);
+    const startOffset = effectiveOffset;
+    dragState.current = { active: true, startX: event.clientX, startOffset };
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch (_error) {
+      /* ignore capture errors */
+    }
+
+    if (event.pointerType === "touch") {
+      setPointerMode("touch-preview");
+      updateHoverFromEvent(event);
+    }
   };
 
   const handlePointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (event.pointerType !== "touch") return;
-    setPointerMode("idle");
-    setHoverIndex(null);
+    dragState.current = { active: false, startX: 0, startOffset: 0 };
+    try {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    } catch (_error) {
+      /* ignore release errors */
+    }
+
+    if (event.pointerType === "touch") {
+      setPointerMode("idle");
+      setHoverIndex(null);
+    }
   };
 
   const handlePointerLeave = () => {
+    dragState.current = { active: false, startX: 0, startOffset: 0 };
     setPointerMode("idle");
     setHoverIndex(null);
   };
 
-  const markerNodes = useMemo(() => {
-    if (!markers.length || !candles.length) return null;
+  const handleWheel = (event: ReactWheelEvent<HTMLDivElement>) => {
+    if (!renderCandles.length) return;
+    const step = Math.max(bucketWidth, 6);
+
+    if (event.ctrlKey || event.metaKey) {
+      event.preventDefault();
+      const direction = event.deltaY > 0 ? 1 : -1;
+      setZoom((current) => clamp(current * (1 + direction * ZOOM_STEP), ZOOM_MIN, ZOOM_MAX));
+      return;
+    }
+
+    const deltaCandles = Math.round(event.deltaX / step);
+    if (deltaCandles) {
+      event.preventDefault();
+      applyPanDelta(deltaCandles);
+    }
+  };
+
+  const resolvedMarkers = useMemo(() => {
+    if (!markers.length || !candles.length) return [] as Array<ChartMarker & { index: number; action: string }>;
 
     const matchIndex = (timestamp: number) => {
       const idx = candles.findIndex((candle) => candle.timestamp >= timestamp);
       return idx === -1 ? candles.length - 1 : idx;
     };
 
-    return markers.slice(-60).map((marker) => {
+    const priority: Record<string, number> = { buy: 2, sell: 1, hold: 0 };
+    const chosen = new Map<number, ChartMarker & { action: string }>();
+
+    markers.forEach((marker) => {
       const normalizedAction = marker.action?.toLowerCase?.() || "hold";
       const index = matchIndex(marker.timestamp);
-      const candle = candles[index];
-      const centerX = round(PADDING_X + bucketWidth * index + bucketWidth / 2);
-      const priceY = scaleY(candle?.close ?? candles[candles.length - 1]?.close ?? 0);
+      const existing = chosen.get(index);
+      const hasPriority = !existing || priority[normalizedAction] > (priority[existing.action] ?? 0);
+      const isNewer = existing ? marker.timestamp >= existing.timestamp : true;
+      if (hasPriority || (!hasPriority && isNewer && priority[normalizedAction] === (priority[existing?.action] ?? 0))) {
+        chosen.set(index, { ...marker, action: normalizedAction });
+      }
+    });
+
+    return Array.from(chosen.entries()).map(([index, marker]) => ({ ...marker, index }));
+  }, [markers, candles]);
+
+  const windowedMarkers = useMemo(
+    () => resolvedMarkers.filter((marker) => marker.index >= startIndex && marker.index < endIndex),
+    [resolvedMarkers, startIndex, endIndex]
+  );
+
+  const markerNodes = useMemo(() => {
+    if (!windowedMarkers.length || !renderCandles.length) return null;
+
+    return windowedMarkers.map((marker) => {
+      const normalizedAction = marker.action || "hold";
+      const localIndex = marker.index - startIndex;
+      const candle = renderCandles[localIndex];
+      if (!candle) return null;
+
+      const centerX = round(PADDING_X + bucketWidth * localIndex + bucketWidth / 2);
+      const priceY = scaleY(candle.close);
       const color = markerColors[normalizedAction] ?? markerColors.hold;
       const size = 10;
       const points = normalizedAction === "sell"
@@ -237,7 +355,7 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
         </g>
       );
     });
-  }, [markers, candles, bucketWidth, priceExtremes.min, priceRange, chartHeight, scaleY]);
+  }, [windowedMarkers, renderCandles, bucketWidth, scaleY, startIndex]);
 
   const showSkeleton = candles.length === 0;
 
@@ -292,7 +410,7 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
 
         {markerNodes}
 
-        {candles.map((candle, index) => {
+        {renderCandles.map((candle, index) => {
           const centerX = round(PADDING_X + bucketWidth * index + bucketWidth / 2);
           const highY = scaleY(candle.high);
           const lowY = scaleY(candle.low);
@@ -330,7 +448,7 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
         })}
 
         <VolumeBars
-          candles={candles}
+          candles={renderCandles}
           bucketWidth={bucketWidth}
           paddingX={PADDING_X}
           maxVolume={maxVolume}
@@ -370,8 +488,23 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerLeave}
+        onWheel={handleWheel}
         aria-hidden="true"
       />
+
+      {!isLive && renderCandles.length > 0 && (
+        <button
+          type="button"
+          className="absolute right-4 bottom-4 rounded-full border border-[color:var(--border-soft)] bg-base/90 px-3 py-1 text-xs uppercase tracking-[0.25em] text-[color:var(--accent-cyan)] shadow-lg"
+          onClick={() => {
+            setPanOffset(0);
+            setZoom(1);
+            setIsLive(true);
+          }}
+        >
+          Return to live
+        </button>
+      )}
 
       <CrosshairTooltip candle={crosshairVisible ? hoverPayload : null} left={tooltipLeft} />
 
