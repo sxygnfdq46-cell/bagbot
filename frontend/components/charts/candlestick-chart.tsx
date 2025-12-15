@@ -26,16 +26,16 @@ export type CandlestickChartProps = {
 const PRICE_TICKS = 5;
 const BASE_TIME_LABELS = 4;
 const PADDING_X = 56;
-const PADDING_Y = 24;
-const AXIS_BOTTOM_GAP = 40;
-const MIN_BUCKET_WIDTH = 7;
+const PADDING_Y = 14;
+const AXIS_BOTTOM_GAP = 32;
+const MIN_BUCKET_WIDTH = 9;
 const MIN_VIEWBOX_WIDTH = 480;
 const TOOLTIP_WIDTH = 196;
 const MIN_VISIBLE_CANDLES = 20;
 const BASE_VISIBLE_CANDLES = 120;
-const ZOOM_MIN = 0.6;
-const ZOOM_MAX = 3;
-const ZOOM_STEP = 0.12;
+const ZOOM_MIN = 0.7;
+const ZOOM_MAX = 3.2;
+const ZOOM_STEP = 0.08;
 
 const fallingColor = "rgba(255,99,132,0.85)";
 const risingColor = "var(--accent-green)";
@@ -51,7 +51,7 @@ const formatTimeLabel = (timestamp: number) => {
 };
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-const round = (value: number) => Math.round(value * 100) / 100;
+const round = (value: number) => Math.round(value * 1000) / 1000;
 
 export default function CandlestickChart({ candles, mode = "full", loading = false, onHover, markers = [] }: CandlestickChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -145,8 +145,10 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
     }
     const rawRange = max - min;
     const guardRange = rawRange || Math.max(Math.abs(max), 1) * 0.0005;
-    const padding = guardRange * 0.02;
-    return { min: min - padding, max: max + padding };
+    const padding = guardRange * 0.01;
+    const midpoint = (max + min) / 2;
+    const halfRange = Math.max(rawRange / 2, guardRange * 0.4);
+    return { min: midpoint - halfRange - padding, max: midpoint + halfRange + padding };
   }, [renderCandles]);
 
   const maxVolume = useMemo(() => (renderCandles.length ? Math.max(...renderCandles.map((c) => c.volume)) : 1), [renderCandles]);
@@ -155,13 +157,14 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
   const viewWidth = Math.max(containerWidth || 0, minSeriesWidth, MIN_VIEWBOX_WIDTH);
   const availableWidth = viewWidth - PADDING_X * 2;
   const bucketWidth = availableWidth / Math.max(renderCandles.length, 1);
-  const candleBodyWidth = Math.min(Math.max(6, bucketWidth * 0.6), Math.max(bucketWidth - 2, 6));
+  const candleBodyWidth = Math.min(Math.max(8, bucketWidth * 0.78), Math.max(bucketWidth - 1, 8));
   const priceRange = priceExtremes.max - priceExtremes.min || 1;
 
   const scaleY = useCallback(
     (price: number) => {
       const normalized = (price - priceExtremes.min) / priceRange;
-      return round(PADDING_Y + chartHeight - normalized * chartHeight);
+      const position = PADDING_Y + chartHeight - normalized * chartHeight;
+      return Math.round(position * 1000) / 1000;
     },
     [priceExtremes.min, priceRange, chartHeight]
   );
@@ -228,6 +231,8 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
   };
 
   const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
     if (dragState.current.active) {
       const deltaX = event.clientX - dragState.current.startX;
       const deltaCandles = Math.round(deltaX / Math.max(bucketWidth, 6));
@@ -249,6 +254,8 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
   };
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
     const startOffset = effectiveOffset;
     dragState.current = { active: true, startX: event.clientX, startOffset };
     try {
@@ -264,6 +271,8 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
   };
 
   const handlePointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
     dragState.current = { active: false, startX: 0, startOffset: 0 };
     try {
       event.currentTarget.releasePointerCapture(event.pointerId);
@@ -284,11 +293,13 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
   };
 
   const handleWheel = (event: ReactWheelEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
     if (!renderCandles.length) return;
     const step = Math.max(bucketWidth, 6);
 
-    if (event.ctrlKey || event.metaKey) {
-      event.preventDefault();
+    const isZoomGesture = event.ctrlKey || event.metaKey || Math.abs(event.deltaY) >= Math.abs(event.deltaX);
+    if (isZoomGesture) {
       const direction = event.deltaY > 0 ? 1 : -1;
       setZoom((current) => clamp(current * (1 + direction * ZOOM_STEP), ZOOM_MIN, ZOOM_MAX));
       return;
@@ -296,7 +307,6 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
 
     const deltaCandles = Math.round(event.deltaX / step);
     if (deltaCandles) {
-      event.preventDefault();
       applyPanDelta(deltaCandles);
     }
   };
@@ -357,6 +367,52 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
     });
   }, [windowedMarkers, renderCandles, bucketWidth, scaleY, startIndex]);
 
+  const insightWindow = useMemo(() => renderCandles.slice(-28), [renderCandles]);
+
+  const biasSummary = useMemo(() => {
+    if (insightWindow.length < 2) {
+      return { bias: "Neutral", slope: 0, rationale: "Awaiting movement" } as const;
+    }
+    const first = insightWindow[0].close;
+    const last = insightWindow[insightWindow.length - 1].close;
+    const slope = last - first;
+    const threshold = Math.max(first * 0.0006, 0.01);
+    const bias = slope > threshold ? "Bullish" : slope < -threshold ? "Bearish" : "Ranging";
+    const rationale = bias === "Ranging" ? "Sideways liquidity build" : `${bias} momentum over last ${insightWindow.length} bars`;
+    return { bias, slope, rationale } as const;
+  }, [insightWindow]);
+
+  const keyLevels = useMemo(() => {
+    if (!insightWindow.length) return null;
+    const support = Math.min(...insightWindow.map((c) => c.low));
+    const resistance = Math.max(...insightWindow.map((c) => c.high));
+    return { support, resistance };
+  }, [insightWindow]);
+
+  const latestMarker = windowedMarkers[windowedMarkers.length - 1];
+  const markerRationale = useMemo(() => {
+    if (!latestMarker || !renderCandles.length) return "Watching order flow";
+    const localIndex = latestMarker.index - startIndex;
+    const candle = renderCandles[localIndex];
+    if (!candle) return "Watching order flow";
+    const bias = biasSummary.bias.toLowerCase();
+    const levelText = keyLevels ? `near ${latestMarker.action === "buy" ? "support" : "resistance"}` : "at local level";
+    return `${latestMarker.action.toUpperCase()} ${levelText} with ${bias} context`;
+  }, [latestMarker, renderCandles, startIndex, biasSummary.bias, keyLevels]);
+
+  const confidence = useMemo(() => {
+    if (!insightWindow.length) return 0.42;
+    const closes = insightWindow.map((c) => c.close);
+    const mean = closes.reduce((sum, v) => sum + v, 0) / closes.length;
+    const variance = closes.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / closes.length;
+    const vol = Math.sqrt(variance);
+    const slope = Math.abs(biasSummary.slope);
+    const normalized = mean ? clamp((slope / Math.max(mean * 0.0025, vol || 1)), 0, 1.4) : 0.4;
+    return Math.min(1, normalized);
+  }, [biasSummary.slope, insightWindow]);
+
+  const lastClose = renderCandles.at(-1)?.close;
+
   const showSkeleton = candles.length === 0;
 
   if (showSkeleton) {
@@ -369,6 +425,37 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
 
   return (
     <div ref={containerRef} className="relative w-full" style={{ minHeight: totalHeight }}>
+      <div className="pointer-events-none absolute left-4 top-4 z-10 flex flex-wrap gap-3 text-xs text-[color:var(--text-main)] opacity-80">
+        <div className="rounded-lg bg-base/80 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)]">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Strategy</p>
+          <p className="font-semibold">Observation Brain</p>
+          <p className="text-[11px] text-[color:var(--accent-gold)]">{biasSummary.bias} bias</p>
+        </div>
+        <div className="rounded-lg bg-base/80 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)]">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Rationale</p>
+          <p className="font-semibold">{markerRationale}</p>
+          <p className="text-[11px] text-[color:var(--text-dim)]">{biasSummary.rationale}</p>
+        </div>
+        {keyLevels && (
+          <div className="rounded-lg bg-base/80 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)]">
+            <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Key levels</p>
+            <p className="font-semibold">Res {keyLevels.resistance.toFixed(2)}</p>
+            <p className="font-semibold">Sup {keyLevels.support.toFixed(2)}</p>
+          </div>
+        )}
+        <div className="rounded-lg bg-base/80 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)]">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Conviction</p>
+          <p className="font-semibold">{Math.round(confidence * 100)}%</p>
+          <p className="text-[11px] text-[color:var(--text-dim)]">Derived from price slope + variability</p>
+        </div>
+        {lastClose && (
+          <div className="rounded-lg bg-base/80 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)]">
+            <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Last price</p>
+            <p className="font-semibold">{lastClose.toFixed(2)}</p>
+          </div>
+        )}
+      </div>
+
       <svg
         role="img"
         aria-label="Candlestick chart"
@@ -419,7 +506,7 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
           const rising = candle.close >= candle.open;
           const candleTop = Math.min(openY, closeY);
           const candleBottom = Math.max(openY, closeY);
-          const candleHeight = Math.max(4, candleBottom - candleTop);
+          const candleHeight = Math.max(6, (candleBottom - candleTop) * 1.08 + 2);
           const bodyColor = rising ? risingColor : fallingColor;
 
           return (
@@ -483,12 +570,13 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
       </svg>
 
       <div
-        className="absolute inset-0 cursor-crosshair"
+        className="absolute inset-0 cursor-crosshair select-none"
         onPointerMove={handlePointerMove}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerLeave}
         onWheel={handleWheel}
+        style={{ touchAction: "none" }}
         aria-hidden="true"
       />
 
