@@ -23,9 +23,24 @@ import { resolveWsUrl } from "@/lib/api-client";
 const TIMEFRAMES = chartsApi.listTimeframes();
 const ASSETS = chartsApi.listAssets();
 const CACHE_KEY = (asset: string, timeframe: string) => `charts-cache-${asset}-${timeframe}`;
-const MAX_CANDLES = 220;
+const WINDOW_BY_TIMEFRAME: Record<string, number> = {
+  '1H': 90,
+  '4H': 140,
+  '1D': 200,
+  '1W': 240,
+  '1M': 260,
+};
+const WINDOW_BUFFER = 12;
+const DEFAULT_WINDOW = 180;
 const MAX_MARKERS = 80;
 const OBS_BADGE = "OBSERVATION MODE — READ-ONLY";
+
+const resolveWindowSize = (frame: string) => WINDOW_BY_TIMEFRAME[frame?.toUpperCase?.() ?? frame] ?? DEFAULT_WINDOW;
+const clampCandlesToWindow = (series: Candle[], frame: string) => {
+  const windowSize = resolveWindowSize(frame);
+  const limit = Math.max(windowSize + WINDOW_BUFFER, windowSize);
+  return series.slice(-limit);
+};
 
 export default function ChartsPage() {
   const [timeframe, setTimeframe] = useState(TIMEFRAMES[0]);
@@ -44,6 +59,7 @@ export default function ChartsPage() {
   const wsRef = useRef<WebSocket | null>(null);
   const heroFeedStatus = `SYNCED • ${timeframe.toUpperCase()}`;
   const heroHint = `Asset ${asset}`;
+  const windowSize = useMemo(() => resolveWindowSize(timeframe), [timeframe]);
 
   const persistSnapshot = useCallback(
     (snapshot: Partial<ChartSnapshot>) => {
@@ -64,14 +80,15 @@ export default function ChartsPage() {
   );
 
   const applySnapshot = useCallback((snapshot: Awaited<ReturnType<typeof chartsApi.getSnapshot>>) => {
-    setCandles(snapshot.candles);
+    const trimmedCandles = clampCandlesToWindow(snapshot.candles, timeframe);
+    setCandles(trimmedCandles);
     setMiniCharts(snapshot.miniCharts);
     setOverviewStats(snapshot.overview);
     setPulse(snapshot.pulse);
     setFeed(snapshot.feed);
     setHoveredCandle(null);
-    persistSnapshot(snapshot);
-  }, [persistSnapshot]);
+    persistSnapshot({ ...snapshot, candles: trimmedCandles });
+  }, [persistSnapshot, timeframe]);
 
   const loadSnapshot = useCallback(async () => {
     try {
@@ -79,7 +96,8 @@ export default function ChartsPage() {
       if (cached) {
         const parsed = JSON.parse(cached);
         if (parsed?.candles?.length) {
-          setCandles(parsed.candles);
+          const trimmedCandles = clampCandlesToWindow(parsed.candles ?? [], timeframe);
+          setCandles(trimmedCandles);
           setMiniCharts(parsed.miniCharts ?? []);
           setOverviewStats(parsed.overview ?? []);
           setPulse(parsed.pulse ?? []);
@@ -113,6 +131,10 @@ export default function ChartsPage() {
     };
   }, [loadSnapshot, applySnapshot]);
 
+  useEffect(() => {
+    setCandles((current) => clampCandlesToWindow(current, timeframe));
+  }, [timeframe]);
+
   const handleRefresh = useCallback(async () => {
     try {
       setRefreshing(true);
@@ -125,13 +147,21 @@ export default function ChartsPage() {
     }
   }, [applySnapshot, asset, timeframe]);
 
+  const visibleCandles = useMemo(() => candles.slice(-windowSize), [candles, windowSize]);
+
   const latestCandle = useMemo(() => {
-    const last = candles.at(-1);
+    const last = visibleCandles.at(-1);
     if (!last) return null;
-    return { ...last, index: candles.length - 1, time: last.timestamp } as ChartHoverPayload;
-  }, [candles]);
+    return { ...last, index: visibleCandles.length - 1, time: last.timestamp } as ChartHoverPayload;
+  }, [visibleCandles]);
 
   const activeCandle = hoveredCandle ?? latestCandle;
+
+  const windowStart = visibleCandles[0]?.timestamp ?? null;
+  const windowMarkers = useMemo(() => {
+    const scoped = windowStart ? markers.filter((marker) => marker.timestamp >= windowStart) : markers;
+    return scoped.slice(-MAX_MARKERS);
+  }, [markers, windowStart]);
 
   useEffect(() => {
     let mounted = true;
@@ -174,8 +204,7 @@ export default function ChartsPage() {
           close,
           volume,
         };
-        const trimmed = [...current.slice(-(MAX_CANDLES - 1)), next];
-        return trimmed;
+        return clampCandlesToWindow([...current, next], timeframe);
       });
     };
 
@@ -330,11 +359,11 @@ export default function ChartsPage() {
 
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
             <CandlestickChart
-              candles={candles}
+              candles={visibleCandles}
               mode={chartMode}
               loading={loading || refreshing}
               onHover={setHoveredCandle}
-              markers={markers}
+              markers={windowMarkers}
             />
             <div className="stack-gap-sm">
               <OhlcPanel candle={activeCandle} loading={loading || refreshing} />
