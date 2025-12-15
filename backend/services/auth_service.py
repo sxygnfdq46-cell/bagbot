@@ -1,4 +1,5 @@
 """Auth service responsible for validating credentials and issuing tokens."""
+import os
 from typing import Dict
 
 from fastapi import HTTPException, status
@@ -14,18 +15,41 @@ class AuthService:
     def __init__(self) -> None:
         self._users: Dict[str, Dict[str, str]] = {}
         self._seed_admin_user()
+        self._seed_observer_user()
 
     def _seed_admin_user(self) -> None:
         """Create the temporary admin user defined in the blueprint."""
 
-        admin_email = "admin@bagbot.ai"
+        admin_email = os.environ.get("BAGBOT_ADMIN_EMAIL", "admin@bagbot.ai")
+        admin_password = os.environ.get("BAGBOT_ADMIN_PASSWORD", "bagbot-admin")
         self._users[admin_email] = {
             "id": "admin-1",
             "name": "Control Admin",
             "email": admin_email,
             "role": "admin",
-            "password_hash": hash_password("bagbot-admin"),
+            "password_hash": hash_password(admin_password),
         }
+
+    def _seed_observer_user(self) -> None:
+        """Provide an observation-only user when observation mode is enabled."""
+
+        observation_mode = os.environ.get("BAGBOT_OBSERVATION_MODE", "0") == "1"
+        if not observation_mode:
+            return
+
+        observer_email = os.environ.get("BAGBOT_OBSERVER_EMAIL", "observer@bagbot.ai")
+        observer_password = os.environ.get("BAGBOT_OBSERVER_PASSWORD", "observer-pass")
+
+        self._users.setdefault(
+            observer_email,
+            {
+                "id": "observer-1",
+                "name": "Observer",
+                "email": observer_email,
+                "role": "observer",
+                "password_hash": hash_password(observer_password),
+            },
+        )
 
     async def login(self, payload: LoginRequest) -> LoginResponse:
         """Validate credentials and return a JWT + profile."""
