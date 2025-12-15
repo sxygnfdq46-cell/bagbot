@@ -28,13 +28,18 @@ def _sign(message: bytes) -> str:
     return _b64_encode(signature)
 
 
-def create_access_token(user_claims: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(
+    user_claims: Dict[str, Any],
+    expires_delta: Optional[timedelta] = None,
+    access_mode: str = "observation",
+) -> str:
     """Create a signed JWT for the provided user claims."""
 
     expire_at = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     payload = {
         "sub": user_claims.get("email"),
         "user": user_claims,
+        "mode": access_mode,
         "exp": int(expire_at.timestamp()),
     }
     header_segment = _b64_encode(json.dumps(_JWT_HEADER, separators=(",", ":"), sort_keys=True).encode())

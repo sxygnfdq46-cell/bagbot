@@ -11,10 +11,12 @@ export type LoginResponse = {
     name?: string;
     role?: string;
   };
+  mode?: string;
 };
 
 export const auth = {
   login: async (payload: LoginPayload) => api.post<LoginResponse>('/api/auth/login', { body: payload, skipAuth: true }),
   logout: async () => api.post('/api/auth/logout', { skipAuth: true }),
-  forgotPassword: async (payload: { email: string }) => api.post('/api/auth/forgot-password', { body: payload, skipAuth: true })
+  forgotPassword: async (payload: { email: string }) => api.post('/api/auth/forgot-password', { body: payload, skipAuth: true }),
+  requestAccess: async (payload: { email: string; reason: string }) => api.post('/api/auth/request-access', { body: payload, skipAuth: true })
 };

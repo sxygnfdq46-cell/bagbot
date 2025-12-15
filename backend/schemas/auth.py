@@ -29,3 +29,10 @@ class ForgotPasswordRequest(BaseModel):
     """Minimal payload for password reset request."""
 
     email: EmailStr
+
+
+class AccessRequest(BaseModel):
+    """Payload for requesting access (replaces signup)."""
+
+    email: EmailStr
+    reason: str

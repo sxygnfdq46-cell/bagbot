@@ -14,6 +14,7 @@ class AuthService:
 
     def __init__(self) -> None:
         self._users: Dict[str, Dict[str, str]] = {}
+        self.observation_mode = os.environ.get("BAGBOT_OBSERVATION_MODE", "1") == "1"
         self._seed_admin_user()
         self._seed_observer_user()
 
@@ -33,7 +34,7 @@ class AuthService:
     def _seed_observer_user(self) -> None:
         """Provide an observation-only user when observation mode is enabled."""
 
-        observation_mode = os.environ.get("BAGBOT_OBSERVATION_MODE", "0") == "1"
+        observation_mode = self.observation_mode
         if not observation_mode:
             return
 
@@ -57,9 +58,11 @@ class AuthService:
         normalized_email = payload.email.lower()
         record = self._users.get(normalized_email)
 
-        observation_mode = os.environ.get("BAGBOT_OBSERVATION_MODE", "0") == "1"
-        if record is None and observation_mode:
-            # Allow observation-only bootstrap credentials without enabling admin powers
+        # Admin path: only env-seeded admin is allowed to remain admin
+        admin_email = os.environ.get("BAGBOT_ADMIN_EMAIL", "admin@bagbot.ai").lower()
+
+        # Observation bootstrap is the default if not admin
+        if record is None and (self.observation_mode or normalized_email != admin_email):
             observer_record = {
                 "id": f"observer-{normalized_email}",
                 "name": payload.email.split("@")[0] or "Observer",
@@ -70,8 +73,16 @@ class AuthService:
             self._users[normalized_email] = observer_record
             record = observer_record
 
-        if record is None or not verify_password(payload.password, record["password_hash"]):
+        if record is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
+        # If existing observer in observation mode, refresh password hash to avoid lockout
+        if record.get("role") == "observer" and (self.observation_mode or normalized_email != admin_email):
+            if not verify_password(payload.password, record["password_hash"]):
+                record["password_hash"] = hash_password(payload.password or "observer-pass")
+        else:
+            if not verify_password(payload.password, record["password_hash"]):
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
         profile = UserProfile(
             id=record["id"],
@@ -79,7 +90,8 @@ class AuthService:
             email=record["email"],
             role=record["role"],
         )
-        token = create_access_token(profile.model_dump())
+        access_mode = "admin" if profile.role == "admin" else "observation"
+        token = create_access_token(profile.model_dump(), access_mode=access_mode)
         return LoginResponse(token=token, user=profile)
 
     async def logout(self) -> dict[str, bool]:

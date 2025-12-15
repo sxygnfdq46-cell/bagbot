@@ -7,6 +7,7 @@ import { tokenStore } from '@/lib/token-store';
 type TokenClaims = {
   role?: string;
   user?: { role?: string };
+  mode?: string;
   [key: string]: unknown;
 };
 
@@ -37,6 +38,12 @@ export const getRoleFromToken = (token: string | null) => {
   return (claims.user as { role?: string } | undefined)?.role ?? claims.role ?? null;
 };
 
+export const getModeFromToken = (token: string | null) => {
+  const claims = decodeClaims(token);
+  if (!claims) return null;
+  return (claims.mode as string | undefined) ?? null;
+};
+
 export const authStore = {
   getToken: () => tokenStore.getToken(),
   setToken: (token: string) => tokenStore.setToken(token),
@@ -53,10 +60,12 @@ export function useAuthToken() {
   }, []);
 
   const role = useMemo(() => getRoleFromToken(token), [token]);
+  const mode = useMemo(() => getModeFromToken(token), [token]);
 
   return {
     token,
     role,
+    mode,
     isAuthenticated: Boolean(token)
   };
 }
