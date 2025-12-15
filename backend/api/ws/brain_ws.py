@@ -2,10 +2,11 @@
 from __future__ import annotations
 
 import contextlib
+import os
 from collections import defaultdict
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 
-from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, WebSocketException
 
 from backend.schemas.auth import UserProfile
 from backend.security.deps import get_current_user_ws
@@ -13,6 +14,7 @@ from backend.security.deps import get_current_user_ws
 router = APIRouter()
 
 _ACTIVE_CONNECTIONS: set[WebSocket] = set()
+_OBSERVATION_MODE = os.environ.get("BAGBOT_OBSERVATION_MODE", "1") == "1"
 
 
 class _WsMetrics:
@@ -92,12 +94,27 @@ async def _compute_decision(signals: Dict[str, Any]) -> Dict[str, Any]:
     return runner.get_brain_decision(signals, metrics_client=_AdapterMetricsProxy())
 
 
+async def _authenticate_or_allow_anonymous(websocket: WebSocket) -> Optional[UserProfile]:
+    """Authenticate if credentials are present; allow anon in observation mode."""
+
+    try:
+        return await get_current_user_ws(websocket)
+    except WebSocketException as exc:
+        if _OBSERVATION_MODE:
+            return None
+
+        await websocket.close(code=exc.code, reason=exc.reason)
+        raise
+
+
 @router.websocket("/brain")
-async def brain_ws_endpoint(
-    websocket: WebSocket,
-    user: UserProfile = Depends(get_current_user_ws),
-) -> None:
-    """Authenticate, relay snapshot payloads to the brain, and stream decisions."""
+async def brain_ws_endpoint(websocket: WebSocket) -> None:
+    """Relay snapshot payloads to the brain and stream decisions (anon allowed in observation)."""
+
+    try:
+        await _authenticate_or_allow_anonymous(websocket)
+    except WebSocketException:
+        return
 
     await websocket.accept()
     _register(websocket)
