@@ -54,7 +54,7 @@ const formatTimeLabel = (timestamp: number) => {
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 const round = (value: number) => Math.round(value * 1000) / 1000;
 
-export default function CandlestickChart({ candles, mode = "full", loading = false, onHover, markers = [], coachEnabled = true }: CandlestickChartProps) {
+export default function CandlestickChart({ candles, mode = "full", loading = false, onHover, markers = [], coachEnabled: _coachEnabled = true }: CandlestickChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const pointerCache = useRef<Map<number, { x: number; y: number }>>(new Map());
   const pinchRef = useRef<{ distance: number } | null>(null);
@@ -476,38 +476,6 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
 
   return (
     <div ref={containerRef} className="relative w-full" style={{ minHeight: renderHeight, height: "100%" }}>
-      {coachEnabled && (
-        <div className="pointer-events-none absolute left-4 top-4 z-10 flex flex-wrap gap-3 text-xs text-[color:var(--text-main)] opacity-85">
-          <div className="rounded-lg bg-base/65 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)] backdrop-blur-sm">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Strategy</p>
-            <p className="font-semibold">Observation Brain</p>
-            <p className="text-[11px] text-[color:var(--accent-gold)]">{biasSummary.bias} bias</p>
-          </div>
-          <div className="rounded-lg bg-base/65 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)] backdrop-blur-sm">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Rationale</p>
-            <p className="font-semibold">{markerRationale}</p>
-            <p className="text-[11px] text-[color:var(--text-dim)]">{biasSummary.rationale}</p>
-          </div>
-          {keyLevels && (
-            <div className="rounded-lg bg-base/65 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)] backdrop-blur-sm">
-              <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Key levels</p>
-              <p className="font-semibold">Res {keyLevels.resistance.toFixed(2)}</p>
-              <p className="font-semibold">Sup {keyLevels.support.toFixed(2)}</p>
-            </div>
-          )}
-          <div className="rounded-lg bg-base/65 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)] backdrop-blur-sm">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Conviction</p>
-            <p className="font-semibold">{Math.round(confidence * 100)}%</p>
-            <p className="text-[11px] text-[color:var(--text-dim)]">Derived from price slope + variability</p>
-          </div>
-          {lastClose && (
-            <div className="rounded-lg bg-base/65 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)] backdrop-blur-sm">
-              <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Last price</p>
-              <p className="font-semibold">{lastClose.toFixed(2)}</p>
-            </div>
-          )}
-        </div>
-      )}
 
       <svg
         role="img"
@@ -561,6 +529,16 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
           const candleBottom = Math.max(openY, closeY);
           const rawBodyHeight = Math.abs(candleBottom - candleTop);
           const candleHeight = clamp(rawBodyHeight * 1.08 + 3, 6, chartHeight * 0.9);
+
+          const wickSpanUpper = candleTop - highY;
+          const wickSpanLower = lowY - candleBottom;
+          const wickSpan = Math.max(0, wickSpanUpper) + Math.max(0, wickSpanLower);
+          const maxWickSpan = Math.max(rawBodyHeight * 2.2, 6);
+          const shouldClampWick = rawBodyHeight < chartHeight * 0.18 && wickSpan > maxWickSpan;
+          const wickExcess = shouldClampWick ? (wickSpan - maxWickSpan) / 2 : 0;
+          const clampedHighY = shouldClampWick ? Math.min(candleTop - 1, highY + wickExcess) : highY;
+          const clampedLowY = shouldClampWick ? Math.max(candleBottom + 1, lowY - wickExcess) : lowY;
+
           const bodyColor = rising ? risingColor : fallingColor;
 
           return (
@@ -568,8 +546,8 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
               <line
                 x1={centerX}
                 x2={centerX}
-                y1={highY}
-                y2={lowY}
+                y1={clampedHighY}
+                y2={clampedLowY}
                 stroke={bodyColor}
                 strokeWidth={wickStroke}
                 style={{ transition: "y1 160ms ease-out, y2 160ms ease-out" }}

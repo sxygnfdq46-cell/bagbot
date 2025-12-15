@@ -311,103 +311,102 @@ export default function ChartsPage() {
         </header>
       </section>
 
+      <div className="stack-gap-md">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[color:var(--border-soft)]/50 bg-base/60 px-4 py-3 sm:px-6">
+          <div className="rounded-xl border border-[color:var(--border-soft)]/80 bg-base/70 px-4 py-2 text-xs uppercase tracking-[0.35em] text-[color:var(--accent-gold)]">
+            {OBS_BADGE}
+            {fallbackNotice && (
+              <span className="ml-3 text-[color:var(--accent-cyan)] normal-case tracking-tight">{fallbackNotice}</span>
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant={chartMode === 'full' ? 'secondary' : 'ghost'}
+              onClick={() => {
+                setChartMode('full');
+                setFocusMode('focus');
+              }}
+              aria-pressed={chartMode === 'full'}
+            >
+              Full view
+            </Button>
+            <Button
+              variant={chartMode === 'mini' ? 'secondary' : 'ghost'}
+              onClick={() => {
+                setChartMode('mini');
+                setFocusMode('normal');
+              }}
+              aria-pressed={chartMode === 'mini'}
+            >
+              Mini view
+            </Button>
+            <Button
+              variant={isImmersive ? 'secondary' : 'ghost'}
+              onClick={() => setFocusMode(isImmersive ? 'focus' : 'immersive')}
+              aria-pressed={isImmersive}
+              className="!px-4 !py-2"
+            >
+              Immersive
+            </Button>
+            <Button
+              variant={coachEnabled ? 'secondary' : 'ghost'}
+              onClick={() => setCoachEnabled((state) => !state)}
+              aria-pressed={coachEnabled}
+              className="!px-4 !py-2"
+            >
+              Coach overlay
+            </Button>
+            <Button variant="secondary" onClick={handleRefresh} isLoading={refreshing} className="!px-4 !py-2">
+              Refresh
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-4 rounded-2xl border border-[color:var(--border-soft)]/30 bg-base/40 p-4 sm:p-6">
+          <div className="stack-gap-xxs">
+            <MetricLabel>Timeframe</MetricLabel>
+            <div className="flex flex-wrap gap-2">
+              {TIMEFRAMES.map((frame) => (
+                <Button
+                  key={frame}
+                  variant={frame === timeframe ? 'primary' : 'secondary'}
+                  className="!px-4 !py-2 text-xs uppercase"
+                  onClick={() => setTimeframe(frame)}
+                  aria-pressed={frame === timeframe}
+                >
+                  {frame}
+                </Button>
+              ))}
+            </div>
+          </div>
+          <div className="stack-gap-xxs">
+            <MetricLabel>Asset</MetricLabel>
+            <select
+              className="field-premium field-premium--select min-w-[180px]"
+              value={asset}
+              onChange={(event) => setAsset(event.target.value)}
+            >
+              {ASSETS.map((ticker) => (
+                <option key={ticker} value={ticker}>
+                  {ticker}
+                </option>
+              ))}
+            </select>
+          </div>
+          {!isImmersive && (
+            <p className="muted-premium text-sm max-w-xl">
+              Crosshair, tooltip, volume, and OHLC data are wired locally. Placeholder controls remain ready for backend streaming contracts.
+            </p>
+          )}
+        </div>
+      </div>
+
       <section
         className="relative isolate overflow-hidden rounded-3xl border border-[color:var(--border-soft)]/40 bg-base/40"
         style={{ minHeight: chartMinHeight, height: chartMinHeight }}
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.06),transparent_45%)]" aria-hidden />
-
-        <div className="pointer-events-auto absolute inset-x-0 top-0 z-30 space-y-3 bg-gradient-to-b from-base/85 via-base/40 to-transparent px-4 py-4 sm:px-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="rounded-xl border border-[color:var(--border-soft)]/80 bg-base/70 px-4 py-2 text-xs uppercase tracking-[0.35em] text-[color:var(--accent-gold)]">
-              {OBS_BADGE}
-              {fallbackNotice && (
-                <span className="ml-3 text-[color:var(--accent-cyan)] normal-case tracking-tight">{fallbackNotice}</span>
-              )}
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant={chartMode === 'full' ? 'secondary' : 'ghost'}
-                onClick={() => {
-                  setChartMode('full');
-                  setFocusMode('focus');
-                }}
-                aria-pressed={chartMode === 'full'}
-              >
-                Full view
-              </Button>
-              <Button
-                variant={chartMode === 'mini' ? 'secondary' : 'ghost'}
-                onClick={() => {
-                  setChartMode('mini');
-                  setFocusMode('normal');
-                }}
-                aria-pressed={chartMode === 'mini'}
-              >
-                Mini view
-              </Button>
-              <Button
-                variant={isImmersive ? 'secondary' : 'ghost'}
-                onClick={() => setFocusMode(isImmersive ? 'focus' : 'immersive')}
-                aria-pressed={isImmersive}
-                className="!px-4 !py-2"
-              >
-                Immersive
-              </Button>
-              <Button
-                variant={coachEnabled ? 'secondary' : 'ghost'}
-                onClick={() => setCoachEnabled((state) => !state)}
-                aria-pressed={coachEnabled}
-                className="!px-4 !py-2"
-              >
-                Coach overlay
-              </Button>
-              <Button variant="secondary" onClick={handleRefresh} isLoading={refreshing} className="!px-4 !py-2">
-                Refresh
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-4">
-            <div className="stack-gap-xxs">
-              <MetricLabel>Timeframe</MetricLabel>
-              <div className="flex flex-wrap gap-2">
-                {TIMEFRAMES.map((frame) => (
-                  <Button
-                    key={frame}
-                    variant={frame === timeframe ? 'primary' : 'secondary'}
-                    className="!px-4 !py-2 text-xs uppercase"
-                    onClick={() => setTimeframe(frame)}
-                    aria-pressed={frame === timeframe}
-                  >
-                    {frame}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            <div className="stack-gap-xxs">
-              <MetricLabel>Asset</MetricLabel>
-              <select
-                className="field-premium field-premium--select min-w-[180px]"
-                value={asset}
-                onChange={(event) => setAsset(event.target.value)}
-              >
-                {ASSETS.map((ticker) => (
-                  <option key={ticker} value={ticker}>
-                    {ticker}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {!isImmersive && (
-              <p className="muted-premium text-sm max-w-xl">
-                Crosshair, tooltip, volume, and OHLC data are wired locally. Placeholder controls remain ready for backend streaming contracts.
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="relative w-full" style={{ minHeight: chartMinHeight, height: "100%", paddingTop: "136px" }}>
+        <div className="relative w-full" style={{ minHeight: chartMinHeight, height: "100%" }}>
           <div className="absolute inset-0">
             <CandlestickChart
               candles={visibleCandles}
@@ -417,22 +416,56 @@ export default function ChartsPage() {
               markers={windowMarkers}
               coachEnabled={coachEnabled}
             />
+          </div>
+        </div>
+      </section>
 
-            <div className="pointer-events-none absolute right-4 top-16 z-20 w-[260px] max-w-[88vw] backdrop-blur-sm">
-              <OhlcPanel candle={activeCandle} loading={loading || refreshing} />
-            </div>
-
-            {isImmersive && (
-              <div className="pointer-events-auto absolute left-4 bottom-4 z-20 flex flex-wrap gap-2">
-                <Button variant="secondary" onClick={() => setFocusMode('focus')} className="!px-3 !py-1 text-xs uppercase">
-                  Exit immersive
-                </Button>
-                <Button variant="ghost" onClick={() => setChartMode('full')} className="!px-3 !py-1 text-xs uppercase opacity-70">
-                  Return to live layout
+      <section className="grid gap-4 md:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="stack-gap-md">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <OhlcPanel candle={activeCandle} loading={loading || refreshing} />
+            {!isImmersive && (
+              <div className="rounded-2xl border border-dashed border-[color:var(--border-soft)] p-3 text-xs">
+                <p className="text-[color:var(--accent-gold)]">Backend wiring placeholder</p>
+                <p className="mt-1 text-sm text-[color:var(--text-main)] opacity-70">
+                  WebSocket + REST endpoints will bind here for live executions once the contracts land in Phase 4.
+                </p>
+                <Button variant="ghost" className="mt-3 w-full opacity-70" disabled>
+                  Awaiting feed binding
                 </Button>
               </div>
             )}
           </div>
+        </div>
+
+        <div className="stack-gap-sm">
+          <div className="rounded-2xl border border-[color:var(--border-soft)]/50 bg-base/70 p-4">
+            <MetricLabel className="text-[color:var(--accent-gold)]">View modes</MetricLabel>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button variant={focusMode !== 'normal' ? 'secondary' : 'ghost'} onClick={() => setFocusMode('focus')} className="!px-3 !py-1 text-xs uppercase">
+                Focus
+              </Button>
+              <Button variant={isImmersive ? 'secondary' : 'ghost'} onClick={() => setFocusMode(isImmersive ? 'focus' : 'immersive')} className="!px-3 !py-1 text-xs uppercase">
+                Immersive
+              </Button>
+              <Button variant="ghost" onClick={() => setChartMode('full')} className="!px-3 !py-1 text-xs uppercase">
+                Return to live layout
+              </Button>
+            </div>
+          </div>
+
+          {isFocus && (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-2">
+              {overviewStats.map((stat) => (
+                <div key={stat.label} className="info-tablet">
+                  <MetricLabel tone={stat.accent}>{stat.label}</MetricLabel>
+                  <p className="metric-value text-2xl" data-variant="muted">
+                    {loading ? <Skeleton className="h-8 w-20" /> : stat.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
       {!isImmersive && (
