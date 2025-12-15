@@ -111,7 +111,9 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
       min = Math.min(min, candle.low);
       max = Math.max(max, candle.high);
     }
-    const padding = (max - min || 1) * 0.05;
+    const rawRange = max - min;
+    const guardRange = rawRange || Math.max(Math.abs(max), 1) * 0.0005;
+    const padding = guardRange * 0.02;
     return { min: min - padding, max: max + padding };
   }, [candles]);
 
@@ -121,7 +123,7 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
   const viewWidth = Math.max(containerWidth || 0, minSeriesWidth, MIN_VIEWBOX_WIDTH);
   const availableWidth = viewWidth - PADDING_X * 2;
   const bucketWidth = availableWidth / Math.max(candles.length, 1);
-  const candleBodyWidth = Math.min(Math.max(5, bucketWidth * 0.55), Math.max(bucketWidth - 2, 5));
+  const candleBodyWidth = Math.min(Math.max(6, bucketWidth * 0.6), Math.max(bucketWidth - 2, 6));
   const priceRange = priceExtremes.max - priceExtremes.min || 1;
 
   const scaleY = (price: number) => {
@@ -299,7 +301,7 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
           const rising = candle.close >= candle.open;
           const candleTop = Math.min(openY, closeY);
           const candleBottom = Math.max(openY, closeY);
-          const candleHeight = Math.max(2, candleBottom - candleTop);
+          const candleHeight = Math.max(4, candleBottom - candleTop);
           const bodyColor = rising ? risingColor : fallingColor;
 
           return (
