@@ -67,6 +67,18 @@ function ActivityMapPanel() {
   const [status, setStatus] = useState<BrainActivityResponse['status']>('syncing');
   const [wsStatus, setWsStatus] = useState<WsStatus>('disconnected');
 
+  const normalizeActivityEvent = (event: any): BrainActivityEvent => ({
+    id: String(event?.id ?? `activity-${Date.now()}`),
+    label: String(event?.label ?? 'Decision'),
+    location: String(event?.location ?? 'Observation'),
+    intensity: Number.isFinite(Number(event?.intensity)) ? Number(event.intensity) : 0,
+    status: (typeof event?.status === 'string' ? event.status : 'stable') as BrainActivityEvent['status'],
+    timestamp: String(event?.timestamp ?? '')
+  });
+
+  const coerceActivityEvents = (value: unknown): BrainActivityEvent[] =>
+    (Array.isArray(value) ? value : []).map(normalizeActivityEvent);
+
   useEffect(() => {
     let warnedOffline = false;
     let mounted = true;
@@ -77,8 +89,9 @@ function ActivityMapPanel() {
       try {
         const response = await brainApi.getActivityMap();
         if (!mounted) return;
-        setEvents(response.events);
-        setStatus(response.status);
+        const normalizedEvents = coerceActivityEvents(response?.events);
+        setEvents(normalizedEvents);
+        setStatus(response.status ?? (normalizedEvents.length ? 'live' : 'syncing'));
         if (response.status !== 'offline') {
           warnedOffline = false;
         }
@@ -94,19 +107,9 @@ function ActivityMapPanel() {
 
     const unsubscribeActivity = wsClient.subscribe('brain_activity', (data) => {
       if (!mounted) return;
-      if (Array.isArray(data)) {
-        setEvents(
-          data.map((event) => ({
-            id: String(event.id),
-            label: String(event.label ?? 'Decision'),
-            location: String(event.location ?? 'Observation'),
-            intensity: Number(event.intensity ?? 0),
-            status: (event.status as BrainActivityEvent['status']) ?? 'stable',
-            timestamp: String(event.timestamp ?? '')
-          }))
-        );
-        setStatus('live');
-      }
+      const nextEvents = coerceActivityEvents(data);
+      setEvents(nextEvents);
+      setStatus(nextEvents.length ? 'live' : 'syncing');
     });
 
     const unsubscribeWsStatus = wsClient.onStatusChange((next) => {
@@ -145,10 +148,10 @@ function ActivityMapPanel() {
         {status === 'offline' && (
           <p className="text-xs text-red-400">Channel offline — attempting to resubscribe.</p>
         )}
-        {events.length === 0 ? (
+        {Array.isArray(events) && events.length === 0 ? (
           <p className="text-sm text-[color:var(--text-main)] opacity-60">Awaiting telemetry…</p>
         ) : (
-          events.map((event) => (
+          (Array.isArray(events) ? events : []).map((event) => (
             <div key={event.id} className="data-soft-fade rounded-2xl border border-[color:var(--border-soft)] bg-base/70 p-3">
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs uppercase tracking-[0.3em]">
                 <span>{event.location}</span>
@@ -313,6 +316,16 @@ function DecisionTimelinePanel() {
   const [loading, setLoading] = useState(true);
   const { notify } = useToast();
 
+  const clamp = (value: number) => Math.min(1, Math.max(0, value));
+  const normalizeDecision = (input: any): BrainDecision => ({
+    id: String(input?.request_id ?? input?.id ?? `decision-${Date.now()}`),
+    timestamp: String(input?.timestamp ?? input?.time ?? new Date().toISOString()),
+    outcome: String(input?.outcome ?? input?.label ?? input?.action ?? input?.reason ?? 'decision'),
+    confidence: clamp(Number.isFinite(Number(input?.confidence ?? input?.intensity)) ? Number(input.confidence ?? input.intensity) : 0)
+  });
+
+  const coerceDecisionList = (value: unknown): BrainDecision[] => (Array.isArray(value) ? value : []).map(normalizeDecision);
+
   useEffect(() => {
     let mounted = true;
     setLoading(true);
@@ -320,7 +333,7 @@ function DecisionTimelinePanel() {
     brainApi
       .getRecentDecisions()
       .then((response) => {
-        if (mounted) setDecisions(response.decisions ?? []);
+        if (mounted) setDecisions(coerceDecisionList(response?.decisions));
       })
       .catch((error) => {
         notify({ title: 'Decision feed offline', description: error instanceof Error ? error.message : 'Unknown error', variant: 'error' });
@@ -330,19 +343,21 @@ function DecisionTimelinePanel() {
       });
 
     const unsubscribeActivity = wsClient.subscribe('brain_activity', (data) => {
-      if (!mounted || !Array.isArray(data)) return;
-      const nextDecisions: BrainDecision[] = data.map((event) => ({
-        id: String(event.id ?? `decision-${Date.now()}`),
-        timestamp: String(event.timestamp ?? ''),
-        outcome: String(event.label ?? 'decision'),
-        confidence: Math.max(0, Math.min(1, Number(event.intensity ?? 0)))
-      }));
+      if (!mounted) return;
+      const nextDecisions = coerceDecisionList(data);
       setDecisions(nextDecisions);
+    });
+
+    const unsubscribeBrainDecisions = wsClient.subscribe('brain_decision', (message) => {
+      if (!mounted || typeof message !== 'object' || message === null) return;
+      const decision = normalizeDecision(message);
+      setDecisions((prev) => [decision, ...coerceDecisionList(prev)].slice(0, 25));
     });
 
     return () => {
       mounted = false;
       unsubscribeActivity?.();
+      unsubscribeBrainDecisions?.();
     };
   }, [notify]);
 
@@ -350,11 +365,11 @@ function DecisionTimelinePanel() {
     <Card title="Decision Timeline" subtitle="Latest calls, confidence, and outcomes">
       {loading ? (
         <Skeleton className="h-32 w-full" />
-      ) : decisions.length === 0 ? (
+      ) : (Array.isArray(decisions) ? decisions : []).length === 0 ? (
         <p className="text-sm text-[color:var(--text-main)] opacity-60">No recorded decisions.</p>
       ) : (
         <ul className="stack-gap-sm">
-          {decisions.map((decision) => (
+          {(Array.isArray(decisions) ? decisions : []).map((decision) => (
             <li key={decision.id} className="data-soft-fade rounded-2xl border border-[color:var(--border-soft)] bg-base/70 p-3">
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs uppercase tracking-[0.3em]">
                 <span>{decision.timestamp}</span>

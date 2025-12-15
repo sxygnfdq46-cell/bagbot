@@ -120,8 +120,20 @@ class WebSocketClient {
   private handleMessage(event: MessageEvent) {
     try {
       const parsed = JSON.parse(event.data ?? '{}');
-      const channel = typeof parsed?.channel === 'string' ? parsed.channel : undefined;
-      const data = Object.prototype.hasOwnProperty.call(parsed, 'data') ? parsed.data : parsed;
+      if (parsed === null || (typeof parsed !== 'object' && !Array.isArray(parsed))) return;
+
+      const hasData = typeof parsed === 'object' && parsed !== null && Object.prototype.hasOwnProperty.call(parsed, 'data');
+      let channel = typeof (parsed as any)?.channel === 'string' ? (parsed as any).channel : undefined;
+      let data = hasData ? (parsed as any).data : parsed;
+
+      // Map typed backend messages (e.g., brain-decision) into virtual channels
+      if (!channel && typeof parsed?.type === 'string') {
+        const kind = parsed.type.toLowerCase();
+        if (kind === 'brain-decision') channel = 'brain_decision';
+        else if (kind === 'brain-online' || kind === 'brain-error') channel = 'brain_status';
+        else if (kind === 'heartbeat') channel = 'heartbeat';
+      }
+
       if (!channel) return;
       const channelListeners = this.listeners.get(channel);
       if (!channelListeners || channelListeners.size === 0) return;
@@ -151,4 +163,3 @@ class WebSocketClient {
 }
 
 export const wsClient = new WebSocketClient();
-``
