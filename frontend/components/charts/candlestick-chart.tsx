@@ -21,6 +21,7 @@ export type CandlestickChartProps = {
   loading?: boolean;
   onHover?: (candle: ChartHoverPayload | null) => void;
   markers?: ChartMarker[];
+  coachEnabled?: boolean;
 };
 
 const PRICE_TICKS = 5;
@@ -53,8 +54,10 @@ const formatTimeLabel = (timestamp: number) => {
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 const round = (value: number) => Math.round(value * 1000) / 1000;
 
-export default function CandlestickChart({ candles, mode = "full", loading = false, onHover, markers = [] }: CandlestickChartProps) {
+export default function CandlestickChart({ candles, mode = "full", loading = false, onHover, markers = [], coachEnabled = true }: CandlestickChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const pointerCache = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchRef = useRef<{ distance: number } | null>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [pointerMode, setPointerMode] = useState<"idle" | "hover" | "touch-preview">("idle");
@@ -233,6 +236,26 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
   const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.stopPropagation();
+    if (pointerCache.current.has(event.pointerId)) {
+      pointerCache.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    }
+
+    if (pointerCache.current.size >= 2 && pinchRef.current) {
+      const points = Array.from(pointerCache.current.values());
+      const dx = points[0].x - points[1].x;
+      const dy = points[0].y - points[1].y;
+      const nextDistance = Math.hypot(dx, dy);
+      if (nextDistance && pinchRef.current.distance) {
+        const ratio = nextDistance / pinchRef.current.distance;
+        setZoom((current) => clamp(current * ratio, ZOOM_MIN, ZOOM_MAX));
+        pinchRef.current = { distance: nextDistance };
+        setPointerMode("idle");
+        setHoverIndex(null);
+        setIsLive(false);
+      }
+      return;
+    }
+
     if (dragState.current.active) {
       const deltaX = event.clientX - dragState.current.startX;
       const deltaCandles = Math.round(deltaX / Math.max(bucketWidth, 6));
@@ -258,6 +281,13 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
     event.stopPropagation();
     const startOffset = effectiveOffset;
     dragState.current = { active: true, startX: event.clientX, startOffset };
+    pointerCache.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (pointerCache.current.size === 2) {
+      const points = Array.from(pointerCache.current.values());
+      const dx = points[0].x - points[1].x;
+      const dy = points[0].y - points[1].y;
+      pinchRef.current = { distance: Math.hypot(dx, dy) };
+    }
     try {
       event.currentTarget.setPointerCapture(event.pointerId);
     } catch (_error) {
@@ -274,6 +304,10 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
     event.preventDefault();
     event.stopPropagation();
     dragState.current = { active: false, startX: 0, startOffset: 0 };
+    pointerCache.current.delete(event.pointerId);
+    if (pointerCache.current.size < 2) {
+      pinchRef.current = null;
+    }
     try {
       event.currentTarget.releasePointerCapture(event.pointerId);
     } catch (_error) {
@@ -288,6 +322,8 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
 
   const handlePointerLeave = () => {
     dragState.current = { active: false, startX: 0, startOffset: 0 };
+    pointerCache.current.clear();
+    pinchRef.current = null;
     setPointerMode("idle");
     setHoverIndex(null);
   };
@@ -425,36 +461,38 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
 
   return (
     <div ref={containerRef} className="relative w-full" style={{ minHeight: totalHeight }}>
-      <div className="pointer-events-none absolute left-4 top-4 z-10 flex flex-wrap gap-3 text-xs text-[color:var(--text-main)] opacity-80">
-        <div className="rounded-lg bg-base/80 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)]">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Strategy</p>
-          <p className="font-semibold">Observation Brain</p>
-          <p className="text-[11px] text-[color:var(--accent-gold)]">{biasSummary.bias} bias</p>
-        </div>
-        <div className="rounded-lg bg-base/80 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)]">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Rationale</p>
-          <p className="font-semibold">{markerRationale}</p>
-          <p className="text-[11px] text-[color:var(--text-dim)]">{biasSummary.rationale}</p>
-        </div>
-        {keyLevels && (
+      {coachEnabled && (
+        <div className="pointer-events-none absolute left-4 top-4 z-10 flex flex-wrap gap-3 text-xs text-[color:var(--text-main)] opacity-80">
           <div className="rounded-lg bg-base/80 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)]">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Key levels</p>
-            <p className="font-semibold">Res {keyLevels.resistance.toFixed(2)}</p>
-            <p className="font-semibold">Sup {keyLevels.support.toFixed(2)}</p>
+            <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Strategy</p>
+            <p className="font-semibold">Observation Brain</p>
+            <p className="text-[11px] text-[color:var(--accent-gold)]">{biasSummary.bias} bias</p>
           </div>
-        )}
-        <div className="rounded-lg bg-base/80 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)]">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Conviction</p>
-          <p className="font-semibold">{Math.round(confidence * 100)}%</p>
-          <p className="text-[11px] text-[color:var(--text-dim)]">Derived from price slope + variability</p>
-        </div>
-        {lastClose && (
           <div className="rounded-lg bg-base/80 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)]">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Last price</p>
-            <p className="font-semibold">{lastClose.toFixed(2)}</p>
+            <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Rationale</p>
+            <p className="font-semibold">{markerRationale}</p>
+            <p className="text-[11px] text-[color:var(--text-dim)]">{biasSummary.rationale}</p>
           </div>
-        )}
-      </div>
+          {keyLevels && (
+            <div className="rounded-lg bg-base/80 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)]">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Key levels</p>
+              <p className="font-semibold">Res {keyLevels.resistance.toFixed(2)}</p>
+              <p className="font-semibold">Sup {keyLevels.support.toFixed(2)}</p>
+            </div>
+          )}
+          <div className="rounded-lg bg-base/80 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)]">
+            <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Conviction</p>
+            <p className="font-semibold">{Math.round(confidence * 100)}%</p>
+            <p className="text-[11px] text-[color:var(--text-dim)]">Derived from price slope + variability</p>
+          </div>
+          {lastClose && (
+            <div className="rounded-lg bg-base/80 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)]">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Last price</p>
+              <p className="font-semibold">{lastClose.toFixed(2)}</p>
+            </div>
+          )}
+        </div>
+      )}
 
       <svg
         role="img"

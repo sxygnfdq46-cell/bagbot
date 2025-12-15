@@ -54,12 +54,16 @@ export default function ChartsPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [chartMode, setChartMode] = useState<"full" | "mini">("full");
+  const [focusMode, setFocusMode] = useState<"normal" | "focus" | "immersive">("normal");
+  const [coachEnabled, setCoachEnabled] = useState(true);
   const [hoveredCandle, setHoveredCandle] = useState<ChartHoverPayload | null>(null);
   const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const heroFeedStatus = `SYNCED • ${timeframe.toUpperCase()}`;
   const heroHint = `Asset ${asset}`;
   const windowSize = useMemo(() => resolveWindowSize(timeframe), [timeframe]);
+  const isFocus = focusMode !== 'normal';
+  const isImmersive = focusMode === 'immersive';
 
   const persistSnapshot = useCallback(
     (snapshot: Partial<ChartSnapshot>) => {
@@ -130,6 +134,16 @@ export default function ChartsPage() {
       mounted = false;
     };
   }, [loadSnapshot, applySnapshot]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const width = window.innerWidth;
+    if (width < 780) {
+      setFocusMode('immersive');
+    } else if (width < 1100 && focusMode === 'normal') {
+      setFocusMode('focus');
+    }
+  }, [focusMode]);
 
   useEffect(() => {
     setCandles((current) => clampCandlesToWindow(current, timeframe));
@@ -335,17 +349,39 @@ export default function ChartsPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <Button
                   variant={chartMode === 'full' ? 'secondary' : 'ghost'}
-                  onClick={() => setChartMode('full')}
+                  onClick={() => {
+                    setChartMode('full');
+                    setFocusMode('focus');
+                  }}
                   aria-pressed={chartMode === 'full'}
                 >
                   Full view
                 </Button>
                 <Button
                   variant={chartMode === 'mini' ? 'secondary' : 'ghost'}
-                  onClick={() => setChartMode('mini')}
+                  onClick={() => {
+                    setChartMode('mini');
+                    setFocusMode('normal');
+                  }}
                   aria-pressed={chartMode === 'mini'}
                 >
                   Mini view
+                </Button>
+                <Button
+                  variant={isImmersive ? 'secondary' : 'ghost'}
+                  onClick={() => setFocusMode(isImmersive ? 'focus' : 'immersive')}
+                  aria-pressed={isImmersive}
+                  className="!px-4 !py-2"
+                >
+                  Immersive
+                </Button>
+                <Button
+                  variant={coachEnabled ? 'secondary' : 'ghost'}
+                  onClick={() => setCoachEnabled((state) => !state)}
+                  aria-pressed={coachEnabled}
+                  className="!px-4 !py-2"
+                >
+                  Coach overlay
                 </Button>
                 <Button variant="secondary" onClick={handleRefresh} isLoading={refreshing} className="!px-4 !py-2">
                   Refresh
@@ -357,26 +393,49 @@ export default function ChartsPage() {
             </p>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-            <CandlestickChart
-              candles={visibleCandles}
-              mode={chartMode}
-              loading={loading || refreshing}
-              onHover={setHoveredCandle}
-              markers={windowMarkers}
-            />
-            <div className="stack-gap-sm">
-              <OhlcPanel candle={activeCandle} loading={loading || refreshing} />
-              <div className="rounded-2xl border border-dashed border-[color:var(--border-soft)] p-3 text-xs">
-                <p className="text-[color:var(--accent-gold)]">Backend wiring placeholder</p>
-                <p className="mt-1 text-sm text-[color:var(--text-main)] opacity-70">
-                  WebSocket + REST endpoints will bind here for live executions once the contracts land in Phase 4.
-                </p>
-                <Button variant="ghost" className="mt-3 w-full opacity-70" disabled>
-                  Awaiting feed binding
-                </Button>
-              </div>
+          <div className={isFocus ? "grid gap-4" : "grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]"}>
+            <div className="relative w-full">
+              <CandlestickChart
+                candles={visibleCandles}
+                mode={isImmersive ? 'full' : chartMode}
+                loading={loading || refreshing}
+                onHover={setHoveredCandle}
+                markers={windowMarkers}
+                coachEnabled={coachEnabled}
+              />
+
+              {isFocus && (
+                <div className="pointer-events-none absolute right-4 top-4 z-20 w-[260px] max-w-[90vw]">
+                  <OhlcPanel candle={activeCandle} loading={loading || refreshing} />
+                </div>
+              )}
+
+              {isImmersive && (
+                <div className="pointer-events-auto absolute left-4 bottom-4 z-20 flex gap-2">
+                  <Button variant="secondary" onClick={() => setFocusMode('focus')} className="!px-3 !py-1 text-xs uppercase">
+                    Exit immersive
+                  </Button>
+                  <Button variant="ghost" onClick={() => setChartMode('full')} className="!px-3 !py-1 text-xs uppercase opacity-70">
+                    Return to live layout
+                  </Button>
+                </div>
+              )}
             </div>
+
+            {!isFocus && (
+              <div className="stack-gap-sm">
+                <OhlcPanel candle={activeCandle} loading={loading || refreshing} />
+                <div className="rounded-2xl border border-dashed border-[color:var(--border-soft)] p-3 text-xs">
+                  <p className="text-[color:var(--accent-gold)]">Backend wiring placeholder</p>
+                  <p className="mt-1 text-sm text-[color:var(--text-main)] opacity-70">
+                    WebSocket + REST endpoints will bind here for live executions once the contracts land in Phase 4.
+                  </p>
+                  <Button variant="ghost" className="mt-3 w-full opacity-70" disabled>
+                    Awaiting feed binding
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="grid-premium sm:grid-cols-2 lg:grid-cols-4">
