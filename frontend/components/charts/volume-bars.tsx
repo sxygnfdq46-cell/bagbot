@@ -19,7 +19,7 @@ const round = (value: number) => Math.round(value * 100) / 100;
 export function VolumeBars({ candles, bucketWidth, paddingX, maxVolume, height, baseY }: VolumeBarsProps) {
   if (!candles.length || !maxVolume) return null;
 
-  const barWidth = Math.min(Math.max(3, bucketWidth * 0.4), Math.max(bucketWidth - 2, 3));
+  const barWidth = Math.min(Math.max(3, bucketWidth * 0.36), Math.max(bucketWidth - 3, 3));
 
   return (
     <g data-layer="volume-bars">
@@ -39,7 +39,7 @@ export function VolumeBars({ candles, bucketWidth, paddingX, maxVolume, height, 
             height={round(barHeight)}
             rx={barWidth / 4}
             fill={barColor}
-            opacity={0.25}
+            opacity={0.18}
             style={{ transition: "y 160ms ease-out, height 160ms ease-out" }}
           />
         );

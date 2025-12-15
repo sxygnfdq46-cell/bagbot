@@ -59,6 +59,7 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
   const pointerCache = useRef<Map<number, { x: number; y: number }>>(new Map());
   const pinchRef = useRef<{ distance: number } | null>(null);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(0);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [pointerMode, setPointerMode] = useState<"idle" | "hover" | "touch-preview">("idle");
   const [panOffset, setPanOffset] = useState(0);
@@ -66,9 +67,11 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
   const [isLive, setIsLive] = useState(true);
   const dragState = useRef<{ active: boolean; startX: number; startOffset: number }>({ active: false, startX: 0, startOffset: 0 });
 
-  const chartHeight = mode === "full" ? 340 : 220;
-  const volumeHeight = mode === "full" ? 110 : 70;
+  const measuredHeight = containerHeight || (mode === "full" ? 620 : 420);
+  const chartHeight = Math.max(300, Math.min(measuredHeight * (mode === "full" ? 0.7 : 0.62), 880));
+  const volumeHeight = Math.max(80, Math.min(measuredHeight * 0.18, mode === "full" ? 220 : 160));
   const totalHeight = chartHeight + volumeHeight + PADDING_Y * 2 + AXIS_BOTTOM_GAP;
+  const renderHeight = Math.max(totalHeight, containerHeight || totalHeight);
 
   const totalCandles = Math.max(candles.length, 1);
   const desiredVisible = Math.round(
@@ -82,15 +85,25 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
   const renderCandles = candles.slice(startIndex, endIndex);
 
   useEffect(() => {
+    if (Math.abs(zoom - 1) > 0.05 && isLive) {
+      setIsLive(false);
+    } else if (Math.abs(zoom - 1) <= 0.01 && panOffset === 0 && !isLive) {
+      setIsLive(true);
+    }
+  }, [zoom, panOffset, isLive]);
+
+  useEffect(() => {
     const node = containerRef.current;
     if (!node) return;
 
-    const updateWidth = (width: number) => {
-      const next = Math.round(width);
-      setContainerWidth((current) => (current !== next ? next : current));
+    const updateSize = (rect: DOMRectReadOnly | DOMRect) => {
+      const nextWidth = Math.round(rect.width);
+      const nextHeight = Math.round(rect.height);
+      setContainerWidth((current) => (current !== nextWidth ? nextWidth : current));
+      setContainerHeight((current) => (current !== nextHeight ? nextHeight : current));
     };
 
-    const measure = () => updateWidth(node.getBoundingClientRect().width);
+    const measure = () => updateSize(node.getBoundingClientRect());
     measure();
 
     if (typeof ResizeObserver === "undefined") {
@@ -101,7 +114,7 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (!entry) return;
-      updateWidth(entry.contentRect.width);
+      updateSize(entry.contentRect);
     });
     observer.observe(node);
     return () => observer.disconnect();
@@ -140,18 +153,17 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
 
   const priceExtremes = useMemo(() => {
     if (!renderCandles.length) return { min: 0, max: 1 };
+
     let min = renderCandles[0].low;
     let max = renderCandles[0].high;
     for (const candle of renderCandles) {
       min = Math.min(min, candle.low);
       max = Math.max(max, candle.high);
     }
-    const rawRange = max - min;
-    const guardRange = rawRange || Math.max(Math.abs(max), 1) * 0.0005;
-    const padding = guardRange * 0.01;
-    const midpoint = (max + min) / 2;
-    const halfRange = Math.max(rawRange / 2, guardRange * 0.4);
-    return { min: midpoint - halfRange - padding, max: midpoint + halfRange + padding };
+
+    const range = max - min;
+    const epsilon = range === 0 ? Math.max(Math.abs(max) * 0.001, 0.05) : Math.max(range * 0.004, 0.02);
+    return { min: min - epsilon, max: max + epsilon };
   }, [renderCandles]);
 
   const maxVolume = useMemo(() => (renderCandles.length ? Math.max(...renderCandles.map((c) => c.volume)) : 1), [renderCandles]);
@@ -160,8 +172,10 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
   const viewWidth = Math.max(containerWidth || 0, minSeriesWidth, MIN_VIEWBOX_WIDTH);
   const availableWidth = viewWidth - PADDING_X * 2;
   const bucketWidth = availableWidth / Math.max(renderCandles.length, 1);
-  const candleBodyWidth = Math.min(Math.max(8, bucketWidth * 0.78), Math.max(bucketWidth - 1, 8));
-  const priceRange = priceExtremes.max - priceExtremes.min || 1;
+  const densityBoost = clamp(Math.sqrt(BASE_VISIBLE_CANDLES / Math.max(visibleCount, 1)), 0.85, 1.85);
+  const candleBodyWidth = clamp(bucketWidth * 0.68 * densityBoost, 7, Math.max(bucketWidth - 2, 8));
+  const wickStroke = clamp(1.1 * Math.min(densityBoost, 1.4), 1, 2.1);
+  const priceRange = Math.max(priceExtremes.max - priceExtremes.min, 1e-9);
 
   const scaleY = useCallback(
     (price: number) => {
@@ -338,6 +352,7 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
     if (isZoomGesture) {
       const direction = event.deltaY > 0 ? 1 : -1;
       setZoom((current) => clamp(current * (1 + direction * ZOOM_STEP), ZOOM_MIN, ZOOM_MAX));
+      setIsLive(false);
       return;
     }
 
@@ -453,40 +468,40 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
 
   if (showSkeleton) {
     return (
-      <div ref={containerRef} className="w-full" style={{ minHeight: totalHeight }}>
+      <div ref={containerRef} className="w-full" style={{ minHeight: renderHeight }}>
         <Skeleton className="w-full" style={{ height: chartHeight + volumeHeight + PADDING_Y * 2 }} />
       </div>
     );
   }
 
   return (
-    <div ref={containerRef} className="relative w-full" style={{ minHeight: totalHeight }}>
+    <div ref={containerRef} className="relative w-full" style={{ minHeight: renderHeight, height: "100%" }}>
       {coachEnabled && (
-        <div className="pointer-events-none absolute left-4 top-4 z-10 flex flex-wrap gap-3 text-xs text-[color:var(--text-main)] opacity-80">
-          <div className="rounded-lg bg-base/80 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)]">
+        <div className="pointer-events-none absolute left-4 top-4 z-10 flex flex-wrap gap-3 text-xs text-[color:var(--text-main)] opacity-85">
+          <div className="rounded-lg bg-base/65 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)] backdrop-blur-sm">
             <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Strategy</p>
             <p className="font-semibold">Observation Brain</p>
             <p className="text-[11px] text-[color:var(--accent-gold)]">{biasSummary.bias} bias</p>
           </div>
-          <div className="rounded-lg bg-base/80 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)]">
+          <div className="rounded-lg bg-base/65 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)] backdrop-blur-sm">
             <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Rationale</p>
             <p className="font-semibold">{markerRationale}</p>
             <p className="text-[11px] text-[color:var(--text-dim)]">{biasSummary.rationale}</p>
           </div>
           {keyLevels && (
-            <div className="rounded-lg bg-base/80 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)]">
+            <div className="rounded-lg bg-base/65 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)] backdrop-blur-sm">
               <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Key levels</p>
               <p className="font-semibold">Res {keyLevels.resistance.toFixed(2)}</p>
               <p className="font-semibold">Sup {keyLevels.support.toFixed(2)}</p>
             </div>
           )}
-          <div className="rounded-lg bg-base/80 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)]">
+          <div className="rounded-lg bg-base/65 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)] backdrop-blur-sm">
             <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Conviction</p>
             <p className="font-semibold">{Math.round(confidence * 100)}%</p>
             <p className="text-[11px] text-[color:var(--text-dim)]">Derived from price slope + variability</p>
           </div>
           {lastClose && (
-            <div className="rounded-lg bg-base/80 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)]">
+            <div className="rounded-lg bg-base/65 px-3 py-2 shadow-lg ring-1 ring-[color:var(--border-soft)] backdrop-blur-sm">
               <p className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">Last price</p>
               <p className="font-semibold">{lastClose.toFixed(2)}</p>
             </div>
@@ -497,10 +512,10 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
       <svg
         role="img"
         aria-label="Candlestick chart"
-        viewBox={`0 0 ${viewWidth} ${totalHeight}`}
+        viewBox={`0 0 ${viewWidth} ${renderHeight}`}
         preserveAspectRatio="none"
         className="w-full"
-        height={totalHeight}
+        height={renderHeight}
       >
         <rect
           x={PADDING_X / 2}
@@ -509,7 +524,7 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
           height={chartHeight + volumeHeight + AXIS_BOTTOM_GAP / 2}
           rx={24}
           fill="rgba(255,255,255,0.01)"
-          stroke="rgba(255,255,255,0.05)"
+          stroke="rgba(255,255,255,0.035)"
         />
 
         {priceTicks.map((tick) => (
@@ -519,7 +534,7 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
               x2={viewWidth - PADDING_X + 12}
               y1={tick.y}
               y2={tick.y}
-              stroke="rgba(255,255,255,0.04)"
+              stroke="rgba(255,255,255,0.03)"
             />
             <text
               x={PADDING_X - 20}
@@ -544,7 +559,8 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
           const rising = candle.close >= candle.open;
           const candleTop = Math.min(openY, closeY);
           const candleBottom = Math.max(openY, closeY);
-          const candleHeight = Math.max(6, (candleBottom - candleTop) * 1.08 + 2);
+          const rawBodyHeight = Math.abs(candleBottom - candleTop);
+          const candleHeight = clamp(rawBodyHeight * 1.08 + 3, 6, chartHeight * 0.9);
           const bodyColor = rising ? risingColor : fallingColor;
 
           return (
@@ -555,7 +571,7 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
                 y1={highY}
                 y2={lowY}
                 stroke={bodyColor}
-                strokeWidth={1.5}
+                strokeWidth={wickStroke}
                 style={{ transition: "y1 160ms ease-out, y2 160ms ease-out" }}
               />
               <rect
@@ -581,7 +597,7 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
           baseY={volumeBaseY}
         />
 
-        <line x1={PADDING_X} x2={viewWidth - PADDING_X} y1={volumeBaseY} y2={volumeBaseY} stroke="rgba(255,255,255,0.1)" />
+        <line x1={PADDING_X} x2={viewWidth - PADDING_X} y1={volumeBaseY} y2={volumeBaseY} stroke="rgba(255,255,255,0.08)" />
 
         {timeLabels.map((label) => (
           <text
@@ -614,7 +630,7 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerLeave}
         onWheel={handleWheel}
-        style={{ touchAction: "none" }}
+        style={{ touchAction: "none", overscrollBehavior: "none" }}
         aria-hidden="true"
       />
 
