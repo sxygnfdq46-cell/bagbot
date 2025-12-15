@@ -38,7 +38,7 @@ const ZOOM_MIN = 0.7;
 const ZOOM_MAX = 3.2;
 const ZOOM_STEP = 0.08;
 
-const fallingColor = "rgba(255,99,132,0.85)";
+const fallingColor = "rgba(255,99,132,0.9)";
 const risingColor = "var(--accent-green)";
 const markerColors: Record<string, string> = {
   buy: "var(--accent-green)",
@@ -215,6 +215,27 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
   }, [renderCandles, bucketWidth, dynamicTimeLabels]);
 
   const volumeBaseY = PADDING_Y + chartHeight + 24 + volumeHeight;
+
+  const recentWindow = useMemo(() => renderCandles.slice(-18), [renderCandles]);
+  const averageBodyHeight = useMemo(() => {
+    if (!recentWindow.length) return 0;
+    const heights = recentWindow.map((candle) => Math.abs(scaleY(candle.open) - scaleY(candle.close)));
+    const sum = heights.reduce((acc, val) => acc + val, 0);
+    return sum / heights.length;
+  }, [recentWindow, scaleY]);
+
+  const localVolatilityPx = useMemo(() => {
+    if (recentWindow.length < 2) return chartHeight * 0.08;
+    let min = recentWindow[0].low;
+    let max = recentWindow[0].high;
+    for (const candle of recentWindow) {
+      min = Math.min(min, candle.low);
+      max = Math.max(max, candle.high);
+    }
+    const span = Math.max(max - min, 1e-9);
+    const pxSpan = Math.abs(scaleY(min) - scaleY(max));
+    return pxSpan || chartHeight * 0.08;
+  }, [recentWindow, scaleY, chartHeight]);
 
   const crosshairVisible = pointerMode !== "idle" && Boolean(hoverPayload);
   const crosshairIndex = hoverIndex ?? 0;
@@ -485,15 +506,15 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
         className="w-full"
         height={renderHeight}
       >
-        <rect
-          x={PADDING_X / 2}
-          y={PADDING_Y / 2}
-          width={viewWidth - PADDING_X}
-          height={chartHeight + volumeHeight + AXIS_BOTTOM_GAP / 2}
-          rx={24}
-          fill="rgba(255,255,255,0.01)"
-          stroke="rgba(255,255,255,0.035)"
-        />
+          <rect
+            x={PADDING_X / 2}
+            y={PADDING_Y / 2}
+            width={viewWidth - PADDING_X}
+            height={chartHeight + volumeHeight + AXIS_BOTTOM_GAP / 2}
+            rx={24}
+            fill="rgba(10,12,20,0.35)"
+            stroke="rgba(255,255,255,0.05)"
+          />
 
         {priceTicks.map((tick) => (
           <g key={`tick-${tick.value}`}>
@@ -502,7 +523,7 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
               x2={viewWidth - PADDING_X + 12}
               y1={tick.y}
               y2={tick.y}
-              stroke="rgba(255,255,255,0.03)"
+              stroke="rgba(255,255,255,0.035)"
             />
             <text
               x={PADDING_X - 20}
@@ -533,8 +554,13 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
           const wickSpanUpper = candleTop - highY;
           const wickSpanLower = lowY - candleBottom;
           const wickSpan = Math.max(0, wickSpanUpper) + Math.max(0, wickSpanLower);
-          const maxWickSpan = Math.max(rawBodyHeight * 2.2, 6);
-          const shouldClampWick = rawBodyHeight < chartHeight * 0.18 && wickSpan > maxWickSpan;
+
+          const baseCap = Math.max(rawBodyHeight * 2.1, 6);
+          const localBodyAnchor = averageBodyHeight ? averageBodyHeight * 1.6 : rawBodyHeight * 1.6;
+          const localVolAnchor = Math.max(localVolatilityPx * 0.55, chartHeight * 0.06);
+          const maxWickSpan = Math.max(baseCap, localBodyAnchor, localVolAnchor);
+
+          const shouldClampWick = rawBodyHeight < chartHeight * 0.2 && wickSpan > maxWickSpan;
           const wickExcess = shouldClampWick ? (wickSpan - maxWickSpan) / 2 : 0;
           const clampedHighY = shouldClampWick ? Math.min(candleTop - 1, highY + wickExcess) : highY;
           const clampedLowY = shouldClampWick ? Math.max(candleBottom + 1, lowY - wickExcess) : lowY;
@@ -559,7 +585,7 @@ export default function CandlestickChart({ candles, mode = "full", loading = fal
                 height={candleHeight}
                 rx={2}
                 fill={bodyColor}
-                opacity={hoverIndex === index ? 0.95 : 0.75}
+                opacity={hoverIndex === index ? 0.97 : 0.82}
                 style={{ transition: "y 160ms ease-out, height 160ms ease-out, opacity 120ms ease-out" }}
               />
             </g>
