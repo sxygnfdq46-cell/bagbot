@@ -138,9 +138,13 @@ export default function ChartsPage() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const width = window.innerWidth;
-    if (width < 780) {
+    const coarse = window.matchMedia?.('(pointer: coarse)').matches;
+    if (coarse || width < 820) {
       setFocusMode('immersive');
-    } else if (width < 1100 && focusMode === 'normal') {
+      setChartMode('full');
+      return;
+    }
+    if (width < 1180 && focusMode === 'normal') {
       setFocusMode('focus');
     }
   }, [focusMode]);
@@ -281,7 +285,7 @@ export default function ChartsPage() {
   }, [asset, timeframe]);
 
   return (
-    <TerminalShell className="stack-gap-lg w-full">
+    <TerminalShell className="stack-gap-lg w-full max-w-full px-0" style={{ minHeight: "calc(100vh - 80px)" }}>
       <GlobalHeroBadge
           badge="MARKET CANVAS"
           metaText="LIGHT LUXE"
@@ -306,204 +310,213 @@ export default function ChartsPage() {
         </header>
       </section>
 
-      <Card title="Candlestick Surface" subtitle="Premium OHLC command center">
-        <div className="rounded-xl border border-[color:var(--border-soft)] bg-base/60 px-4 py-2 text-xs uppercase tracking-[0.35em] text-[color:var(--accent-gold)]">
-          {OBS_BADGE}
-          {fallbackNotice && (
-            <span className="ml-3 text-[color:var(--accent-cyan)] normal-case tracking-tight">{fallbackNotice}</span>
-          )}
+      <section className="relative isolate rounded-3xl border border-[color:var(--border-soft)]/40 bg-base/40 p-4 sm:p-6" style={{ minHeight: "78vh" }}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="rounded-xl border border-[color:var(--border-soft)]/80 bg-base/70 px-4 py-2 text-xs uppercase tracking-[0.35em] text-[color:var(--accent-gold)]">
+            {OBS_BADGE}
+            {fallbackNotice && (
+              <span className="ml-3 text-[color:var(--accent-cyan)] normal-case tracking-tight">{fallbackNotice}</span>
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant={chartMode === 'full' ? 'secondary' : 'ghost'}
+              onClick={() => {
+                setChartMode('full');
+                setFocusMode('focus');
+              }}
+              aria-pressed={chartMode === 'full'}
+            >
+              Full view
+            </Button>
+            <Button
+              variant={chartMode === 'mini' ? 'secondary' : 'ghost'}
+              onClick={() => {
+                setChartMode('mini');
+                setFocusMode('normal');
+              }}
+              aria-pressed={chartMode === 'mini'}
+            >
+              Mini view
+            </Button>
+            <Button
+              variant={isImmersive ? 'secondary' : 'ghost'}
+              onClick={() => setFocusMode(isImmersive ? 'focus' : 'immersive')}
+              aria-pressed={isImmersive}
+              className="!px-4 !py-2"
+            >
+              Immersive
+            </Button>
+            <Button
+              variant={coachEnabled ? 'secondary' : 'ghost'}
+              onClick={() => setCoachEnabled((state) => !state)}
+              aria-pressed={coachEnabled}
+              className="!px-4 !py-2"
+            >
+              Coach overlay
+            </Button>
+            <Button variant="secondary" onClick={handleRefresh} isLoading={refreshing} className="!px-4 !py-2">
+              Refresh
+            </Button>
+          </div>
         </div>
-        <div className="stack-gap-lg">
+
+        <div className="mt-4 flex flex-wrap gap-4">
           <div className="stack-gap-xxs">
-            <div className="flex flex-wrap items-end gap-4">
-              <div className="stack-gap-xxs">
-                <MetricLabel>Timeframe</MetricLabel>
-                <div className="flex flex-wrap gap-2">
-                  {TIMEFRAMES.map((frame) => (
-                    <Button
-                      key={frame}
-                      variant={frame === timeframe ? 'primary' : 'secondary'}
-                      className="!px-4 !py-2 text-xs uppercase"
-                      onClick={() => setTimeframe(frame)}
-                      aria-pressed={frame === timeframe}
-                    >
-                      {frame}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-              <div className="stack-gap-xxs">
-                <MetricLabel>Asset</MetricLabel>
-                <select
-                  className="field-premium field-premium--select min-w-[180px]"
-                  value={asset}
-                  onChange={(event) => setAsset(event.target.value)}
-                >
-                  {ASSETS.map((ticker) => (
-                    <option key={ticker} value={ticker}>
-                      {ticker}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
+            <MetricLabel>Timeframe</MetricLabel>
+            <div className="flex flex-wrap gap-2">
+              {TIMEFRAMES.map((frame) => (
                 <Button
-                  variant={chartMode === 'full' ? 'secondary' : 'ghost'}
-                  onClick={() => {
-                    setChartMode('full');
-                    setFocusMode('focus');
-                  }}
-                  aria-pressed={chartMode === 'full'}
+                  key={frame}
+                  variant={frame === timeframe ? 'primary' : 'secondary'}
+                  className="!px-4 !py-2 text-xs uppercase"
+                  onClick={() => setTimeframe(frame)}
+                  aria-pressed={frame === timeframe}
                 >
-                  Full view
+                  {frame}
                 </Button>
-                <Button
-                  variant={chartMode === 'mini' ? 'secondary' : 'ghost'}
-                  onClick={() => {
-                    setChartMode('mini');
-                    setFocusMode('normal');
-                  }}
-                  aria-pressed={chartMode === 'mini'}
-                >
-                  Mini view
-                </Button>
-                <Button
-                  variant={isImmersive ? 'secondary' : 'ghost'}
-                  onClick={() => setFocusMode(isImmersive ? 'focus' : 'immersive')}
-                  aria-pressed={isImmersive}
-                  className="!px-4 !py-2"
-                >
-                  Immersive
-                </Button>
-                <Button
-                  variant={coachEnabled ? 'secondary' : 'ghost'}
-                  onClick={() => setCoachEnabled((state) => !state)}
-                  aria-pressed={coachEnabled}
-                  className="!px-4 !py-2"
-                >
-                  Coach overlay
-                </Button>
-                <Button variant="secondary" onClick={handleRefresh} isLoading={refreshing} className="!px-4 !py-2">
-                  Refresh
-                </Button>
-              </div>
+              ))}
             </div>
-            <p className="muted-premium text-sm">
+          </div>
+          <div className="stack-gap-xxs">
+            <MetricLabel>Asset</MetricLabel>
+            <select
+              className="field-premium field-premium--select min-w-[180px]"
+              value={asset}
+              onChange={(event) => setAsset(event.target.value)}
+            >
+              {ASSETS.map((ticker) => (
+                <option key={ticker} value={ticker}>
+                  {ticker}
+                </option>
+              ))}
+            </select>
+          </div>
+          {!isImmersive && (
+            <p className="muted-premium text-sm max-w-xl">
               Crosshair, tooltip, volume, and OHLC data are wired locally. Placeholder controls remain ready for backend streaming contracts.
             </p>
-          </div>
+          )}
+        </div>
 
-          <div className={isFocus ? "grid gap-4" : "grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]"}>
-            <div className="relative w-full">
-              <CandlestickChart
-                candles={visibleCandles}
-                mode={isImmersive ? 'full' : chartMode}
-                loading={loading || refreshing}
-                onHover={setHoveredCandle}
-                markers={windowMarkers}
-                coachEnabled={coachEnabled}
-              />
+        <div className="mt-6 grid gap-4" style={{ minHeight: "70vh" }}>
+          <div className="relative w-full h-full">
+            <CandlestickChart
+              candles={visibleCandles}
+              mode={isImmersive ? 'full' : chartMode}
+              loading={loading || refreshing}
+              onHover={setHoveredCandle}
+              markers={windowMarkers}
+              coachEnabled={coachEnabled}
+            />
 
-              {isFocus && (
-                <div className="pointer-events-none absolute right-4 top-4 z-20 w-[260px] max-w-[90vw]">
-                  <OhlcPanel candle={activeCandle} loading={loading || refreshing} />
-                </div>
-              )}
-
-              {isImmersive && (
-                <div className="pointer-events-auto absolute left-4 bottom-4 z-20 flex gap-2">
-                  <Button variant="secondary" onClick={() => setFocusMode('focus')} className="!px-3 !py-1 text-xs uppercase">
-                    Exit immersive
-                  </Button>
-                  <Button variant="ghost" onClick={() => setChartMode('full')} className="!px-3 !py-1 text-xs uppercase opacity-70">
-                    Return to live layout
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            {!isFocus && (
-              <div className="stack-gap-sm">
+            {isFocus && (
+              <div className="pointer-events-none absolute right-4 top-4 z-20 w-[260px] max-w-[90vw]">
                 <OhlcPanel candle={activeCandle} loading={loading || refreshing} />
-                <div className="rounded-2xl border border-dashed border-[color:var(--border-soft)] p-3 text-xs">
-                  <p className="text-[color:var(--accent-gold)]">Backend wiring placeholder</p>
-                  <p className="mt-1 text-sm text-[color:var(--text-main)] opacity-70">
-                    WebSocket + REST endpoints will bind here for live executions once the contracts land in Phase 4.
-                  </p>
-                  <Button variant="ghost" className="mt-3 w-full opacity-70" disabled>
-                    Awaiting feed binding
-                  </Button>
-                </div>
+              </div>
+            )}
+
+            {isImmersive && (
+              <div className="pointer-events-auto absolute left-4 bottom-4 z-20 flex flex-wrap gap-2">
+                <Button variant="secondary" onClick={() => setFocusMode('focus')} className="!px-3 !py-1 text-xs uppercase">
+                  Exit immersive
+                </Button>
+                <Button variant="ghost" onClick={() => setChartMode('full')} className="!px-3 !py-1 text-xs uppercase opacity-70">
+                  Return to live layout
+                </Button>
               </div>
             )}
           </div>
 
-          <div className="grid-premium sm:grid-cols-2 lg:grid-cols-4">
-            {overviewStats.map((stat) => (
-              <div key={stat.label} className="info-tablet">
-                <MetricLabel tone={stat.accent}>{stat.label}</MetricLabel>
-                <p className="metric-value text-2xl" data-variant="muted">
-                  {loading ? <Skeleton className="h-8 w-20" /> : stat.value}
+          {!isFocus && (
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+              <div className="stack-gap-sm">
+                <OhlcPanel candle={activeCandle} loading={loading || refreshing} />
+              </div>
+              <div className="rounded-2xl border border-dashed border-[color:var(--border-soft)] p-3 text-xs">
+                <p className="text-[color:var(--accent-gold)]">Backend wiring placeholder</p>
+                <p className="mt-1 text-sm text-[color:var(--text-main)] opacity-70">
+                  WebSocket + REST endpoints will bind here for live executions once the contracts land in Phase 4.
                 </p>
+                <Button variant="ghost" className="mt-3 w-full opacity-70" disabled>
+                  Awaiting feed binding
+                </Button>
               </div>
-            ))}
-          </div>
-        </div>
-      </Card>
-      <Card title="Quick overview" subtitle="Watchlist spark grid">
-        <div className="grid-premium sm:grid-cols-2 xl:grid-cols-4">
-          {miniCharts.map((chart) => (
-            <div key={chart.symbol} className="dashboard-tile">
-              <div className="flex items-center justify-between">
-                <div>
-                  <MetricLabel className="text-[color:var(--accent-gold)]">{chart.symbol}</MetricLabel>
-                  <p className={`text-lg font-semibold ${chart.change >= 0 ? 'text-[color:var(--accent-green)]' : 'text-red-400'}`}>
-                    {chart.change >= 0 ? '+' : ''}
-                    {chart.change.toFixed(2)}%
+            </div>
+          )}
+
+          {isFocus && (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {overviewStats.map((stat) => (
+                <div key={stat.label} className="info-tablet">
+                  <MetricLabel tone={stat.accent}>{stat.label}</MetricLabel>
+                  <p className="metric-value text-2xl" data-variant="muted">
+                    {loading ? <Skeleton className="h-8 w-20" /> : stat.value}
                   </p>
-                </div>
-                <span className="text-xs uppercase tracking-[0.4em] text-[color:var(--accent-cyan)]">{chart.volume}</span>
-              </div>
-              <div className="mt-4 h-20">
-                {loading ? <Skeleton className="h-full w-full" /> : <Sparkline points={chart.points} />}
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
-      <Card title="Stream monitor" subtitle="WebSocket placeholder feed">
-        <div className="grid-premium lg:grid-cols-2">
-          <div className="stack-gap-md">
-            <div className="info-tablet">
-              <MetricLabel className="text-[color:var(--accent-gold)]">Live graph</MetricLabel>
-              <div className="mt-4 h-28">
-                {loading ? <Skeleton className="h-full w-full" /> : <Sparkline points={pulse} stroke="var(--accent-green)" height={90} />}
-              </div>
-            </div>
-            <div className="dashboard-tile">
-              <MetricLabel>Payload cadence</MetricLabel>
-              <div className="mt-4 flex items-baseline gap-2">
-                <p className="text-4xl font-semibold">{(pulse.at(-1) ?? 0).toFixed(0)}</p>
-                <span className="text-xs uppercase tracking-[0.4em] text-[color:var(--accent-cyan)]">ms</span>
-              </div>
-            </div>
-          </div>
-          <div className="surface-float stack-gap-sm">
-            <MetricLabel className="text-[color:var(--accent-gold)]">Feed log</MetricLabel>
-            <div className="no-scrollbar max-h-64 overflow-y-auto stack-gap-sm">
-              {feed.map((event) => (
-                <div key={event.id} className="rounded-[0.85rem] border border-[color:var(--border-soft)] bg-base/70 p-3">
-                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">
-                    <span>{event.channel}</span>
-                    <span>{event.latency} ms</span>
-                  </div>
-                  <p className="mt-2 text-sm font-semibold text-[color:var(--text-main)]">{event.payload}</p>
                 </div>
               ))}
             </div>
-          </div>
+          )}
         </div>
-      </Card>
+      </section>
+      {!isImmersive && (
+        <Card title="Quick overview" subtitle="Watchlist spark grid">
+          <div className="grid-premium sm:grid-cols-2 xl:grid-cols-4">
+            {miniCharts.map((chart) => (
+              <div key={chart.symbol} className="dashboard-tile">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <MetricLabel className="text-[color:var(--accent-gold)]">{chart.symbol}</MetricLabel>
+                    <p className={`text-lg font-semibold ${chart.change >= 0 ? 'text-[color:var(--accent-green)]' : 'text-red-400'}`}>
+                      {chart.change >= 0 ? '+' : ''}
+                      {chart.change.toFixed(2)}%
+                    </p>
+                  </div>
+                  <span className="text-xs uppercase tracking-[0.4em] text-[color:var(--accent-cyan)]">{chart.volume}</span>
+                </div>
+                <div className="mt-4 h-20">
+                  {loading ? <Skeleton className="h-full w-full" /> : <Sparkline points={chart.points} />}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+      {!isImmersive && (
+        <Card title="Stream monitor" subtitle="WebSocket placeholder feed">
+          <div className="grid-premium lg:grid-cols-2">
+            <div className="stack-gap-md">
+              <div className="info-tablet">
+                <MetricLabel className="text-[color:var(--accent-gold)]">Live graph</MetricLabel>
+                <div className="mt-4 h-28">
+                  {loading ? <Skeleton className="h-full w-full" /> : <Sparkline points={pulse} stroke="var(--accent-green)" height={90} />}
+                </div>
+              </div>
+              <div className="dashboard-tile">
+                <MetricLabel>Payload cadence</MetricLabel>
+                <div className="mt-4 flex items-baseline gap-2">
+                  <p className="text-4xl font-semibold">{(pulse.at(-1) ?? 0).toFixed(0)}</p>
+                  <span className="text-xs uppercase tracking-[0.4em] text-[color:var(--accent-cyan)]">ms</span>
+                </div>
+              </div>
+            </div>
+            <div className="surface-float stack-gap-sm">
+              <MetricLabel className="text-[color:var(--accent-gold)]">Feed log</MetricLabel>
+              <div className="no-scrollbar max-h-64 overflow-y-auto stack-gap-sm">
+                {feed.map((event) => (
+                  <div key={event.id} className="rounded-[0.85rem] border border-[color:var(--border-soft)] bg-base/70 p-3">
+                    <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">
+                      <span>{event.channel}</span>
+                      <span>{event.latency} ms</span>
+                    </div>
+                    <p className="mt-2 text-sm font-semibold text-[color:var(--text-main)]">{event.payload}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
     </TerminalShell>
   );
 }
