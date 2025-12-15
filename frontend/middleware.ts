@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 const AUTH_COOKIE = 'bagbot-auth-token';
-const PUBLIC_PATHS = ['/login', '/api/health'];
+const PUBLIC_PATHS = ['/api/health'];
 
 const decodeClaims = (token: string | undefined | null): { role: string | null; mode: string | null } | null => {
   if (!token) return null;
@@ -35,16 +35,26 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Allow explicitly public routes
-  if (PUBLIC_PATHS.includes(pathname)) {
-    return NextResponse.next();
-  }
-
   const token = request.cookies.get(AUTH_COOKIE)?.value;
   const isAuthenticated = Boolean(token);
   const claims = decodeClaims(token);
   const role = claims?.role;
   const mode = claims?.mode;
+
+  // Login page should redirect authenticated users and allow anonymous access otherwise
+  if (pathname === '/login') {
+    if (isAuthenticated) {
+      const url = request.nextUrl.clone();
+      url.pathname = role === 'admin' || mode === 'admin' ? '/admin' : '/dashboard';
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next();
+  }
+
+  // Allow explicitly public routes
+  if (PUBLIC_PATHS.includes(pathname)) {
+    return NextResponse.next();
+  }
 
   // Redirect authenticated users away from login
   if (pathname === '/login' && isAuthenticated) {
