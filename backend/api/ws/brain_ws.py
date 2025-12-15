@@ -1,6 +1,7 @@
 """Brain decision WebSocket endpoint bridging to the runtime adapter."""
 from __future__ import annotations
 
+import asyncio
 import contextlib
 import os
 from collections import defaultdict
@@ -10,11 +11,13 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, WebSocketExceptio
 
 from backend.schemas.auth import UserProfile
 from backend.security.deps import get_current_user_ws
+from backend.services.brain_service import get_brain_activity, get_decision_timeline
 
 router = APIRouter()
 
 _ACTIVE_CONNECTIONS: set[WebSocket] = set()
 _OBSERVATION_MODE = os.environ.get("BAGBOT_OBSERVATION_MODE", "1") == "1"
+_PUSH_INTERVAL_SECONDS = float(os.environ.get("BRAIN_OBSERVER_INTERVAL_SECONDS", "8"))
 
 
 class _WsMetrics:
@@ -75,6 +78,37 @@ def _normalize_payload(message: Any) -> Tuple[str, Dict[str, Any]]:
     return request_id, {"ws": normalized_signal}
 
 
+def _serialize_activity(events: list[Any]) -> list[dict[str, Any]]:
+    serialized: list[dict[str, Any]] = []
+    for event in events:
+        try:
+            serialized.append(event.model_dump(mode="json"))
+        except Exception:
+            continue
+    return serialized
+
+
+async def _stream_observation(websocket: WebSocket) -> None:
+    """Push observation snapshots to a single websocket."""
+
+    while True:
+        activity = await get_brain_activity()
+        decisions = await get_decision_timeline()
+        payloads = [
+            {"channel": "brain_activity", "data": _serialize_activity(activity)},
+        ]
+        if decisions:
+            payloads.append({"channel": "brain_decision", "data": decisions[0]})
+
+        for payload in payloads:
+            try:
+                await websocket.send_json(payload)
+            except Exception:
+                return
+
+        await asyncio.sleep(_PUSH_INTERVAL_SECONDS)
+
+
 def _build_response(request_id: str, decision: Dict[str, Any]) -> Dict[str, Any]:
     rationale = decision.get("rationale") or []
     reason = rationale[0] if isinstance(rationale, list) and rationale else None
@@ -120,6 +154,8 @@ async def brain_ws_endpoint(websocket: WebSocket) -> None:
     _register(websocket)
     await websocket.send_json({"type": "brain-online", "detail": "ready"})
 
+    observation_task = asyncio.create_task(_stream_observation(websocket))
+
     try:
         while True:
             message = await websocket.receive_json()
@@ -137,6 +173,9 @@ async def brain_ws_endpoint(websocket: WebSocket) -> None:
     except WebSocketDisconnect:
         pass
     finally:
+        observation_task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await observation_task
         _unregister(websocket)
         with contextlib.suppress(RuntimeError):
             await websocket.close()

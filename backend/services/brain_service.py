@@ -53,6 +53,7 @@ _status_snapshot = StatusSnapshot(
 _log_buffer: Deque[LogLine] = deque(maxlen=50)
 _observation_task: Optional[asyncio.Task] = None
 _OBSERVER_INTERVAL_SECONDS = float(os.environ.get("BRAIN_OBSERVER_INTERVAL_SECONDS", "8"))
+_decision_timeline: Deque[Dict[str, Any]] = deque(maxlen=50)
 _state_lock = asyncio.Lock()
 
 
@@ -200,6 +201,16 @@ def _ingest_decision(decision: Dict[str, Any], trace_id: Optional[str]) -> None:
     global _activity_events
     _activity_events = [event, *_activity_events][:10]
 
+    _decision_timeline.appendleft(
+        {
+            "id": event.id,
+            "action": action,
+            "confidence": confidence,
+            "timestamp": event.timestamp.isoformat(),
+            "trace_id": trace_id,
+        }
+    )
+
     # Record a log line with trace continuity
     detail = f"brain_decision action={action} confidence={confidence:.2f}"
     if trace_id:
@@ -221,6 +232,13 @@ async def _observation_cycle() -> None:
         brain_decision.setdefault("meta", {}).setdefault("trace_id", telemetry.get("trace_id"))
     async with _state_lock:
         _ingest_decision(brain_decision or {}, telemetry.get("trace_id"))
+
+
+async def get_decision_timeline() -> List[Dict[str, Any]]:
+    """Return a recent decision timeline for observers."""
+
+    async with _state_lock:
+        return list(_decision_timeline)
 
 
 async def _observation_loop() -> None:
