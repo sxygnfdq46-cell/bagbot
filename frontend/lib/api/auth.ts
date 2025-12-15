@@ -1,4 +1,4 @@
-import { mockResponse } from '@/lib/api/mock-service';
+import { api } from '@/lib/api-client';
 
 export type LoginPayload = {
   email: string;
@@ -13,10 +13,6 @@ export type LoginResponse = {
 };
 
 export const auth = {
-  login: async (payload: LoginPayload) =>
-    mockResponse<LoginResponse>({
-      token: 'offline-preview-token',
-      user: { name: payload.email.split('@')[0]?.toUpperCase?.() ?? 'Guest' }
-    }),
-  logout: async () => mockResponse({ success: true })
+  login: async (payload: LoginPayload) => api.post<LoginResponse>('/api/auth/login', { body: payload, skipAuth: true }),
+  logout: async () => api.post('/api/auth/logout', { skipAuth: true })
 };

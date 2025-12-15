@@ -38,6 +38,7 @@ export default function LoginPage() {
         description: data.user?.name ? `Welcome back, ${data.user.name}` : 'Secure session established',
         variant: 'success'
       });
+      router.replace('/dashboard');
     } catch (error) {
       const description = error instanceof Error ? error.message : 'Login failed';
       setMessage(description);
