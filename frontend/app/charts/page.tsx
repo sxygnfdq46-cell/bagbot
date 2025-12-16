@@ -30,7 +30,7 @@ import { resolveWsUrl } from "@/lib/api-client";
 import type { MouseEventParams, SeriesMarker, Time } from "lightweight-charts";
 
 type ChartHoverPayload = Candle & { index: number; time: number };
-type ChartMarker = { id: string; action: string; timestamp: number };
+type ChartMarker = { id: string; action: string; timestamp: number; confidence?: number; reason?: string };
 
 const TIMEFRAMES = chartsApi.listTimeframes();
 const ASSETS = chartsApi.listAssets();
@@ -258,13 +258,18 @@ export default function ChartsPage() {
       const action = marker.action?.toLowerCase?.() ?? "hold";
       const shape: SeriesMarker<Time>["shape"] = action === "sell" ? "arrowDown" : action === "buy" ? "arrowUp" : "circle";
       const color = action === "sell" ? "rgba(239,68,68,0.9)" : action === "buy" ? "rgba(16,185,129,0.9)" : "rgba(148,163,184,0.9)";
+      const position: SeriesMarker<Time>["position"] = action === "sell" ? "aboveBar" : action === "buy" ? "belowBar" : "inBar";
+      const confidence = Number.isFinite(marker.confidence) ? Math.max(0, Math.min(1, marker.confidence ?? 0)) : undefined;
+      const percent = confidence !== undefined ? `${(confidence * 100).toFixed(0)}%` : null;
+      const shortReason = (marker.reason ?? "").slice(0, 42);
+      const text = [action.toUpperCase(), percent, shortReason].filter(Boolean).join(" · ");
       return {
         id: marker.id,
         time: toUtcSeconds(marker.timestamp),
-        position: "aboveBar",
+        position,
         shape,
         color,
-        text: action.slice(0, 1).toUpperCase(),
+        text,
       };
     });
 
@@ -352,7 +357,9 @@ export default function ChartsPage() {
             const action = String(decision?.action || 'hold').toLowerCase();
             const timestamp = Date.parse(decision?.timestamp || '') || Date.now();
             const id = String(decision?.id || `${timestamp}-${action}`);
-            setMarkers((prev) => [...prev, { id, action, timestamp }].slice(-MAX_MARKERS));
+            const confidence = Number(decision?.confidence ?? decision?.intensity);
+            const reason = typeof decision?.reason === 'string' ? decision.reason : (typeof decision?.outcome === 'string' ? decision.outcome : undefined);
+            setMarkers((prev) => [...prev, { id, action, timestamp, confidence, reason }].slice(-MAX_MARKERS));
           }
         } catch (error) {
           console.warn('[charts] ws parse error', error);
