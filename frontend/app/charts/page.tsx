@@ -4,12 +4,20 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Card from "@/components/ui/card";
 import Button from "@/components/ui/button";
 import Skeleton from "@/components/ui/skeleton";
-import CandlestickChart, { type ChartHoverPayload, type ChartMarker } from "@/components/charts/candlestick-chart";
 import OhlcPanel from "@/components/charts/ohlc-panel";
 import Sparkline from "@/components/ui/sparkline";
 import GlobalHeroBadge from "@/components/ui/global-hero-badge";
 import MetricLabel from "@/components/ui/metric-label";
 import TerminalShell from "@/components/ui/terminal-shell";
+import {
+  adaptCandlesToPriceData,
+  adaptCandlesToVolumeData,
+  type CandleSeries,
+  createPriceVolumeSeries,
+  createTvChart,
+  toUtcSeconds,
+  type VolumeSeries,
+} from "@/lib/charts/tv";
 import {
   chartsApi,
   type Candle,
@@ -19,6 +27,10 @@ import {
   type ChartSnapshot
 } from "@/lib/api/charts";
 import { resolveWsUrl } from "@/lib/api-client";
+import type { MouseEventParams, SeriesMarker, Time } from "lightweight-charts";
+
+type ChartHoverPayload = Candle & { index: number; time: number };
+type ChartMarker = { id: string; action: string; timestamp: number };
 
 const TIMEFRAMES = chartsApi.listTimeframes();
 const ASSETS = chartsApi.listAssets();
@@ -59,6 +71,10 @@ export default function ChartsPage() {
   const [hoveredCandle, setHoveredCandle] = useState<ChartHoverPayload | null>(null);
   const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const chartContainerRef = useRef<HTMLDivElement | null>(null);
+  const candleSeriesRef = useRef<CandleSeries | null>(null);
+  const volumeSeriesRef = useRef<VolumeSeries | null>(null);
+  const visibleCandlesRef = useRef<Candle[]>([]);
   const heroFeedStatus = `SYNCED • ${timeframe.toUpperCase()}`;
   const heroHint = `Asset ${asset}`;
   const windowSize = useMemo(() => resolveWindowSize(timeframe), [timeframe]);
@@ -154,6 +170,47 @@ export default function ChartsPage() {
     setCandles((current) => clampCandlesToWindow(current, timeframe));
   }, [timeframe]);
 
+  useEffect(() => {
+    const container = chartContainerRef.current;
+    if (!container) return;
+
+    const { chart, cleanup } = createTvChart(container);
+    const { candleSeries, volumeSeries } = createPriceVolumeSeries(chart);
+    candleSeriesRef.current = candleSeries;
+    volumeSeriesRef.current = volumeSeries;
+
+    const handleCrosshairMove = (event: MouseEventParams) => {
+      if (!event.time || typeof event.time !== 'number') {
+        setHoveredCandle(null);
+        return;
+      }
+
+      const match = visibleCandlesRef.current.find(
+        (candle) => toUtcSeconds(candle.timestamp) === event.time
+      );
+
+      if (!match) {
+        setHoveredCandle(null);
+        return;
+      }
+
+      setHoveredCandle({
+        ...match,
+        index: visibleCandlesRef.current.indexOf(match),
+        time: match.timestamp,
+      });
+    };
+
+    chart.subscribeCrosshairMove(handleCrosshairMove);
+
+    return () => {
+      chart.unsubscribeCrosshairMove(handleCrosshairMove);
+      cleanup();
+      candleSeriesRef.current = null;
+      volumeSeriesRef.current = null;
+    };
+  }, []);
+
   const handleRefresh = useCallback(async () => {
     try {
       setRefreshing(true);
@@ -168,6 +225,12 @@ export default function ChartsPage() {
 
   const visibleCandles = useMemo(() => candles.slice(-windowSize), [candles, windowSize]);
 
+  useEffect(() => {
+    visibleCandlesRef.current = visibleCandles;
+    candleSeriesRef.current?.setData(adaptCandlesToPriceData(visibleCandles));
+    volumeSeriesRef.current?.setData(adaptCandlesToVolumeData(visibleCandles));
+  }, [visibleCandles]);
+
   const latestCandle = useMemo(() => {
     const last = visibleCandles.at(-1);
     if (!last) return null;
@@ -181,6 +244,32 @@ export default function ChartsPage() {
     const scoped = windowStart ? markers.filter((marker) => marker.timestamp >= windowStart) : markers;
     return scoped.slice(-MAX_MARKERS);
   }, [markers, windowStart]);
+
+  useEffect(() => {
+    const series = candleSeriesRef.current;
+    if (!series) return;
+
+    if (!windowMarkers.length) {
+      series.setMarkers([]);
+      return;
+    }
+
+    const resolved: Array<SeriesMarker<Time>> = windowMarkers.map((marker) => {
+      const action = marker.action?.toLowerCase?.() ?? "hold";
+      const shape: SeriesMarker<Time>["shape"] = action === "sell" ? "arrowDown" : action === "buy" ? "arrowUp" : "circle";
+      const color = action === "sell" ? "rgba(239,68,68,0.9)" : action === "buy" ? "rgba(16,185,129,0.9)" : "rgba(148,163,184,0.9)";
+      return {
+        id: marker.id,
+        time: toUtcSeconds(marker.timestamp),
+        position: "aboveBar",
+        shape,
+        color,
+        text: action.slice(0, 1).toUpperCase(),
+      };
+    });
+
+    series.setMarkers(resolved);
+  }, [windowMarkers]);
 
   useEffect(() => {
     let mounted = true;
@@ -414,14 +503,7 @@ export default function ChartsPage() {
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.06),transparent_45%)]" aria-hidden />
         <div className="relative w-full" style={{ minHeight: chartMinHeight, height: "100%" }}>
           <div className="absolute inset-0">
-            <CandlestickChart
-              candles={visibleCandles}
-              mode={isImmersive ? 'full' : chartMode}
-              loading={loading || refreshing}
-              onHover={setHoveredCandle}
-              markers={windowMarkers}
-              coachEnabled={coachEnabled}
-            />
+            <div ref={chartContainerRef} className="h-full w-full" />
           </div>
         </div>
       </section>
