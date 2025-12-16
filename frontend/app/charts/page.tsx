@@ -540,6 +540,16 @@ export default function ChartsPage() {
         style={{ minHeight: resolvedChartHeight, height: resolvedChartHeight }}
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.06),transparent_45%)]" aria-hidden />
+        <div className="absolute right-4 top-4 z-[130]">
+          <Button
+            variant="secondary"
+            onClick={() => setIsFullscreen((state) => !state)}
+            aria-pressed={isFullscreen}
+            className="px-4 py-2 text-xs uppercase tracking-[0.25em] shadow-lg"
+          >
+            {isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+          </Button>
+        </div>
         <div className="relative w-full" style={{ minHeight: chartMinHeight, height: "100%" }}>
           <div className="absolute inset-0">
             <div ref={chartContainerRef} className="h-full w-full" />
