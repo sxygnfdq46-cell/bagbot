@@ -11,6 +11,13 @@ from typing import Any, Dict, Optional
 logger = logging.getLogger(__name__)
 
 _FAKE_TRUE = {"1", "true", "yes", "on"}
+# Canonical market data source label for fake/mock feeds.
+_ENV_SOURCE = os.environ.get("MARKET_DATA_SOURCE", "MOCK").strip().upper() or "MOCK"
+MARKET_DATA_SOURCE = _ENV_SOURCE if _ENV_SOURCE in {"MOCK", "HISTORICAL"} else "MOCK"
+# Read-only explain snapshot builder (logic lives in backend/brain/explain).
+from backend.brain.explain.snapshot import build_explain_snapshot  # noqa: E402
+# Read-only learning gate snapshot builder.
+from backend.brain.learning_gate.gate import build_learning_gate_snapshot  # noqa: E402
 # No-op comment to retrigger backend workflows.
 
 
@@ -36,11 +43,21 @@ def _fake_mode_enabled(fake_mode: Optional[bool]) -> bool:
     return os.environ.get("RUNTIME_PIPELINE_FAKE_MODE", "").strip().lower() in _FAKE_TRUE
 
 
+def _market_data_source(fake_mode: Optional[bool]) -> str:
+    """Resolve current market data source label (visibility only)."""
+
+    if _mock_feed_enabled() or _fake_mode_enabled(fake_mode):
+        return MARKET_DATA_SOURCE
+    return MARKET_DATA_SOURCE
+
+
 def _intent_preview_enabled() -> bool:
     return os.environ.get("INTENT_PREVIEW_ENABLED", "").strip().lower() in _FAKE_TRUE
 
 
 def _mock_feed_enabled() -> bool:
+    if MARKET_DATA_SOURCE == "HISTORICAL":
+        return False
     raw_mock = os.environ.get("SIGNALS_MOCK_FEED_ENABLED", "").strip().lower()
     raw_fake = os.environ.get("SIGNALS_FAKE_MODE", "").strip().lower()
     return raw_mock in _FAKE_TRUE or raw_fake in _FAKE_TRUE
@@ -64,7 +81,7 @@ def _inc(metrics: Any, name: str, labels: Optional[Dict[str, Any]] = None) -> No
 def _fail(stage: str, reason: str, metrics: Any, trace_id: Optional[str] = None) -> Dict[str, Any]:
     _inc(metrics, "pipeline_failures_total", {"stage": stage, "reason": reason})
     _inc(metrics, "pipeline_requests_total", {"stage": stage, "outcome": "fail"})
-    meta = {"trace_id": trace_id} if trace_id else {}
+    meta = {"trace_id": trace_id, "market_data_source": MARKET_DATA_SOURCE} if trace_id else {"market_data_source": MARKET_DATA_SOURCE}
     return {
         "status": "hold",
         "reason": reason,
@@ -149,6 +166,9 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
     """Run unified decision pipeline brain -> trade engine -> runtime router -> intent preview."""
 
     use_fake = _fake_mode_enabled(fake_mode)
+    if use_fake:
+        from backend.brain.eval.snapshot import build_eval_snapshot  # local import to avoid missing reference in fake path
+    market_data_source = _market_data_source(fake_mode)
     intent_enabled = _intent_preview_enabled()
 
     if not isinstance(envelope, dict) or not envelope.get("instrument"):
@@ -165,6 +185,9 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
         decision_envelope = _build_decision_envelope(brain, trace_id)
         _inc(metrics_client, "runtime_decisions_total", {"source": "brain", "outcome": "success"})
         _emit_outcome([decision_envelope], router, metrics_client)
+        gate_snapshot = build_learning_gate_snapshot(meta={"market_data_source": market_data_source}, context={"mode": "fake_mode"})
+        explain = build_explain_snapshot(decision=brain, envelope=envelope, meta={"trace_id": trace_id, "market_data_source": market_data_source}, rationale=["fake_mode"], learning_gate=gate_snapshot)
+        eval_snapshot = build_eval_snapshot(decisions=[decision_envelope], meta={"market_data_source": market_data_source}, explain=explain, learning_gate=gate_snapshot)
         return {
             "status": "success",
             "reason": None,
@@ -174,7 +197,9 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
             "router_result": router,
             "intent_preview": preview if intent_enabled else None,
             "decisions": [decision_envelope],
-            "meta": {"pipeline_fake_mode": True, "intent_preview_enabled": intent_enabled, "trace_id": trace_id},
+            "meta": {"pipeline_fake_mode": True, "intent_preview_enabled": intent_enabled, "trace_id": trace_id, "market_data_source": market_data_source, "learning_gate": gate_snapshot},
+            "explain": explain,
+            "eval": eval_snapshot,
         }
 
     rationale: list[str] = []
@@ -187,6 +212,7 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
 
     try:
         from backend.worker.runner import get_brain_decision  # lazy import
+        from backend.brain.eval.snapshot import build_eval_snapshot  # lazy import within allowed boundary
 
         brain_decision = get_brain_decision(
             envelope.get("signals", envelope),
@@ -260,6 +286,9 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
     trace_id = upstream_trace_id
     if decisions:
         decisions = _finalize_decisions(decisions, trace_id)
+    gate_snapshot = build_learning_gate_snapshot(meta={"market_data_source": market_data_source}, context={"mode": envelope.get("mode") if isinstance(envelope, dict) else None})
+    explain = build_explain_snapshot(decision=brain_decision, envelope=envelope, meta={"trace_id": trace_id, "market_data_source": market_data_source}, rationale=rationale, learning_gate=gate_snapshot)
+    eval_snapshot = build_eval_snapshot(decisions=decisions, meta={"market_data_source": market_data_source}, explain=explain, learning_gate=gate_snapshot)
     _emit_outcome(decisions or [], router_result, metrics_client)
     return {
         "status": status,
@@ -270,7 +299,9 @@ def run_decision_pipeline(envelope: Dict[str, Any], *, metrics_client: Any = Non
         "router_result": router_result,
         "intent_preview": intent_preview,
         "decisions": decisions if decisions else None,
-        "meta": {"pipeline_fake_mode": False, "intent_preview_enabled": intent_enabled, "trace_id": trace_id},
+        "meta": {"pipeline_fake_mode": False, "intent_preview_enabled": intent_enabled, "trace_id": trace_id, "market_data_source": market_data_source, "learning_gate": gate_snapshot},
+        "explain": explain,
+        "eval": eval_snapshot,
     }
 
 

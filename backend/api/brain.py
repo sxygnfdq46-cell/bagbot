@@ -3,6 +3,15 @@ from typing import Any
 
 from fastapi import APIRouter
 
+from backend.brain.explain.snapshot import build_explain_snapshot
+from backend.brain.learning_gate.gate import build_learning_gate_snapshot
+from backend.brain.invariants import (
+    EVAL_ONLY_HISTORICAL,
+    HISTORICAL_REPLAY_DETERMINISTIC,
+    LEARNING_GATE_ALWAYS_BLOCKED,
+    SINGLE_MARKET_DATA_SOURCE,
+)
+
 router = APIRouter(prefix="/api/brain", tags=["brain"])
 
 
@@ -40,3 +49,65 @@ async def run_brain_diagnostic() -> dict[str, Any]:
 async def reset_brain() -> dict[str, Any]:
     """Reset neural engine (placeholder)."""
     return {"detail": "brain reset placeholder"}
+
+
+@router.get("/explain")
+async def get_brain_explain() -> dict[str, Any]:
+    """Return a read-only explain snapshot without mutating brain state; envelope mirrors runtime pipeline."""
+
+    gate = build_learning_gate_snapshot(meta={"market_data_source": "MOCK"}, context={"mode": "observe"})
+    snapshot = build_explain_snapshot(decision=None, envelope=None, meta={"market_data_source": "MOCK"}, rationale=["no_recent_decision"], learning_gate=gate)
+    return {
+        "status": "success",
+        "reason": None,
+        "rationale": ["no_recent_decision"],
+        "brain_decision": None,
+        "trade_action": None,
+        "router_result": None,
+        "intent_preview": None,
+        "decisions": None,
+        "meta": {
+            "pipeline_fake_mode": False,
+            "intent_preview_enabled": False,
+            "trace_id": None,
+            "market_data_source": "MOCK",
+            "learning_gate": gate,
+            "single_market_data_source": SINGLE_MARKET_DATA_SOURCE,
+            "learning_gate_blocked": LEARNING_GATE_ALWAYS_BLOCKED,
+            "historical_replay_deterministic": HISTORICAL_REPLAY_DETERMINISTIC,
+        },
+        "explain": snapshot,
+    }
+
+
+@router.get("/eval")
+async def get_brain_eval() -> dict[str, Any]:
+    """Return a read-only eval snapshot (historical only); envelope mirrors runtime pipeline."""
+
+    from backend.brain.eval.snapshot import build_eval_snapshot
+
+    gate = build_learning_gate_snapshot(meta={"market_data_source": "HISTORICAL"}, context={"mode": "observe"})
+    snapshot = build_eval_snapshot(decisions=[], meta={"market_data_source": "HISTORICAL"}, explain=None, learning_gate=gate)
+    return {
+        "status": "success",
+        "reason": None,
+        "rationale": ["eval_stub"],
+        "brain_decision": None,
+        "trade_action": None,
+        "router_result": None,
+        "intent_preview": None,
+        "decisions": [],
+        "meta": {
+            "pipeline_fake_mode": False,
+            "intent_preview_enabled": False,
+            "trace_id": None,
+            "market_data_source": "HISTORICAL",
+            "learning_gate": gate,
+            "single_market_data_source": SINGLE_MARKET_DATA_SOURCE,
+            "learning_gate_blocked": LEARNING_GATE_ALWAYS_BLOCKED,
+            "eval_only_historical": EVAL_ONLY_HISTORICAL,
+            "historical_replay_deterministic": HISTORICAL_REPLAY_DETERMINISTIC,
+        },
+        "explain": None,
+        "eval": snapshot,
+    }
