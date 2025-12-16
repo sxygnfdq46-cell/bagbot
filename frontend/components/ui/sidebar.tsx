@@ -26,6 +26,7 @@ const fabSafeAreaStyle: CSSProperties = {
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const path = pathname ?? '';
   const [mobileOpen, setMobileOpen] = useState(false);
   const { role } = useAuthToken();
 
@@ -50,14 +51,14 @@ export default function Sidebar() {
     };
   }, [mobileOpen]);
 
-  if (HIDDEN_ROUTES.includes(pathname)) {
+  if (HIDDEN_ROUTES.includes(path)) {
     return null;
   }
 
   const navList = (onNavigate?: () => void) => (
     <nav className="stack-gap-sm" aria-label="Primary navigation">
       {visibleItems.map((item) => {
-        const active = pathname.startsWith(item.href);
+        const active = path.startsWith(item.href);
         const Icon = item.icon;
         return (
           <Link

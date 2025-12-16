@@ -191,6 +191,10 @@ export default function ChartsPage() {
           if (!mounted) return;
           setPulse(response.pulse);
           setFeed(response.feed);
+          if ('candles' in response && Array.isArray((response as any).candles)) {
+            const nextCandles = clampCandlesToWindow((response as any).candles as Candle[], timeframe);
+            setCandles(nextCandles);
+          }
         })
         .catch((error) => {
           if (!mounted) return;
@@ -222,6 +226,8 @@ export default function ChartsPage() {
           low,
           close,
           volume,
+          source: 'MOCK',
+          validForLearning: false,
         };
         return clampCandlesToWindow([...current, next], timeframe);
       });
