@@ -4,7 +4,7 @@ import { botApi } from '@/lib/api/bot';
 import { adminApi, type AdminStrategy } from '@/lib/api/admin';
 import { brainApi } from '@/lib/api/brain';
 import { strategies as strategiesApi, type Strategy } from '@/lib/api/strategies';
-import type { RuntimeSnapshot } from '@/shared/runtime/types';
+import type { RuntimeSnapshot } from '../../shared/runtime/types';
 import { getRuntimeSnapshot, subscribeRuntimeSnapshot, updateRuntimeSnapshot } from './runtime-store';
 
 export function useRuntimeSnapshot() {
