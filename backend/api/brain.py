@@ -11,6 +11,7 @@ from backend.brain.invariants import (
     LEARNING_GATE_ALWAYS_BLOCKED,
     SINGLE_MARKET_DATA_SOURCE,
 )
+from backend.brain.utils.strategy_indicators import get_all_indicator_declarations
 
 router = APIRouter(prefix="/api/brain", tags=["brain"])
 
@@ -57,6 +58,7 @@ async def get_brain_explain() -> dict[str, Any]:
 
     gate = build_learning_gate_snapshot(meta={"market_data_source": "MOCK"}, context={"mode": "observe"})
     snapshot = build_explain_snapshot(decision=None, envelope=None, meta={"market_data_source": "MOCK"}, rationale=["no_recent_decision"], learning_gate=gate)
+    indicator_declarations = get_all_indicator_declarations()
     return {
         "status": "success",
         "reason": None,
@@ -75,6 +77,7 @@ async def get_brain_explain() -> dict[str, Any]:
             "single_market_data_source": SINGLE_MARKET_DATA_SOURCE,
             "learning_gate_blocked": LEARNING_GATE_ALWAYS_BLOCKED,
             "historical_replay_deterministic": HISTORICAL_REPLAY_DETERMINISTIC,
+            "strategy_indicators": indicator_declarations,
         },
         "explain": snapshot,
     }
