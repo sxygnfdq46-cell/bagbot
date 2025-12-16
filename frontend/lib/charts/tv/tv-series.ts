@@ -14,8 +14,8 @@ export const createPriceVolumeSeries = (chart: IChartApi): TvSeries => {
     downColor: "#d46a6a",
     borderUpColor: "#2ec7a6",
     borderDownColor: "#d46a6a",
-    wickUpColor: "rgba(46,199,166,0.7)",
-    wickDownColor: "rgba(212,106,106,0.7)",
+    wickUpColor: "rgba(46,199,166,0.35)",
+    wickDownColor: "rgba(212,106,106,0.35)",
   });
 
   const histogramOptions: HistogramSeriesPartialOptions = {

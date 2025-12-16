@@ -12,6 +12,7 @@ export const createTvChart = (container: HTMLElement): TvChartHandle => {
     layout: {
       background: { color: "#0c111a" },
       textColor: "#9aa3b5",
+      attributionLogo: false,
     },
     grid: {
       vertLines: { color: "rgba(255,255,255,0.04)" },
