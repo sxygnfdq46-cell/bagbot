@@ -68,6 +68,7 @@ export default function ChartsPage() {
   const [chartMode, setChartMode] = useState<"full" | "mini">("full");
   const [focusMode, setFocusMode] = useState<"normal" | "focus" | "immersive">("normal");
   const [coachEnabled, setCoachEnabled] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [hoveredCandle, setHoveredCandle] = useState<ChartHoverPayload | null>(null);
   const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
@@ -81,6 +82,7 @@ export default function ChartsPage() {
   const isFocus = focusMode !== 'normal';
   const isImmersive = focusMode === 'immersive';
   const chartMinHeight = isImmersive ? "84vh" : "80vh";
+  const resolvedChartHeight = isFullscreen ? "100vh" : chartMinHeight;
 
   const persistSnapshot = useCallback(
     (snapshot: Partial<ChartSnapshot>) => {
@@ -169,6 +171,28 @@ export default function ChartsPage() {
   useEffect(() => {
     setCandles((current) => clampCandlesToWindow(current, timeframe));
   }, [timeframe]);
+
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsFullscreen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => {
+      window.removeEventListener('keydown', handleKey);
+    };
+  }, [isFullscreen]);
+
+  useEffect(() => {
+    if (!isFullscreen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isFullscreen]);
 
   useEffect(() => {
     const container = chartContainerRef.current;
@@ -451,6 +475,14 @@ export default function ChartsPage() {
               Immersive
             </Button>
             <Button
+              variant={isFullscreen ? 'secondary' : 'ghost'}
+              onClick={() => setIsFullscreen((state) => !state)}
+              aria-pressed={isFullscreen}
+              className="!px-4 !py-2"
+            >
+              {isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+            </Button>
+            <Button
               variant={coachEnabled ? 'secondary' : 'ghost'}
               onClick={() => setCoachEnabled((state) => !state)}
               aria-pressed={coachEnabled}
@@ -504,8 +536,8 @@ export default function ChartsPage() {
       </div>
 
       <section
-        className="relative isolate overflow-hidden rounded-3xl border border-[color:var(--border-soft)]/40 bg-base/40"
-        style={{ minHeight: chartMinHeight, height: chartMinHeight }}
+        className={`relative isolate overflow-hidden rounded-3xl border border-[color:var(--border-soft)]/40 bg-base/40 transition-[height,transform] ${isFullscreen ? 'fixed inset-0 z-[120] rounded-none border-none bg-base/95 p-3 sm:p-6' : ''}`}
+        style={{ minHeight: resolvedChartHeight, height: resolvedChartHeight }}
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.06),transparent_45%)]" aria-hidden />
         <div className="relative w-full" style={{ minHeight: chartMinHeight, height: "100%" }}>
@@ -515,7 +547,7 @@ export default function ChartsPage() {
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-[minmax(0,1fr)_360px]">
+      <section className={`grid gap-4 md:grid-cols-[minmax(0,1fr)_360px] ${isFullscreen ? 'hidden' : ''}`}>
         <div className="stack-gap-md">
           <div className="grid gap-3 sm:grid-cols-2">
             <OhlcPanel candle={activeCandle} loading={loading || refreshing} />
@@ -563,7 +595,7 @@ export default function ChartsPage() {
           )}
         </div>
       </section>
-      {!isImmersive && (
+      {!isImmersive && !isFullscreen && (
         <Card title="Quick overview" subtitle="Watchlist spark grid">
           <div className="grid-premium sm:grid-cols-2 xl:grid-cols-4">
             {miniCharts.map((chart) => (
@@ -586,7 +618,7 @@ export default function ChartsPage() {
           </div>
         </Card>
       )}
-      {!isImmersive && (
+      {!isImmersive && !isFullscreen && (
         <Card title="Stream monitor" subtitle="WebSocket placeholder feed">
           <div className="grid-premium lg:grid-cols-2">
             <div className="stack-gap-md">
