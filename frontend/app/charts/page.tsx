@@ -73,6 +73,7 @@ export default function ChartsPage() {
   const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const chartContainerRef = useRef<HTMLDivElement | null>(null);
+  const chartSectionRef = useRef<HTMLDivElement | null>(null);
   const candleSeriesRef = useRef<CandleSeries | null>(null);
   const volumeSeriesRef = useRef<VolumeSeries | null>(null);
   const visibleCandlesRef = useRef<Candle[]>([]);
@@ -173,26 +174,15 @@ export default function ChartsPage() {
   }, [timeframe]);
 
   useEffect(() => {
-    if (!isFullscreen) return;
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsFullscreen(false);
-      }
+    const handleFullscreenChange = () => {
+      const active = Boolean(document.fullscreenElement);
+      setIsFullscreen(active);
     };
-    window.addEventListener('keydown', handleKey);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => {
-      window.removeEventListener('keydown', handleKey);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
-  }, [isFullscreen]);
-
-  useEffect(() => {
-    if (!isFullscreen) return undefined;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [isFullscreen]);
+  }, []);
 
   useEffect(() => {
     const container = chartContainerRef.current;
@@ -476,7 +466,19 @@ export default function ChartsPage() {
             </Button>
             <Button
               variant={isFullscreen ? 'secondary' : 'ghost'}
-              onClick={() => setIsFullscreen((state) => !state)}
+              onClick={() => {
+                const section = chartSectionRef.current;
+                if (!section) return;
+                if (!document.fullscreenElement) {
+                  section.requestFullscreen?.().catch((error) => {
+                    console.warn('[charts] fullscreen request failed', error);
+                  });
+                } else {
+                  document.exitFullscreen?.().catch((error) => {
+                    console.warn('[charts] exit fullscreen failed', error);
+                  });
+                }
+              }}
               aria-pressed={isFullscreen}
               className="!px-4 !py-2"
             >
@@ -536,14 +538,27 @@ export default function ChartsPage() {
       </div>
 
       <section
-        className={`relative isolate overflow-hidden rounded-3xl border border-[color:var(--border-soft)]/40 bg-base/40 transition-[height,transform] ${isFullscreen ? 'fixed inset-0 z-[120] rounded-none border-none bg-base/95 p-3 sm:p-6' : ''}`}
+        ref={chartSectionRef}
+        className={`relative isolate overflow-hidden rounded-3xl border border-[color:var(--border-soft)]/40 bg-base/40 transition-[height,transform] ${isFullscreen ? 'rounded-none border-none' : ''}`}
         style={{ minHeight: resolvedChartHeight, height: resolvedChartHeight }}
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.06),transparent_45%)]" aria-hidden />
         <div className="absolute right-4 top-4 z-[130]">
           <Button
             variant="secondary"
-            onClick={() => setIsFullscreen((state) => !state)}
+            onClick={() => {
+              const section = chartSectionRef.current;
+              if (!section) return;
+              if (!document.fullscreenElement) {
+                section.requestFullscreen?.().catch((error) => {
+                  console.warn('[charts] fullscreen request failed', error);
+                });
+              } else {
+                document.exitFullscreen?.().catch((error) => {
+                  console.warn('[charts] exit fullscreen failed', error);
+                });
+              }
+            }}
             aria-pressed={isFullscreen}
             className="px-4 py-2 text-xs uppercase tracking-[0.25em] shadow-lg"
           >
