@@ -629,13 +629,17 @@ export default function ChartsPage() {
         const timeline = Array.isArray(payload?.decision_timeline) ? (payload.decision_timeline as ExplainDecision[]) : [];
         setDecisionTimeline(timeline);
 
+        if (!timeline.length) {
+          setIndicatorSeriesMap(null);
+          setMarkers([]);
+          return;
+        }
+
         const seriesByStrategy = (payload?.meta?.strategy_indicator_series ?? {}) as Record<string, ExplainIndicatorSeries>;
         const strategyId = Object.keys(seriesByStrategy)[0];
         const rawSeries = strategyId ? seriesByStrategy[strategyId] : null;
         const decorated = decorateIndicatorSeries(rawSeries, timeline);
-        if (decorated) {
-          setIndicatorSeriesMap(decorated);
-        }
+        setIndicatorSeriesMap(decorated ?? null);
 
         const explainCandles = adaptExplainCandles(payload?.meta?.candles ?? []);
         if (explainCandles.length && candles.length === 0) {
@@ -643,7 +647,7 @@ export default function ChartsPage() {
         }
 
         const derivedMarkers = buildDecisionMarkers(timeline);
-        if (derivedMarkers.length) setMarkers(derivedMarkers);
+        setMarkers(derivedMarkers);
       } catch (_error) {
         // Hard-fail explain must never break chart; ignore.
       }
