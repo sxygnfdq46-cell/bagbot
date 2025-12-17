@@ -97,7 +97,6 @@ export default function ChartsPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [indicatorSeriesMap, setIndicatorSeriesMap] = useState<IndicatorMap | null>(null);
   const [decisionTimeline, setDecisionTimeline] = useState<ExplainDecision[]>([]);
-  const [explainBound, setExplainBound] = useState(false);
   const [hoveredCandle, setHoveredCandle] = useState<ChartHoverPayload | null>(null);
   const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
@@ -122,34 +121,57 @@ export default function ChartsPage() {
 
     const supportMap = new Map<string, Set<number>>();
     const blockMap = new Map<string, Set<number>>();
+    const activeByTime = new Map<number, Set<string>>();
 
     timeline.forEach((decision) => {
       const time = Number(decision.time);
       if (!Number.isFinite(time)) return;
+      const active = activeByTime.get(time) ?? new Set<string>();
+
+      // Votes explicitly reference indicators.
       decision.indicator_votes?.forEach((vote) => {
         const key = vote.indicator;
         if (!key) return;
+        active.add(key);
         const support = (vote.support || "support").toLowerCase();
         const bucket = support.includes("exit") || support.includes("block") || support.includes("short") ? blockMap : supportMap;
         if (!bucket.has(key)) bucket.set(key, new Set());
         bucket.get(key)?.add(time);
       });
-    });
 
-    const decorate = (indicator: string, row: ExplainIndicatorPoint) => {
-      const time = Number(row.time);
-      const supported = supportMap.get(indicator)?.has(time);
-      const blocked = blockMap.get(indicator)?.has(time);
-      let color = "rgba(148,163,184,0.28)";
-      if (supported) color = "rgba(16,185,129,0.9)";
-      if (blocked) color = "rgba(239,68,68,0.78)";
-      return { ...row, color };
-    };
+      // Indicator state mentions also count as active context.
+      Object.keys(decision.indicator_states ?? {}).forEach((key) => {
+        active.add(key);
+      });
+
+      if (active.size) {
+        activeByTime.set(time, active);
+      }
+    });
 
     const decorated: IndicatorMap = {};
+
     Object.entries(seriesMap).forEach(([indicator, rows]) => {
-      decorated[indicator] = rows.map((row) => decorate(indicator, row));
+      const filtered = rows
+        .map((row) => {
+          const time = Number(row.time);
+          const activeSet = activeByTime.get(time);
+          if (!activeSet || !activeSet.has(indicator)) return null;
+          const supported = supportMap.get(indicator)?.has(time);
+          const blocked = blockMap.get(indicator)?.has(time);
+          let color = "rgba(148,163,184,0.28)";
+          if (supported) color = "rgba(16,185,129,0.9)";
+          if (blocked) color = "rgba(239,68,68,0.78)";
+          return { ...row, color } as ExplainIndicatorPoint;
+        })
+        .filter(Boolean) as ExplainIndicatorPoint[];
+
+      if (filtered.length) {
+        decorated[indicator] = filtered;
+      }
     });
+
+    if (!Object.keys(decorated).length) return null;
     return decorated;
   }, []);
 
@@ -434,9 +456,9 @@ export default function ChartsPage() {
 
     if (!decisionConnectorRef.current) {
       decisionConnectorRef.current = chart.addLineSeries({
-        color: "rgba(148,163,184,0.45)",
+        color: "rgba(148,163,184,0.35)",
         lineStyle: LineStyle.Dotted,
-        lineWidth: 2,
+        lineWidth: 1,
         priceLineVisible: false,
       });
     }
@@ -490,7 +512,6 @@ export default function ChartsPage() {
   }, [asset]);
 
   useEffect(() => {
-    if (explainBound) return undefined;
     // Synthetic price drift to keep the surface moving while in observation-only mode.
     const mutateNextCandle = () => {
       setCandles((current) => {
@@ -517,7 +538,7 @@ export default function ChartsPage() {
 
     const interval = setInterval(mutateNextCandle, 2600);
     return () => clearInterval(interval);
-  }, [asset, timeframe, explainBound]);
+  }, [asset, timeframe]);
 
   useEffect(() => {
     // Persist the current view so refresh keeps playback continuity.
@@ -526,7 +547,6 @@ export default function ChartsPage() {
   }, [candles, miniCharts, overviewStats, pulse, feed, persistSnapshot]);
 
   useEffect(() => {
-    if (explainBound) return;
     setMarkers([]);
     setFallbackNotice(null);
 
@@ -574,7 +594,7 @@ export default function ChartsPage() {
       wsRef.current?.close();
       wsRef.current = null;
     };
-  }, [asset, timeframe, explainBound]);
+  }, [asset, timeframe]);
 
   useEffect(() => {
     let aborted = false;
@@ -606,8 +626,7 @@ export default function ChartsPage() {
       }
 
       const explainCandles = adaptExplainCandles(payload?.meta?.candles ?? []);
-      if (explainCandles.length) {
-        setExplainBound(true);
+      if (explainCandles.length && candles.length === 0) {
         setCandles(explainCandles);
       }
 
@@ -618,7 +637,7 @@ export default function ChartsPage() {
     return () => {
       aborted = true;
     };
-  }, [adaptExplainCandles, buildDecisionMarkers, decorateIndicatorSeries, asset, timeframe]);
+  }, [adaptExplainCandles, buildDecisionMarkers, candles.length, decorateIndicatorSeries, asset, timeframe]);
 
   return (
     <TerminalShell className="stack-gap-lg w-full max-w-full px-0" style={{ minHeight: "calc(100vh - 80px)" }}>
