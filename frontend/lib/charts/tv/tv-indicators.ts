@@ -1,8 +1,10 @@
 import type {
+  HistogramData,
+  HistogramSeriesPartialOptions,
   IChartApi,
   ISeriesApi,
+  LineData,
   LineSeriesPartialOptions,
-  HistogramSeriesPartialOptions,
   SeriesType,
   Time,
 } from "lightweight-charts";
@@ -10,9 +12,11 @@ import type {
 // Lightweight, read-only indicator renderer built atop an existing chart instance.
 // Consumes precomputed series supplied by the backend; does not calculate indicators.
 
-type SeriesPoint = { time: Time; value: number };
-type MacdPoint = { time: number; macd: number; signal: number; histogram: number };
-type IndicatorSeries = Array<Record<string, number>>;
+type SeriesPoint = LineData & { time: Time };
+type HistogramPoint = HistogramData & { time: Time };
+type MacdPoint = { time: number; macd: number; signal: number; histogram: number; color?: string };
+type IndicatorRow = Record<string, number | string>;
+type IndicatorSeries = IndicatorRow[];
 type IndicatorMap = Record<string, IndicatorSeries>;
 
 type IndicatorSeriesRef = Record<string, ISeriesApi<SeriesType>>;
@@ -56,25 +60,30 @@ export type IndicatorRenderer = {
   clear: () => void;
 };
 
-const isMacdPoint = (row: Record<string, number>): row is MacdPoint =>
+const isMacdPoint = (row: IndicatorRow): row is MacdPoint =>
   "macd" in row && "signal" in row && "histogram" in row;
 
 const toLinePoints = (rows: IndicatorSeries): SeriesPoint[] =>
   rows
-    .map((row) => ({ time: row.time as unknown as Time, value: row.value as number }))
+    .map((row) => ({
+      time: row.time as unknown as Time,
+      value: row.value as number,
+      color: typeof row.color === "string" ? row.color : undefined,
+    }))
     .filter((p) => Number.isFinite(p.time as number) && Number.isFinite(p.value));
 
 const toMacdLines = (rows: IndicatorSeries) => {
   const macd: SeriesPoint[] = [];
   const signal: SeriesPoint[] = [];
-  const histogram: Array<{ time: Time; value: number }> = [];
+  const histogram: HistogramPoint[] = [];
   rows.forEach((row) => {
     if (!isMacdPoint(row)) return;
     const time = row.time as unknown as Time;
     if (!Number.isFinite(row.time as number)) return;
-    if (Number.isFinite(row.macd)) macd.push({ time, value: row.macd });
-    if (Number.isFinite(row.signal)) signal.push({ time, value: row.signal });
-    if (Number.isFinite(row.histogram)) histogram.push({ time, value: row.histogram });
+    const color = typeof row.color === "string" ? row.color : undefined;
+    if (Number.isFinite(row.macd)) macd.push({ time, value: row.macd, color });
+    if (Number.isFinite(row.signal)) signal.push({ time, value: row.signal, color });
+    if (Number.isFinite(row.histogram)) histogram.push({ time, value: row.histogram, color });
   });
   return { macd, signal, histogram };
 };

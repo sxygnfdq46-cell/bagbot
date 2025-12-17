@@ -28,10 +28,35 @@ import {
   type ChartSnapshot
 } from "@/lib/api/charts";
 import { resolveWsUrl } from "@/lib/api-client";
-import type { MouseEventParams, SeriesMarker, Time } from "lightweight-charts";
+import { LineStyle, type IChartApi, type MouseEventParams, type SeriesMarker, type Time } from "lightweight-charts";
 
 type ChartHoverPayload = Candle & { index: number; time: number };
 type ChartMarker = { id: string; action: string; timestamp: number; confidence?: number; reason?: string };
+
+type ExplainIndicatorPoint = {
+  time: number;
+  value?: number;
+  macd?: number;
+  signal?: number;
+  histogram?: number;
+  color?: string;
+};
+
+type ExplainIndicatorSeries = Record<string, ExplainIndicatorPoint[]>;
+
+type ExplainVote = { indicator: string; role?: string; state?: string; support?: string; strength?: number };
+
+type ExplainDecision = {
+  time: number;
+  action: string;
+  phase?: "entry" | "hold" | "exit";
+  strategy?: string;
+  confidence?: number;
+  indicator_states?: Record<string, { value?: number; state?: string }>;
+  indicator_votes?: ExplainVote[];
+  blocks?: string[];
+  reasoning?: string;
+};
 
 const TIMEFRAMES = chartsApi.listTimeframes();
 const ASSETS = chartsApi.listAssets();
@@ -71,14 +96,18 @@ export default function ChartsPage() {
   const [coachEnabled, setCoachEnabled] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [indicatorSeriesMap, setIndicatorSeriesMap] = useState<IndicatorMap | null>(null);
+  const [decisionTimeline, setDecisionTimeline] = useState<ExplainDecision[]>([]);
+  const [explainBound, setExplainBound] = useState(false);
   const [hoveredCandle, setHoveredCandle] = useState<ChartHoverPayload | null>(null);
   const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const chartRef = useRef<IChartApi | null>(null);
   const chartContainerRef = useRef<HTMLDivElement | null>(null);
   const chartSectionRef = useRef<HTMLDivElement | null>(null);
   const candleSeriesRef = useRef<CandleSeries | null>(null);
   const volumeSeriesRef = useRef<VolumeSeries | null>(null);
   const indicatorRendererRef = useRef<ReturnType<typeof createIndicatorRenderer> | null>(null);
+  const decisionConnectorRef = useRef<ReturnType<IChartApi["addLineSeries"]> | null>(null);
   const visibleCandlesRef = useRef<Candle[]>([]);
   const heroFeedStatus = `SYNCED • ${timeframe.toUpperCase()}`;
   const heroHint = `Asset ${asset}`;
@@ -87,6 +116,96 @@ export default function ChartsPage() {
   const isImmersive = focusMode === 'immersive';
   const chartMinHeight = isImmersive ? "84vh" : "80vh";
   const resolvedChartHeight = isFullscreen ? "100vh" : chartMinHeight;
+
+  const decorateIndicatorSeries = useCallback((seriesMap: ExplainIndicatorSeries | null, timeline: ExplainDecision[]): IndicatorMap | null => {
+    if (!seriesMap || !Object.keys(seriesMap).length) return null;
+
+    const supportMap = new Map<string, Set<number>>();
+    const blockMap = new Map<string, Set<number>>();
+
+    timeline.forEach((decision) => {
+      const time = Number(decision.time);
+      if (!Number.isFinite(time)) return;
+      decision.indicator_votes?.forEach((vote) => {
+        const key = vote.indicator;
+        if (!key) return;
+        const support = (vote.support || "support").toLowerCase();
+        const bucket = support.includes("exit") || support.includes("block") || support.includes("short") ? blockMap : supportMap;
+        if (!bucket.has(key)) bucket.set(key, new Set());
+        bucket.get(key)?.add(time);
+      });
+    });
+
+    const decorate = (indicator: string, row: ExplainIndicatorPoint) => {
+      const time = Number(row.time);
+      const supported = supportMap.get(indicator)?.has(time);
+      const blocked = blockMap.get(indicator)?.has(time);
+      let color = "rgba(148,163,184,0.28)";
+      if (supported) color = "rgba(16,185,129,0.9)";
+      if (blocked) color = "rgba(239,68,68,0.78)";
+      return { ...row, color };
+    };
+
+    const decorated: IndicatorMap = {};
+    Object.entries(seriesMap).forEach(([indicator, rows]) => {
+      decorated[indicator] = rows.map((row) => decorate(indicator, row));
+    });
+    return decorated;
+  }, []);
+
+  const adaptExplainCandles = useCallback((rawCandles: Array<Record<string, any>>) => {
+    if (!Array.isArray(rawCandles) || rawCandles.length === 0) return [] as Candle[];
+    const adapted: Candle[] = rawCandles
+      .map((row) => {
+        const seconds = Number(row.time ?? row.timestamp);
+        if (!Number.isFinite(seconds)) return null;
+        return {
+          timestamp: seconds * 1000,
+          open: Number(row.open ?? row.close ?? 0),
+          high: Number(row.high ?? row.close ?? 0),
+          low: Number(row.low ?? row.close ?? 0),
+          close: Number(row.close ?? row.open ?? 0),
+          volume: Number(row.volume ?? 0),
+          source: 'MOCK',
+          validForLearning: false,
+        } as Candle;
+      })
+      .filter((row): row is Candle => Boolean(row?.timestamp));
+    return clampCandlesToWindow(adapted, timeframe);
+  }, [timeframe]);
+
+  const buildDecisionMarkers = useCallback((timeline: ExplainDecision[]): ChartMarker[] => {
+    if (!timeline.length) return [];
+    return timeline
+      .map((decision) => {
+        const tsSeconds = Number(decision.time);
+        if (!Number.isFinite(tsSeconds)) return null;
+        const support = (decision.indicator_votes || [])
+          .filter((vote) => vote.indicator)
+          .map((vote) => `${vote.indicator}${vote.state ? `:${vote.state}` : ''}`)
+          .slice(0, 4)
+          .join(', ');
+        const blocked = (decision.blocks || []).slice(0, 3).join(', ');
+        const reason = [support && `Support ${support}`, blocked && `Blocks ${blocked}`, decision.reasoning]
+          .filter(Boolean)
+          .join(' • ');
+        return {
+          id: `timeline-${decision.action}-${tsSeconds}`,
+          action: decision.action,
+          timestamp: tsSeconds * 1000,
+          confidence: decision.confidence,
+          reason,
+        } as ChartMarker;
+      })
+      .filter(Boolean) as ChartMarker[];
+  }, []);
+
+  const resolveDecisionColor = useCallback((action: string) => {
+    const lowered = action.toLowerCase();
+    if (lowered === 'buy') return "rgba(16,185,129,0.8)";
+    if (lowered === 'sell') return "rgba(239,68,68,0.82)";
+    return "rgba(148,163,184,0.55)";
+  }, []);
 
   const persistSnapshot = useCallback(
     (snapshot: Partial<ChartSnapshot>) => {
@@ -192,6 +311,7 @@ export default function ChartsPage() {
     if (!container) return;
 
     const { chart, cleanup } = createTvChart(container);
+    chartRef.current = chart;
     const { candleSeries, volumeSeries } = createPriceVolumeSeries(chart);
     candleSeriesRef.current = candleSeries;
     volumeSeriesRef.current = volumeSeries;
@@ -224,8 +344,13 @@ export default function ChartsPage() {
     return () => {
       chart.unsubscribeCrosshairMove(handleCrosshairMove);
       cleanup();
+      chartRef.current = null;
       candleSeriesRef.current = null;
       volumeSeriesRef.current = null;
+      if (decisionConnectorRef.current) {
+        chart.removeSeries(decisionConnectorRef.current);
+        decisionConnectorRef.current = null;
+      }
       indicatorRendererRef.current?.clear();
       indicatorRendererRef.current = null;
     };
@@ -300,6 +425,45 @@ export default function ChartsPage() {
   }, [windowMarkers]);
 
   useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart) return;
+    if (!decisionTimeline.length) {
+      decisionConnectorRef.current?.setData([]);
+      return;
+    }
+
+    if (!decisionConnectorRef.current) {
+      decisionConnectorRef.current = chart.addLineSeries({
+        color: "rgba(148,163,184,0.45)",
+        lineStyle: LineStyle.Dotted,
+        lineWidth: 2,
+        priceLineVisible: false,
+      });
+    }
+
+    const candleByTime = new Map<number, Candle>();
+    visibleCandlesRef.current.forEach((candle) => {
+      candleByTime.set(toUtcSeconds(candle.timestamp), candle);
+    });
+
+    const connectorData = decisionTimeline
+      .map((decision) => {
+        const timeSec = Number(decision.time);
+        if (!Number.isFinite(timeSec)) return null;
+        const candle = candleByTime.get(timeSec);
+        if (!candle) return null;
+        return {
+          time: timeSec as Time,
+          value: candle.close,
+          color: resolveDecisionColor(decision.action),
+        };
+      })
+      .filter(Boolean) as Array<{ time: Time; value: number; color?: string }>;
+
+    decisionConnectorRef.current?.setData(connectorData);
+  }, [decisionTimeline, resolveDecisionColor]);
+
+  useEffect(() => {
     let mounted = true;
     const tick = () => {
       chartsApi
@@ -326,6 +490,7 @@ export default function ChartsPage() {
   }, [asset]);
 
   useEffect(() => {
+    if (explainBound) return undefined;
     // Synthetic price drift to keep the surface moving while in observation-only mode.
     const mutateNextCandle = () => {
       setCandles((current) => {
@@ -352,7 +517,7 @@ export default function ChartsPage() {
 
     const interval = setInterval(mutateNextCandle, 2600);
     return () => clearInterval(interval);
-  }, [asset, timeframe]);
+  }, [asset, timeframe, explainBound]);
 
   useEffect(() => {
     // Persist the current view so refresh keeps playback continuity.
@@ -361,6 +526,7 @@ export default function ChartsPage() {
   }, [candles, miniCharts, overviewStats, pulse, feed, persistSnapshot]);
 
   useEffect(() => {
+    if (explainBound) return;
     setMarkers([]);
     setFallbackNotice(null);
 
@@ -408,29 +574,51 @@ export default function ChartsPage() {
       wsRef.current?.close();
       wsRef.current = null;
     };
-  }, [asset, timeframe]);
+  }, [asset, timeframe, explainBound]);
 
   useEffect(() => {
     let aborted = false;
-    const loadIndicatorSeries = async () => {
-      try {
-        const response = await fetch('/api/brain/explain');
-        if (!response.ok) return;
-        const data = await response.json();
-        if (aborted) return;
-        const seriesMap = (data?.meta?.strategy_indicator_series ?? {}) as Record<string, IndicatorMap>;
-        const strategyId = Object.keys(seriesMap)[0];
-        const selected = strategyId ? seriesMap[strategyId] : undefined;
-        setIndicatorSeriesMap(selected ?? null);
-      } catch (_error) {
-        /* ignore explain fetch failures */
+    const loadExplain = async () => {
+      const urls = ['/api/brain/explain', 'https://bagbot2-backend.onrender.com/api/brain/explain'];
+      let payload: any = null;
+      for (const url of urls) {
+        try {
+          const response = await fetch(url);
+          if (response.ok) {
+            payload = await response.json();
+            break;
+          }
+        } catch (_error) {
+          /* retry next url */
+        }
       }
+      if (aborted || !payload) return;
+
+      const timeline = Array.isArray(payload?.decision_timeline) ? (payload.decision_timeline as ExplainDecision[]) : [];
+      setDecisionTimeline(timeline);
+
+      const seriesByStrategy = (payload?.meta?.strategy_indicator_series ?? {}) as Record<string, ExplainIndicatorSeries>;
+      const strategyId = Object.keys(seriesByStrategy)[0];
+      const rawSeries = strategyId ? seriesByStrategy[strategyId] : null;
+      const decorated = decorateIndicatorSeries(rawSeries, timeline);
+      if (decorated) {
+        setIndicatorSeriesMap(decorated);
+      }
+
+      const explainCandles = adaptExplainCandles(payload?.meta?.candles ?? []);
+      if (explainCandles.length) {
+        setExplainBound(true);
+        setCandles(explainCandles);
+      }
+
+      const derivedMarkers = buildDecisionMarkers(timeline);
+      if (derivedMarkers.length) setMarkers(derivedMarkers);
     };
-    loadIndicatorSeries();
+    loadExplain();
     return () => {
       aborted = true;
     };
-  }, []);
+  }, [adaptExplainCandles, buildDecisionMarkers, decorateIndicatorSeries, asset, timeframe]);
 
   return (
     <TerminalShell className="stack-gap-lg w-full max-w-full px-0" style={{ minHeight: "calc(100vh - 80px)" }}>
