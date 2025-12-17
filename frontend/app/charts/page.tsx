@@ -18,6 +18,7 @@ import {
   toUtcSeconds,
   type VolumeSeries,
 } from "@/lib/charts/tv";
+import { createIndicatorRenderer, type IndicatorMap } from "@/lib/charts/tv/tv-indicators";
 import {
   chartsApi,
   type Candle,
@@ -69,6 +70,7 @@ export default function ChartsPage() {
   const [focusMode, setFocusMode] = useState<"normal" | "focus" | "immersive">("normal");
   const [coachEnabled, setCoachEnabled] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [indicatorSeriesMap, setIndicatorSeriesMap] = useState<IndicatorMap | null>(null);
   const [hoveredCandle, setHoveredCandle] = useState<ChartHoverPayload | null>(null);
   const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
@@ -76,6 +78,7 @@ export default function ChartsPage() {
   const chartSectionRef = useRef<HTMLDivElement | null>(null);
   const candleSeriesRef = useRef<CandleSeries | null>(null);
   const volumeSeriesRef = useRef<VolumeSeries | null>(null);
+  const indicatorRendererRef = useRef<ReturnType<typeof createIndicatorRenderer> | null>(null);
   const visibleCandlesRef = useRef<Candle[]>([]);
   const heroFeedStatus = `SYNCED • ${timeframe.toUpperCase()}`;
   const heroHint = `Asset ${asset}`;
@@ -192,6 +195,7 @@ export default function ChartsPage() {
     const { candleSeries, volumeSeries } = createPriceVolumeSeries(chart);
     candleSeriesRef.current = candleSeries;
     volumeSeriesRef.current = volumeSeries;
+    indicatorRendererRef.current = createIndicatorRenderer(chart);
 
     const handleCrosshairMove = (event: MouseEventParams) => {
       if (!event.time || typeof event.time !== 'number') {
@@ -222,6 +226,8 @@ export default function ChartsPage() {
       cleanup();
       candleSeriesRef.current = null;
       volumeSeriesRef.current = null;
+      indicatorRendererRef.current?.clear();
+      indicatorRendererRef.current = null;
     };
   }, []);
 
@@ -243,7 +249,10 @@ export default function ChartsPage() {
     visibleCandlesRef.current = visibleCandles;
     candleSeriesRef.current?.setData(adaptCandlesToPriceData(visibleCandles));
     volumeSeriesRef.current?.setData(adaptCandlesToVolumeData(visibleCandles));
-  }, [visibleCandles]);
+    if (indicatorRendererRef.current && indicatorSeriesMap) {
+      indicatorRendererRef.current.setIndicators(indicatorSeriesMap);
+    }
+  }, [visibleCandles, indicatorSeriesMap]);
 
   const latestCandle = useMemo(() => {
     const last = visibleCandles.at(-1);
@@ -400,6 +409,28 @@ export default function ChartsPage() {
       wsRef.current = null;
     };
   }, [asset, timeframe]);
+
+  useEffect(() => {
+    let aborted = false;
+    const loadIndicatorSeries = async () => {
+      try {
+        const response = await fetch('/api/brain/explain');
+        if (!response.ok) return;
+        const data = await response.json();
+        if (aborted) return;
+        const seriesMap = (data?.meta?.strategy_indicator_series ?? {}) as Record<string, IndicatorMap>;
+        const strategyId = Object.keys(seriesMap)[0];
+        const selected = strategyId ? seriesMap[strategyId] : undefined;
+        setIndicatorSeriesMap(selected ?? null);
+      } catch (_error) {
+        /* ignore explain fetch failures */
+      }
+    };
+    loadIndicatorSeries();
+    return () => {
+      aborted = true;
+    };
+  }, []);
 
   return (
     <TerminalShell className="stack-gap-lg w-full max-w-full px-0" style={{ minHeight: "calc(100vh - 80px)" }}>
