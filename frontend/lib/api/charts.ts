@@ -99,6 +99,22 @@ const historicalReplay = {
   stop() {
     this.active = false;
   },
+  prime(timeframe: string) {
+    if (!HISTORICAL_TICKS.length) return;
+    const baseTs = HISTORICAL_TICKS[0].timestamp;
+    const lastTs = HISTORICAL_TICKS[HISTORICAL_TICKS.length - 1].timestamp;
+    const minutes = timeframeToMinutes[timeframe] ?? 60;
+    const stepMs = minutes * 60_000;
+    const desiredWindowMs = DEFAULT_CANDLE_COUNT * stepMs;
+    const availableRangeMs = Math.max(0, lastTs - baseTs);
+    const offsetMs = Math.min(desiredWindowMs, availableRangeMs);
+
+    // Position the replay clock in the past so ticks() immediately surfaces a full window.
+    const speed = Math.max(0.1, this.speed);
+    this.startedAt = Date.now() - offsetMs / speed;
+    this.cursor = 0;
+    this.active = true;
+  },
   ticks(): Tick[] {
     if (!this.active) return HISTORICAL_TICKS.slice(0, this.cursor);
     if (!HISTORICAL_TICKS.length) return [];
@@ -336,6 +352,9 @@ export const chartsApi = {
     historicalReplay.stop();
   },
   getSnapshot: async (asset: string, timeframe: string, _options?: SnapshotOptions): Promise<ChartSnapshot> => {
+    if (MARKET_DATA_SOURCE === 'HISTORICAL') {
+      historicalReplay.prime(timeframe);
+    }
     const candles = buildCandles(asset, timeframe, MARKET_DATA_SOURCE);
     chartSnapshot = {
       asset,

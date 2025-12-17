@@ -150,24 +150,28 @@ export default function ChartsPage() {
     });
 
     const decorated: IndicatorMap = {};
+    const baseColor = "rgba(148,163,184,0.25)";
 
     Object.entries(seriesMap).forEach(([indicator, rows]) => {
-      const filtered = rows
+      const resolved = rows
         .map((row) => {
           const time = Number(row.time);
+          if (!Number.isFinite(time)) return null;
           const activeSet = activeByTime.get(time);
-          if (!activeSet || !activeSet.has(indicator)) return null;
           const supported = supportMap.get(indicator)?.has(time);
           const blocked = blockMap.get(indicator)?.has(time);
-          let color = "rgba(148,163,184,0.28)";
+          let color = typeof row.color === 'string' ? row.color : baseColor;
+          if (activeSet?.has(indicator) && !supported && !blocked) {
+            color = "rgba(148,163,184,0.65)";
+          }
           if (supported) color = "rgba(16,185,129,0.9)";
           if (blocked) color = "rgba(239,68,68,0.78)";
           return { ...row, color } as ExplainIndicatorPoint;
         })
         .filter(Boolean) as ExplainIndicatorPoint[];
 
-      if (filtered.length) {
-        decorated[indicator] = filtered;
+      if (resolved.length) {
+        decorated[indicator] = resolved;
       }
     });
 
@@ -628,12 +632,6 @@ export default function ChartsPage() {
 
         const timeline = Array.isArray(payload?.decision_timeline) ? (payload.decision_timeline as ExplainDecision[]) : [];
         setDecisionTimeline(timeline);
-
-        if (!timeline.length) {
-          setIndicatorSeriesMap(null);
-          setMarkers([]);
-          return;
-        }
 
         const seriesByStrategy = (payload?.meta?.strategy_indicator_series ?? {}) as Record<string, ExplainIndicatorSeries>;
         const strategyId = Object.keys(seriesByStrategy)[0];
