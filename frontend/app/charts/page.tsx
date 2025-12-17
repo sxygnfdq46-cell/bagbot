@@ -450,7 +450,10 @@ export default function ChartsPage() {
     const chart = chartRef.current;
     if (!chart) return;
     if (!decisionTimeline.length) {
-      decisionConnectorRef.current?.setData([]);
+      if (decisionConnectorRef.current) {
+        chart.removeSeries(decisionConnectorRef.current);
+        decisionConnectorRef.current = null;
+      }
       return;
     }
 
