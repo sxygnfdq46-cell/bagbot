@@ -599,7 +599,17 @@ export default function ChartsPage() {
   useEffect(() => {
     let aborted = false;
     const loadExplain = async () => {
-      const urls = ['/api/brain/explain', 'https://bagbot2-backend.onrender.com/api/brain/explain'];
+      const isProd = process.env.NODE_ENV === 'production';
+      const apiBase = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
+      const urls = Array.from(
+        new Set(
+          [
+            ...(isProd && apiBase ? [`${apiBase}/api/brain/explain`] : ['/api/brain/explain']),
+            apiBase ? `${apiBase}/api/brain/explain` : undefined,
+            'https://bagbot2-backend.onrender.com/api/brain/explain',
+          ].filter(Boolean)
+        )
+      ) as string[];
       let payload: any = null;
       for (const url of urls) {
         try {
