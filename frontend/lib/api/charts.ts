@@ -37,6 +37,15 @@ const TICKS_PER_CANDLE = 12;
 const ENV_SOURCE = (process.env.NEXT_PUBLIC_MARKET_DATA_SOURCE || 'MOCK').toString().toUpperCase();
 const MARKET_DATA_SOURCE: MarketDataSource = ENV_SOURCE === 'HISTORICAL' ? 'HISTORICAL' : 'MOCK';
 const HISTORICAL_REPLAY_SPEED = Number(process.env.NEXT_PUBLIC_HISTORICAL_REPLAY_SPEED ?? '1') || 1;
+const WINDOW_BY_TIMEFRAME: Record<string, number> = {
+  '1H': 90,
+  '4H': 140,
+  '1D': 200,
+  '1W': 240,
+  '1M': 260
+};
+const WINDOW_BUFFER = 12;
+const IS_DEV = process.env.NODE_ENV !== 'production';
 
 const basePrice = (asset: string) => {
   if (asset.startsWith('ETH')) return 3050;
@@ -57,7 +66,24 @@ const timeframeToMinutes: Record<string, number> = {
   '1M': 43200
 };
 
+const resolveWindowSize = (frame: string) => WINDOW_BY_TIMEFRAME[frame?.toUpperCase?.() ?? frame] ?? DEFAULT_CANDLE_COUNT;
+const resolveTargetWindow = (frame: string) => {
+  const base = resolveWindowSize(frame);
+  return Math.max(base + WINDOW_BUFFER, base);
+};
+
+const assertWindowInvariant = (candles: Candle[], timeframe: string, context: string) => {
+  if (!IS_DEV) return;
+  const target = resolveTargetWindow(timeframe);
+  if ((candles?.length ?? 0) < target) {
+    console.warn(`[charts][invariant] ${context} window too small`, { target, length: candles?.length ?? 0, timeframe });
+  }
+};
+
 type Tick = { timestamp: number; price: number; asset: string; source: MarketDataSource };
+type ReplayAnchorKey = `${string}-${string}`;
+
+const replayAnchor: Record<ReplayAnchorKey, number> = {};
 
 const HISTORICAL_TICKS: Tick[] = (() => {
   const base = Date.parse('2024-04-12T13:00:00Z');
@@ -99,19 +125,26 @@ const historicalReplay = {
   stop() {
     this.active = false;
   },
-  prime(timeframe: string) {
+  prime(asset: string, timeframe: string) {
     if (!HISTORICAL_TICKS.length) return;
-    const baseTs = HISTORICAL_TICKS[0].timestamp;
-    const lastTs = HISTORICAL_TICKS[HISTORICAL_TICKS.length - 1].timestamp;
+    const key: ReplayAnchorKey = `${asset}-${timeframe}`;
     const minutes = timeframeToMinutes[timeframe] ?? 60;
     const stepMs = minutes * 60_000;
-    const desiredWindowMs = DEFAULT_CANDLE_COUNT * stepMs;
+    const targetWindow = resolveTargetWindow(timeframe);
+    const desiredWindowMs = targetWindow * stepMs;
+    const speed = Math.max(0.1, this.speed);
+
+    // Reuse prior anchor for determinism across reloads within the session.
+    const anchor = replayAnchor[key] ?? (Date.now() - desiredWindowMs / speed);
+    replayAnchor[key] = anchor;
+
+    const baseTs = HISTORICAL_TICKS[0].timestamp;
+    const lastTs = HISTORICAL_TICKS[HISTORICAL_TICKS.length - 1].timestamp;
     const availableRangeMs = Math.max(0, lastTs - baseTs);
     const offsetMs = Math.min(desiredWindowMs, availableRangeMs);
 
     // Position the replay clock in the past so ticks() immediately surfaces a full window.
-    const speed = Math.max(0.1, this.speed);
-    this.startedAt = Date.now() - offsetMs / speed;
+    this.startedAt = anchor - offsetMs / speed;
     this.cursor = 0;
     this.active = true;
   },
@@ -227,10 +260,41 @@ const buildCandlesFromTicks = (ticks: Tick[], timeframe: string): Candle[] => {
   return candles;
 };
 
+const ensureTargetWindow = (candles: Candle[], timeframe: string, asset: string): Candle[] => {
+  const target = resolveTargetWindow(timeframe);
+  if (candles.length >= target) {
+    return candles.slice(-target);
+  }
+
+  const minutes = timeframeToMinutes[timeframe] ?? 60;
+  const stepMs = minutes * 60_000;
+  const needed = target - candles.length;
+
+  const seedPrice = candles[0]?.close ?? basePrice(asset);
+  const seedTs = candles[0]?.timestamp ?? Date.now();
+
+  // Prepend deterministic flat candles to meet target length without altering live math.
+  const padding: Candle[] = Array.from({ length: needed }, (_, index) => {
+    const ts = seedTs - stepMs * (needed - index);
+    return {
+      timestamp: ts,
+      open: seedPrice,
+      high: seedPrice,
+      low: seedPrice,
+      close: seedPrice,
+      volume: 0,
+      source: candles[0]?.source ?? 'HISTORICAL',
+      validForLearning: false,
+    };
+  });
+
+  return [...padding, ...candles];
+};
+
 const buildCandles = (asset: string, timeframe: string, source: MarketDataSource): Candle[] => {
   if (source === 'HISTORICAL') {
     const ticks = historicalReplay.ticks();
-    return buildCandlesFromTicks(ticks, timeframe);
+    return ensureTargetWindow(buildCandlesFromTicks(ticks, timeframe), timeframe, asset);
   }
 
   const count = DEFAULT_CANDLE_COUNT;
@@ -279,7 +343,7 @@ const buildCandles = (asset: string, timeframe: string, source: MarketDataSource
     });
   }
 
-  return candles;
+  return ensureTargetWindow(candles, timeframe, asset);
 };
 
 const buildSeries = (asset: string, timeframe: string, candles?: Candle[]): PricePoint[] => {
@@ -353,9 +417,10 @@ export const chartsApi = {
   },
   getSnapshot: async (asset: string, timeframe: string, _options?: SnapshotOptions): Promise<ChartSnapshot> => {
     if (MARKET_DATA_SOURCE === 'HISTORICAL') {
-      historicalReplay.prime(timeframe);
+      historicalReplay.prime(asset, timeframe);
     }
     const candles = buildCandles(asset, timeframe, MARKET_DATA_SOURCE);
+    assertWindowInvariant(candles, timeframe, 'snapshot');
     chartSnapshot = {
       asset,
       timeframe,
@@ -370,12 +435,15 @@ export const chartsApi = {
     return mockResponse(chartSnapshot);
   },
   streamPulse: async (asset: string): Promise<Pick<ChartSnapshot, 'pulse' | 'feed'>> => {
+    const prevLength = chartSnapshot.candles?.length ?? 0;
     if (MARKET_DATA_SOURCE === 'HISTORICAL') {
       const candles = buildCandles(asset, chartSnapshot.timeframe, MARKET_DATA_SOURCE);
+      const stableCandles = candles.length < prevLength ? chartSnapshot.candles : candles;
+      assertWindowInvariant(stableCandles, chartSnapshot.timeframe, 'stream');
       chartSnapshot = {
         ...chartSnapshot,
-        candles,
-        series: buildSeries(asset, chartSnapshot.timeframe, candles)
+        candles: stableCandles,
+        series: buildSeries(asset, chartSnapshot.timeframe, stableCandles)
       };
     }
     mutatePulse(asset);

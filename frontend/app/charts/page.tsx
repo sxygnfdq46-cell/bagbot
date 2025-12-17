@@ -236,6 +236,14 @@ export default function ChartsPage() {
   const persistSnapshot = useCallback(
     (snapshot: Partial<ChartSnapshot>) => {
       try {
+        const targetWindow = Math.max(resolveWindowSize(timeframe) + WINDOW_BUFFER, resolveWindowSize(timeframe));
+        const length = snapshot.candles?.length ?? 0;
+        if (length && length < targetWindow) {
+          if (process.env.NODE_ENV !== 'production') {
+            console.warn('[charts][cache][skip] window too small', { length, targetWindow, timeframe });
+          }
+          return;
+        }
         const cache = {
           candles: snapshot.candles,
           miniCharts: snapshot.miniCharts,
@@ -267,7 +275,8 @@ export default function ChartsPage() {
       const cached = typeof window !== 'undefined' ? sessionStorage.getItem(CACHE_KEY(asset, timeframe)) : null;
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed?.candles?.length) {
+        const targetWindow = Math.max(resolveWindowSize(timeframe) + WINDOW_BUFFER, resolveWindowSize(timeframe));
+        if (parsed?.candles?.length && parsed.candles.length >= targetWindow) {
           const trimmedCandles = clampCandlesToWindow(parsed.candles ?? [], timeframe);
           setCandles(trimmedCandles);
           setMiniCharts(parsed.miniCharts ?? []);
@@ -275,6 +284,12 @@ export default function ChartsPage() {
           setPulse(parsed.pulse ?? []);
           setFeed(parsed.feed ?? []);
           setHoveredCandle(null);
+        } else if (process.env.NODE_ENV !== 'production') {
+          console.warn('[charts][cache][ignore] cached window too small', {
+            length: parsed?.candles?.length ?? 0,
+            targetWindow,
+            timeframe,
+          });
         }
       }
     } catch (_error) {
