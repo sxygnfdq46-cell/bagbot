@@ -13,6 +13,7 @@ from backend.brain.invariants import (
 )
 from backend.brain.utils.strategy_indicators import get_all_indicator_declarations
 from backend.brain.utils.indicator_series import get_all_indicator_series
+from backend.brain.utils.explain_payload import get_candle_sequence, get_decision_timeline
 
 router = APIRouter(prefix="/api/brain", tags=["brain"])
 
@@ -61,6 +62,8 @@ async def get_brain_explain() -> dict[str, Any]:
     snapshot = build_explain_snapshot(decision=None, envelope=None, meta={"market_data_source": "MOCK"}, rationale=["no_recent_decision"], learning_gate=gate)
     indicator_declarations = get_all_indicator_declarations()
     indicator_series = get_all_indicator_series()
+    candles = get_candle_sequence()
+    decision_timeline = get_decision_timeline()
     return {
         "status": "success",
         "reason": None,
@@ -81,7 +84,14 @@ async def get_brain_explain() -> dict[str, Any]:
             "historical_replay_deterministic": HISTORICAL_REPLAY_DETERMINISTIC,
             "strategy_indicators": indicator_declarations,
             "strategy_indicator_series": indicator_series,
+            "candles": candles,
+            "timeline_alignment": {
+                "unit": "seconds",
+                "timezone": "UTC",
+                "ordering": "ascending",
+            },
         },
+        "decision_timeline": decision_timeline,
         "explain": snapshot,
     }
 
