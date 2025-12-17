@@ -599,49 +599,54 @@ export default function ChartsPage() {
   useEffect(() => {
     let aborted = false;
     const loadExplain = async () => {
-      const isProd = process.env.NODE_ENV === 'production';
-      const apiBase = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
-      const urls = Array.from(
-        new Set(
-          [
-            ...(isProd && apiBase ? [`${apiBase}/api/brain/explain`] : ['/api/brain/explain']),
-            apiBase ? `${apiBase}/api/brain/explain` : undefined,
-            'https://bagbot2-backend.onrender.com/api/brain/explain',
-          ].filter(Boolean)
-        )
-      ) as string[];
-      let payload: any = null;
-      for (const url of urls) {
-        try {
-          const response = await fetch(url);
-          if (response.ok) {
-            payload = await response.json();
-            break;
+      try {
+        const isProd = process.env.NODE_ENV === 'production';
+        const apiBase = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
+        const urls = Array.from(
+          new Set(
+            [
+              ...(isProd && apiBase ? [`${apiBase}/api/brain/explain`] : ['/api/brain/explain']),
+              apiBase ? `${apiBase}/api/brain/explain` : undefined,
+              'https://bagbot2-backend.onrender.com/api/brain/explain',
+            ].filter(Boolean)
+          )
+        ) as string[];
+
+        let payload: any = null;
+        for (const url of urls) {
+          try {
+            const response = await fetch(url);
+            if (response.ok) {
+              payload = await response.json();
+              break;
+            }
+          } catch (_error) {
+            /* retry next url */
           }
-        } catch (_error) {
-          /* retry next url */
         }
+        if (aborted || !payload) return;
+
+        const timeline = Array.isArray(payload?.decision_timeline) ? (payload.decision_timeline as ExplainDecision[]) : [];
+        setDecisionTimeline(timeline);
+
+        const seriesByStrategy = (payload?.meta?.strategy_indicator_series ?? {}) as Record<string, ExplainIndicatorSeries>;
+        const strategyId = Object.keys(seriesByStrategy)[0];
+        const rawSeries = strategyId ? seriesByStrategy[strategyId] : null;
+        const decorated = decorateIndicatorSeries(rawSeries, timeline);
+        if (decorated) {
+          setIndicatorSeriesMap(decorated);
+        }
+
+        const explainCandles = adaptExplainCandles(payload?.meta?.candles ?? []);
+        if (explainCandles.length && candles.length === 0) {
+          setCandles(explainCandles);
+        }
+
+        const derivedMarkers = buildDecisionMarkers(timeline);
+        if (derivedMarkers.length) setMarkers(derivedMarkers);
+      } catch (_error) {
+        // Hard-fail explain must never break chart; ignore.
       }
-      if (aborted || !payload) return;
-
-      const timeline = Array.isArray(payload?.decision_timeline) ? (payload.decision_timeline as ExplainDecision[]) : [];
-      setDecisionTimeline(timeline);
-
-      const seriesByStrategy = (payload?.meta?.strategy_indicator_series ?? {}) as Record<string, ExplainIndicatorSeries>;
-      const strategyId = Object.keys(seriesByStrategy)[0];
-      const rawSeries = strategyId ? seriesByStrategy[strategyId] : null;
-      const decorated = decorateIndicatorSeries(rawSeries, timeline);
-      if (decorated) {
-        setIndicatorSeriesMap(decorated);
-      }
-
-      const explainCandles = adaptExplainCandles(payload?.meta?.candles ?? []);
-      if (explainCandles.length && candles.length === 0) {
-        setCandles(explainCandles);
-      }
-
-      const derivedMarkers = buildDecisionMarkers(timeline);
-      if (derivedMarkers.length) setMarkers(derivedMarkers);
     };
     loadExplain();
     return () => {
