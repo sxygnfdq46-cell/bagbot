@@ -1,0 +1,1 @@
+- M6 (signals): added mock feed + runtime pipeline canary with fake-mode trace_id propagation for safe staging/CI validation.

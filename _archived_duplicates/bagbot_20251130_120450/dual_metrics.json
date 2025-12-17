@@ -1,0 +1,11 @@
+{
+  "sharpe": 2.5802442622014308,
+  "max_drawdown": 0.16255918416899356,
+  "final_equity": 1318100.0,
+  "trades": 240,
+  "equity_points": 678,
+  "penalty_factor": 0.01,
+  "dual_score": 2.5786186703597407,
+  "total_return_pct": 13081.0,
+  "win_rate": 0.0
+}

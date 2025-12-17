@@ -9,6 +9,9 @@ import { adminApi, type AdminStrategy, type AdminUser, type SystemHealth, type A
 import GlobalHeroBadge from '@/components/ui/global-hero-badge';
 import MetricLabel from '@/components/ui/metric-label';
 import TerminalShell from '@/components/ui/terminal-shell';
+import { useRuntimeSnapshot } from '@/lib/runtime/use-runtime-snapshot';
+import { applyRuntimeIntent } from '@/lib/runtime/runtime-intents';
+import { getRuntimeAuditLog } from '@/lib/runtime/runtime-audit';
 
 export default function AdminPage() {
   const safeModeStatus = 'PREVIEW';
@@ -52,6 +55,10 @@ export default function AdminPage() {
         <SystemLogsPanel />
         <ConfigEditorPanel />
       </div>
+
+      <div className="grid-premium lg:grid-cols-2">
+        <AuditLogPanel />
+      </div>
     </TerminalShell>
   );
 }
@@ -60,6 +67,10 @@ function SystemHealthPanel() {
   const [data, setData] = useState<SystemHealth | null>(null);
   const [loading, setLoading] = useState(true);
   const { notify } = useToast();
+  const { snapshot: runtimeSnapshot, loading: runtimeLoading } = useRuntimeSnapshot();
+  const runtimeHealth = runtimeSnapshot.system.health;
+  const displayHealth = (runtimeHealth as SystemHealth | null | undefined) ?? data;
+  const isLoading = (loading || runtimeLoading) && !displayHealth;
 
   useEffect(() => {
     let mounted = true;
@@ -83,19 +94,19 @@ function SystemHealthPanel() {
 
   return (
     <Card title="System Health" subtitle="Backend, engines, and runtime security">
-      {loading && !data ? (
+      {isLoading ? (
         <div className="space-y-3">
           <Skeleton className="h-5 w-1/2" />
           <Skeleton className="h-5 w-2/3" />
           <Skeleton className="h-5 w-1/3" />
         </div>
-      ) : data ? (
+      ) : displayHealth ? (
         <dl className="grid-premium text-sm sm:grid-cols-2">
-          <InfoRow label="Uptime" value={data.uptime} />
-          <InfoRow label="CPU Load" value={`${data.cpuLoad.toFixed?.(1) ?? data.cpuLoad}%`} />
-          <InfoRow label="RAM Usage" value={`${data.ramUsage.toFixed?.(1) ?? data.ramUsage}%`} />
-          <InfoRow label="Backend" value={data.backendStatus} accent />
-          <InfoRow label="Brain Engine" value={data.brainStatus} accent />
+          <InfoRow label="Uptime" value={displayHealth.uptime} />
+          <InfoRow label="CPU Load" value={`${displayHealth.cpuLoad.toFixed?.(1) ?? displayHealth.cpuLoad}%`} />
+          <InfoRow label="RAM Usage" value={`${displayHealth.ramUsage.toFixed?.(1) ?? displayHealth.ramUsage}%`} />
+          <InfoRow label="Backend" value={displayHealth.backendStatus} accent />
+          <InfoRow label="Brain Engine" value={displayHealth.brainStatus} accent />
         </dl>
       ) : (
         <p className="text-sm text-[color:var(--text-main)] opacity-60">Unable to fetch health metrics.</p>
@@ -190,6 +201,12 @@ function StrategyControlPanel() {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [killPending, setKillPending] = useState(false);
   const { notify } = useToast();
+  const { snapshot: runtimeSnapshot } = useRuntimeSnapshot();
+  const safeMode = runtimeSnapshot.system.safeMode === true;
+  const runtimeStrategies = runtimeSnapshot.strategies ?? [];
+
+  const resolveEnabled = (strategy: AdminStrategy) =>
+    runtimeStrategies.find((entry) => entry.id === strategy.id)?.enabled ?? strategy.enabled ?? false;
 
   const refresh = () => {
     setLoading(true);
@@ -207,7 +224,10 @@ function StrategyControlPanel() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggle = (strategy: AdminStrategy) => {
+    if (safeMode) return;
     setPendingId(strategy.id);
+    const nextEnabled = !resolveEnabled(strategy);
+    applyRuntimeIntent({ type: 'SET_STRATEGY_STATE', id: strategy.id, enabled: nextEnabled, source: 'admin' });
     adminApi
       .toggleStrategy(strategy.id)
       .then(() => {
@@ -221,6 +241,7 @@ function StrategyControlPanel() {
   };
 
   const killAll = () => {
+    if (!window.confirm('Disable all strategies?')) return;
     setKillPending(true);
     adminApi
       .killAllStrategies()
@@ -262,14 +283,14 @@ function StrategyControlPanel() {
               </div>
               <button
                 className={`toggle-premium ${pendingId === strategy.id ? 'opacity-60' : ''}`}
-                data-enabled={strategy.enabled}
+                data-enabled={resolveEnabled(strategy)}
                 onClick={() => toggle(strategy)}
-                disabled={Boolean(pendingId)}
-                aria-pressed={strategy.enabled}
+                disabled={Boolean(pendingId) || safeMode}
+                aria-pressed={resolveEnabled(strategy)}
               >
                 <span
                   className={`toggle-premium__thumb inline-block h-5 w-5 rounded-full bg-white transition ${
-                    strategy.enabled ? 'translate-x-6' : 'translate-x-1'
+                    resolveEnabled(strategy) ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
               </button>
@@ -363,21 +384,59 @@ function SystemLogsPanel() {
   );
 }
 
+function AuditLogPanel() {
+  const [records, setRecords] = useState(() => [...getRuntimeAuditLog()].reverse());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRecords([...getRuntimeAuditLog()].reverse());
+    }, 1200);
+    return () => clearInterval(interval);
+  }, []);
+
+  const hasRecords = records.length > 0;
+
+  return (
+    <Card title="Runtime Audit" subtitle="Read-only intents trail">
+      {!hasRecords && <p className="text-sm text-[color:var(--text-main)] opacity-60">No actions recorded yet.</p>}
+      {hasRecords && (
+        <div className="no-scrollbar max-h-72 overflow-y-auto divide-y divide-[color:var(--border-soft)]">
+          {records.map((record, index) => (
+            <div key={`${record.timestamp}-${record.target}-${index}`} className="py-3 text-sm">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">
+                <span>{record.intent}</span>
+                <span className="opacity-70">{new Date(record.timestamp).toLocaleString()}</span>
+              </div>
+              <p className="mt-2 text-[color:var(--text-main)]">Target: {record.target}</p>
+              <p className="text-[color:var(--text-main)] opacity-80">Value: {record.value}</p>
+              <p className="text-[color:var(--text-main)] opacity-70">Source: {record.source}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
 function SafeModeController() {
   const { notify } = useToast();
   const [pending, setPending] = useState<'activate' | 'deactivate' | null>(null);
+  const { snapshot: runtimeSnapshot } = useRuntimeSnapshot();
+  const safeMode = runtimeSnapshot.system.safeMode === true;
 
   const perform = (action: 'activate' | 'deactivate') => {
+    if (action === 'activate' && !window.confirm('Activate Safe Mode?')) return;
+    if (action === 'deactivate' && !window.confirm('Deactivate Safe Mode?')) return;
     setPending(action);
-    const request = action === 'activate' ? adminApi.activateSafeMode() : adminApi.deactivateSafeMode();
-    request
-      .then(() => {
-        notify({ title: `Safe mode ${action}d`, description: 'State replicated across nodes', variant: 'success' });
-      })
-      .catch((error) => {
-        notify({ title: 'Safe mode change failed', description: error instanceof Error ? error.message : 'Unknown error', variant: 'error' });
-      })
-      .finally(() => setPending(null));
+    try {
+      applyRuntimeIntent({ type: 'SET_SAFE_MODE', enabled: action === 'activate', source: 'admin' });
+      notify({ title: `Safe mode ${action}d`, description: 'Runtime flag updated', variant: 'success' });
+    } catch (error) {
+      notify({ title: 'Safe mode change failed', description: error instanceof Error ? error.message : 'Unknown error', variant: 'error' });
+    } finally {
+      const fallback = action === 'activate' ? adminApi.activateSafeMode() : adminApi.deactivateSafeMode();
+      fallback.finally(() => setPending(null));
+    }
   };
 
   return (
@@ -389,6 +448,7 @@ function SafeModeController() {
         <Button
           onClick={() => perform('activate')}
           isLoading={pending === 'activate'}
+          disabled={safeMode}
           loadingText="Activating..."
           className="w-full sm:w-auto"
         >
@@ -398,6 +458,7 @@ function SafeModeController() {
           variant="secondary"
           onClick={() => perform('deactivate')}
           isLoading={pending === 'deactivate'}
+          disabled={!safeMode}
           loadingText="Restoring..."
           className="w-full sm:w-auto"
         >

@@ -12,6 +12,9 @@ from typing import Any, Dict, Optional
 
 from backend.signals.ingest import consume_signal
 
+_ENV_SOURCE = os.environ.get("MARKET_DATA_SOURCE", "MOCK").strip().upper() or "MOCK"
+MARKET_DATA_SOURCE = _ENV_SOURCE if _ENV_SOURCE in {"MOCK", "HISTORICAL"} else "MOCK"
+
 _FAKE_TRUE = {"1", "true", "yes", "on"}
 logger = logging.getLogger(__name__)
 
@@ -53,12 +56,16 @@ def run_mock_feed_once(signal: Optional[Dict[str, Any]] = None, *, metrics_clien
     Intended for local/staging canaries; no external services required.
     """
 
+    if MARKET_DATA_SOURCE == "HISTORICAL":
+        return {"status": "skipped", "reason": "market_data_source_historical", "meta": {"market_data_source": MARKET_DATA_SOURCE}}
+
     if not (_env_bool("SIGNALS_MOCK_FEED_ENABLED", False) or _env_bool("SIGNALS_FAKE_MODE", False)):
         _inc(metrics_client, "signals_mock_feed_runs_total", {"outcome": "skipped"})
         logger.info("signals_mock_feed_skip", extra={"event": "signals_mock_feed_skip", "reason": "mock_feed_disabled", "fake_mode": False})
         return {
             "status": "skipped",
             "reason": "mock_feed_disabled",
+            "meta": {"market_data_source": MARKET_DATA_SOURCE},
         }
 
     payload = signal or {"instrument": "BTC-USD", "snapshot": mock_frame()}
@@ -80,6 +87,8 @@ def run_mock_feed_once(signal: Optional[Dict[str, Any]] = None, *, metrics_clien
         metrics_client=metrics_client,
         fake_mode=True,
     )
+
+    response.setdefault("meta", {})["market_data_source"] = response.get("meta", {}).get("market_data_source", MARKET_DATA_SOURCE)
 
     trace_id = (response.get("router_result") or {}).get("meta", {}).get("trace_id")
     _inc(metrics_client, "signals_mock_feed_runs_total", {"outcome": response.get("status", "unknown")})

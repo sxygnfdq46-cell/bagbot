@@ -11,6 +11,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import GlobalHeroBadge from "@/components/ui/global-hero-badge";
 import MetricLabel from "@/components/ui/metric-label";
 import TerminalShell from "@/components/ui/terminal-shell";
+import { useRuntimeSnapshot } from "@/lib/runtime/use-runtime-snapshot";
 
 const currency = (value: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value ?? 0);
@@ -18,9 +19,11 @@ const currency = (value: number) =>
 export default function DashboardPage() {
   const { loading, error, prices, positions, trades, status, portfolioValue, totalPnl, chartPoints, reload, notice } =
     useDashboardData();
+  const { snapshot: runtimeSnapshot, loading: runtimeLoading } = useRuntimeSnapshot();
   const { notify } = useToast();
-  const heroMode = status?.mode ? status.mode.toUpperCase() : 'STANDBY';
-  const heroHint = status?.latencyMs ? `${status.latencyMs} ms latency` : 'Live telemetry';
+  const safeMode = runtimeSnapshot.system.safeMode === true;
+  const heroMode = safeMode ? 'SAFE MODE' : status?.mode ? status.mode.toUpperCase() : 'STANDBY';
+  const heroHint = safeMode ? 'Execution paused' : status?.latencyMs ? `${status.latencyMs} ms latency` : 'Live telemetry';
 
   useEffect(() => {
     if (error) {
@@ -89,7 +92,7 @@ export default function DashboardPage() {
             </div>
           </Card>
           <Card title="System Status" subtitle="Core health overview">
-            {loading ? (
+            {(loading || runtimeLoading) && !runtimeSnapshot.system.status ? (
               <div className="space-y-2">
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-4/5" />
@@ -97,9 +100,9 @@ export default function DashboardPage() {
               </div>
             ) : (
               <dl className="space-y-3 text-sm">
-                <StatusRow label="Uptime" value={status?.uptime ?? "--"} />
-                <StatusRow label="Latency" value={status?.latencyMs ? `${status.latencyMs} ms` : "--"} />
-                <StatusRow label="Mode" value={status?.mode ?? "Standby"} />
+                <StatusRow label="Uptime" value={runtimeSnapshot.system.status?.uptime ?? status?.uptime ?? "--"} />
+                <StatusRow label="Latency" value={(runtimeSnapshot.system.status?.latencyMs ?? status?.latencyMs) ? `${runtimeSnapshot.system.status?.latencyMs ?? status?.latencyMs} ms` : "--"} />
+                <StatusRow label="Mode" value={safeMode ? "Safe Mode" : runtimeSnapshot.system.status?.mode ?? status?.mode ?? "Standby"} />
               </dl>
             )}
           </Card>

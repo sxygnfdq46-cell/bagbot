@@ -11,15 +11,25 @@ import { useToast } from '@/components/ui/toast-provider';
 import MetricLabel from '@/components/ui/metric-label';
 import { botApi, type BotSnapshot, type BotStatus } from '@/lib/api/bot';
 import TerminalShell from '@/components/ui/terminal-shell';
+import { useRuntimeSnapshot } from '@/lib/runtime/use-runtime-snapshot';
+import { applyRuntimeIntent } from '@/lib/runtime/runtime-intents';
 
 export default function BotControlCenterPage() {
   const [snapshot, setSnapshot] = useState<BotSnapshot | null>(null);
   const [pendingCommand, setPendingCommand] = useState<BotStatus | 'restart' | null>(null);
   const errorRef = useRef(false);
   const { notify } = useToast();
+  const { snapshot: runtimeSnapshot } = useRuntimeSnapshot();
 
-  const status = snapshot?.status ?? 'running';
-  const lastAction = snapshot?.lastAction ?? 'Boot sequence initializing';
+  const runtimeBot = runtimeSnapshot.bot;
+  const safeMode = runtimeSnapshot.system.safeMode === true;
+  const derivedStatus: BotStatus = runtimeBot.state === 'RUNNING'
+    ? 'running'
+    : runtimeBot.state === 'STOPPED'
+      ? 'stopped'
+      : runtimeBot.status ?? snapshot?.status ?? 'running';
+  const status = derivedStatus;
+  const lastAction = runtimeBot.lastAction ?? snapshot?.lastAction ?? 'Boot sequence initializing';
   const botMetrics = useMemo(
     () =>
       snapshot?.metrics ?? {
@@ -30,7 +40,7 @@ export default function BotControlCenterPage() {
       },
     [snapshot?.metrics]
   );
-  const health = snapshot?.health ?? { cpu: 0, ram: 0, load: 0 };
+  const health = runtimeBot.health ?? snapshot?.health ?? { cpu: 0, ram: 0, load: 0 };
   const eventLog = snapshot?.eventLog ?? [];
   const outputSeries = snapshot?.outputSeries ?? [];
   const triggerSeries = snapshot?.triggerSeries ?? [];
@@ -61,21 +71,41 @@ export default function BotControlCenterPage() {
   }, [notify]);
 
   const handleCommand = async (command: BotStatus | 'restart') => {
+    if (command === 'running' && !window.confirm('Start bot?')) return;
+    if (command === 'stopped' && !window.confirm('Stop bot?')) return;
     setPendingCommand(command);
     try {
-      const data = await botApi.issueCommand(command);
-      setSnapshot(data);
-      notify({
-        title: command === 'restart' ? 'Restart issued' : `${command.toUpperCase()} command sent`,
-        description: getCommandMessage(command),
-        variant: 'success'
-      });
+      if (command === 'running' || command === 'stopped') {
+        applyRuntimeIntent({ type: 'SET_BOT_STATE', state: command === 'running' ? 'RUNNING' : 'STOPPED', source: 'bot-page' });
+        notify({
+          title: `${command.toUpperCase()} command sent`,
+          description: getCommandMessage(command),
+          variant: 'success'
+        });
+        setSnapshot((prev) => prev);
+      } else {
+        const data = await botApi.issueCommand(command);
+        setSnapshot(data);
+        notify({
+          title: 'Restart issued',
+          description: getCommandMessage(command),
+          variant: 'success'
+        });
+      }
     } catch (error) {
       notify({
         title: 'Command failed',
         description: error instanceof Error ? error.message : 'Unknown error',
         variant: 'error'
       });
+      if (command === 'running' || command === 'stopped') {
+        try {
+          const data = await botApi.issueCommand(command);
+          setSnapshot(data);
+        } catch (_fallbackError) {
+          /* fallback failed, keep prior snapshot */
+        }
+      }
     } finally {
       setPendingCommand(null);
     }
@@ -146,10 +176,10 @@ export default function BotControlCenterPage() {
         </Card>
         <Card title="Command deck" subtitle="Start / Stop / Restart" padded>
           <div className="flex flex-wrap gap-3">
-            <Button className="btn-start" onClick={() => handleCommand('running')} isLoading={pendingCommand === 'running'}>
+            <Button className="btn-start" onClick={() => handleCommand('running')} isLoading={pendingCommand === 'running'} disabled={safeMode}>
               Start
             </Button>
-            <Button className="btn-stop" onClick={() => handleCommand('stopped')} isLoading={pendingCommand === 'stopped'}>
+            <Button className="btn-stop" onClick={() => handleCommand('stopped')} isLoading={pendingCommand === 'stopped'} disabled={safeMode}>
               Stop
             </Button>
             <Button className="btn-restart" onClick={() => handleCommand('restart')} isLoading={pendingCommand === 'restart'}>

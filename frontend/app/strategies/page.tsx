@@ -10,6 +10,8 @@ import Tag from '@/components/ui/tag';
 import GlobalHeroBadge from '@/components/ui/global-hero-badge';
 import MetricLabel from '@/components/ui/metric-label';
 import TerminalShell from '@/components/ui/terminal-shell';
+import { useRuntimeSnapshot } from '@/lib/runtime/use-runtime-snapshot';
+import { applyRuntimeIntent } from '@/lib/runtime/runtime-intents';
 
 export default function StrategiesPage() {
   const [strategies, setStrategies] = useState<Strategy[]>([]);
@@ -17,6 +19,8 @@ export default function StrategiesPage() {
   const [error, setError] = useState<string | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const { notify } = useToast();
+  const { snapshot: runtimeSnapshot } = useRuntimeSnapshot();
+  const safeMode = runtimeSnapshot.system.safeMode === true;
 
   useEffect(() => {
     const fetchStrategies = async () => {
@@ -34,26 +38,32 @@ export default function StrategiesPage() {
     fetchStrategies();
   }, [notify]);
 
+  const runtimeStrategies = runtimeSnapshot.strategies ?? [];
+
+  const resolveEnabled = (strategy: Strategy) =>
+    runtimeStrategies.find((entry) => entry.id === strategy.id)?.enabled ?? strategy.enabled ?? false;
+
   const toggleStrategy = async (strategy: Strategy) => {
+    if (safeMode) return;
     try {
       setPendingId(strategy.id);
-      setStrategies((prev) => prev.map((item) => (item.id === strategy.id ? { ...item, enabled: !item.enabled } : item)));
-      await strategiesApi.toggle({ id: strategy.id, enabled: !strategy.enabled });
+      const nextEnabled = !resolveEnabled(strategy);
+      applyRuntimeIntent({ type: 'SET_STRATEGY_STATE', id: strategy.id, enabled: nextEnabled, source: 'strategies-page' });
+      await strategiesApi.toggle({ id: strategy.id, enabled: nextEnabled });
       notify({
-        title: `${strategy.name} ${strategy.enabled ? 'disabled' : 'enabled'}`,
-        description: strategy.enabled ? 'Strategy removed from execution stack' : 'Strategy handed execution privileges',
+        title: `${strategy.name} ${nextEnabled ? 'enabled' : 'disabled'}`,
+        description: nextEnabled ? 'Strategy handed execution privileges' : 'Strategy removed from execution stack',
         variant: 'success'
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Toggle failed');
-      setStrategies((prev) => prev.map((item) => (item.id === strategy.id ? { ...item, enabled: strategy.enabled } : item)));
       notify({ title: 'Toggle failed', description: 'Unable to sync with orchestration core', variant: 'error' });
     }
     setPendingId(null);
   };
 
   const statsSummary = useMemo(() => {
-    const enabled = strategies.filter((s) => s.enabled);
+    const enabled = strategies.filter((s) => resolveEnabled(s));
     const avgWinRate =
       enabled.reduce((acc, strategy) => acc + (strategy.stats?.winRate ?? 0), 0) /
       Math.max(enabled.length, 1);
@@ -139,8 +149,8 @@ export default function StrategiesPage() {
                     <div className="min-w-[200px] flex-1 space-y-2">
                       <div className="flex flex-wrap items-center gap-3">
                         <h4 className="text-xl font-semibold">{strategy.name}</h4>
-                        <Tag variant={strategy.enabled ? 'success' : 'warning'}>
-                          {strategy.enabled ? 'Enabled' : 'Standby'}
+                        <Tag variant={resolveEnabled(strategy) ? 'success' : 'warning'}>
+                          {resolveEnabled(strategy) ? 'Enabled' : 'Standby'}
                         </Tag>
                       </div>
                       <p className="text-sm muted-premium">{strategy.description}</p>
@@ -148,10 +158,10 @@ export default function StrategiesPage() {
                     <button
                       onClick={() => toggleStrategy(strategy)}
                       className={`toggle-premium ${pendingId === strategy.id ? 'opacity-60' : ''}`}
-                      data-enabled={strategy.enabled}
-                      aria-pressed={strategy.enabled}
+                      data-enabled={resolveEnabled(strategy)}
+                      aria-pressed={resolveEnabled(strategy)}
                       aria-label={`Toggle ${strategy.name}`}
-                      disabled={pendingId === strategy.id}
+                      disabled={pendingId === strategy.id || safeMode}
                     >
                       <span
                         className={`toggle-premium__thumb inline-block h-5 w-5 rounded-full bg-white shadow-card transition ${

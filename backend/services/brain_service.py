@@ -55,6 +55,8 @@ _observation_task: Optional[asyncio.Task] = None
 _OBSERVER_INTERVAL_SECONDS = float(os.environ.get("BRAIN_OBSERVER_INTERVAL_SECONDS", "8"))
 _decision_timeline: Deque[Dict[str, Any]] = deque(maxlen=50)
 _state_lock = asyncio.Lock()
+_ENV_SOURCE = os.environ.get("MARKET_DATA_SOURCE", "MOCK").strip().upper() or "MOCK"
+MARKET_DATA_SOURCE = _ENV_SOURCE if _ENV_SOURCE in {"MOCK", "HISTORICAL"} else "MOCK"
 
 
 def _append_log(level: str, message: str) -> None:
@@ -227,11 +229,18 @@ async def _observation_cycle() -> None:
     telemetry: Dict[str, Any] = ensure_telemetry({})
     _ensure_fake_mode()
     response = await asyncio.to_thread(run_mock_feed_once, None, metrics_client=None)
+    if isinstance(response, dict):
+        response.setdefault("meta", {})["market_data_source"] = response.get("meta", {}).get("market_data_source", MARKET_DATA_SOURCE)
     brain_decision = response.get("brain_decision") if isinstance(response, dict) else None
+    decision_payload: Dict[str, Any] = {}
     if isinstance(brain_decision, dict):
-        brain_decision.setdefault("meta", {}).setdefault("trace_id", telemetry.get("trace_id"))
+        decision_payload = brain_decision
+        decision_payload.setdefault("meta", {}).setdefault("trace_id", telemetry.get("trace_id"))
+        decision_payload.setdefault("meta", {}).setdefault("market_data_source", response.get("meta", {}).get("market_data_source", MARKET_DATA_SOURCE))
+    else:
+        decision_payload = {"meta": {"trace_id": telemetry.get("trace_id"), "market_data_source": response.get("meta", {}).get("market_data_source", MARKET_DATA_SOURCE)}}
     async with _state_lock:
-        _ingest_decision(brain_decision or {}, telemetry.get("trace_id"))
+        _ingest_decision(decision_payload, telemetry.get("trace_id"))
 
 
 async def get_decision_timeline() -> List[Dict[str, Any]]:

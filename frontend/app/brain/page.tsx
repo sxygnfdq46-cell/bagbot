@@ -18,10 +18,14 @@ import { wsClient, type WsStatus } from '@/lib/ws-client';
 import GlobalHeroBadge from '@/components/ui/global-hero-badge';
 import MetricLabel from '@/components/ui/metric-label';
 import TerminalShell from '@/components/ui/terminal-shell';
+import { useRuntimeSnapshot } from '@/lib/runtime/use-runtime-snapshot';
 
 export default function BrainPage() {
-  const telemetryStatus = 'LIVE';
-  const telemetryHint = 'Neural stream stable';
+  const { snapshot: runtimeSnapshot } = useRuntimeSnapshot();
+  const runtimeBrain = runtimeSnapshot.brain;
+  const safeMode = runtimeSnapshot.system.safeMode === true;
+  const telemetryStatus = safeMode ? 'SAFE MODE' : (runtimeBrain.status ?? 'live').toString().toUpperCase();
+  const telemetryHint = safeMode ? 'Execution paused' : runtimeBrain.lastDecision?.outcome ?? 'Neural stream stable';
   return (
     <TerminalShell className="stack-gap-lg">
         <GlobalHeroBadge
