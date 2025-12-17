@@ -12,6 +12,7 @@ from backend.brain.invariants import (
     SINGLE_MARKET_DATA_SOURCE,
 )
 from backend.brain.utils.strategy_indicators import get_all_indicator_declarations
+from backend.brain.utils.indicator_series import get_all_indicator_series
 
 router = APIRouter(prefix="/api/brain", tags=["brain"])
 
@@ -59,6 +60,7 @@ async def get_brain_explain() -> dict[str, Any]:
     gate = build_learning_gate_snapshot(meta={"market_data_source": "MOCK"}, context={"mode": "observe"})
     snapshot = build_explain_snapshot(decision=None, envelope=None, meta={"market_data_source": "MOCK"}, rationale=["no_recent_decision"], learning_gate=gate)
     indicator_declarations = get_all_indicator_declarations()
+    indicator_series = get_all_indicator_series()
     return {
         "status": "success",
         "reason": None,
@@ -78,6 +80,7 @@ async def get_brain_explain() -> dict[str, Any]:
             "learning_gate_blocked": LEARNING_GATE_ALWAYS_BLOCKED,
             "historical_replay_deterministic": HISTORICAL_REPLAY_DETERMINISTIC,
             "strategy_indicators": indicator_declarations,
+            "strategy_indicator_series": indicator_series,
         },
         "explain": snapshot,
     }
