@@ -31,7 +31,7 @@ import { resolveWsUrl } from "@/lib/api-client";
 import { LineStyle, type IChartApi, type MouseEventParams, type SeriesMarker, type Time } from "lightweight-charts";
 
 type ChartHoverPayload = Candle & { index: number; time: number };
-type ChartMarker = { id: string; action: string; timestamp: number; confidence?: number; reason?: string };
+type ChartMarker = { id: string; action: string; timestamp: number; confidence?: number; reason?: string; count?: number };
 
 type ExplainIndicatorPoint = {
   time: number;
@@ -107,6 +107,7 @@ export default function ChartsPage() {
   const volumeSeriesRef = useRef<VolumeSeries | null>(null);
   const indicatorRendererRef = useRef<ReturnType<typeof createIndicatorRenderer> | null>(null);
   const decisionConnectorRef = useRef<ReturnType<IChartApi["addLineSeries"]> | null>(null);
+  const positionBandRef = useRef<ReturnType<IChartApi["addAreaSeries"]> | null>(null);
   const visibleCandlesRef = useRef<Candle[]>([]);
   const heroFeedStatus = `SYNCED • ${timeframe.toUpperCase()}`;
   const heroHint = `Asset ${asset}`;
@@ -224,6 +225,51 @@ export default function ChartsPage() {
         } as ChartMarker;
       })
       .filter(Boolean) as ChartMarker[];
+  }, []);
+
+  const clusterMarkers = useCallback((raw: ChartMarker[]): ChartMarker[] => {
+    if (!raw.length) return raw;
+    const buckets = new Map<number, ChartMarker[]>();
+    raw.forEach((marker) => {
+      const bucket = toUtcSeconds(marker.timestamp);
+      if (!buckets.has(bucket)) buckets.set(bucket, []);
+      buckets.get(bucket)?.push(marker);
+    });
+
+    const clustered: ChartMarker[] = [];
+
+    buckets.forEach((entries, bucket) => {
+      if (entries.length === 1) {
+        clustered.push(entries[0]);
+        return;
+      }
+
+      const byAction = new Map<string, { count: number; top?: ChartMarker }>();
+      entries.forEach((marker) => {
+        const action = marker.action.toLowerCase();
+        const confidence = Number.isFinite(marker.confidence) ? marker.confidence ?? 0 : 0;
+        const current = byAction.get(action) ?? { count: 0, top: undefined };
+        const top = current.top;
+        const nextTop = !top || (Number.isFinite(confidence) && confidence > (top.confidence ?? 0)) ? marker : top;
+        byAction.set(action, { count: current.count + 1, top: nextTop });
+      });
+
+      const sortedActions = Array.from(byAction.entries()).sort((a, b) => b[1].count - a[1].count || (b[1].top?.confidence ?? 0) - (a[1].top?.confidence ?? 0));
+      const [dominantAction, dominantMeta] = sortedActions[0];
+      const topMarker = dominantMeta.top ?? entries[0];
+      const confidence = topMarker.confidence;
+      const reason = (topMarker.reason ?? '').slice(0, 42);
+      clustered.push({
+        id: `cluster-${bucket}-${dominantAction}`,
+        action: dominantAction,
+        timestamp: bucket * 1000,
+        confidence,
+        reason: reason || `${entries.length} decisions`,
+        count: entries.length,
+      });
+    });
+
+    return clustered.slice(-MAX_MARKERS);
   }, []);
 
   const resolveDecisionColor = useCallback((action: string) => {
@@ -392,6 +438,10 @@ export default function ChartsPage() {
         chart.removeSeries(decisionConnectorRef.current);
         decisionConnectorRef.current = null;
       }
+      if (positionBandRef.current) {
+        chart.removeSeries(positionBandRef.current);
+        positionBandRef.current = null;
+      }
       indicatorRendererRef.current?.clear();
       indicatorRendererRef.current = null;
     };
@@ -438,12 +488,14 @@ export default function ChartsPage() {
     const series = candleSeriesRef.current;
     if (!series) return;
 
-    if (!windowMarkers.length) {
+    const clustered = clusterMarkers(windowMarkers);
+
+    if (!clustered.length) {
       series.setMarkers([]);
       return;
     }
 
-    const resolved: Array<SeriesMarker<Time>> = windowMarkers.map((marker) => {
+    const resolved: Array<SeriesMarker<Time>> = clustered.map((marker) => {
       const action = marker.action?.toLowerCase?.() ?? "hold";
       const shape: SeriesMarker<Time>["shape"] = action === "sell" ? "arrowDown" : action === "buy" ? "arrowUp" : "circle";
       const color = action === "sell" ? "rgba(239,68,68,0.9)" : action === "buy" ? "rgba(16,185,129,0.9)" : "rgba(148,163,184,0.9)";
@@ -451,7 +503,8 @@ export default function ChartsPage() {
       const confidence = Number.isFinite(marker.confidence) ? Math.max(0, Math.min(1, marker.confidence ?? 0)) : undefined;
       const percent = confidence !== undefined ? `${(confidence * 100).toFixed(0)}%` : null;
       const shortReason = (marker.reason ?? "").slice(0, 42);
-      const text = [action.toUpperCase(), percent, shortReason].filter(Boolean).join(" · ");
+      const countLabel = marker.count && marker.count > 1 ? `${marker.count}×` : null;
+      const text = [countLabel, action.toUpperCase(), percent, shortReason].filter(Boolean).join(" · ");
       return {
         id: marker.id,
         time: toUtcSeconds(marker.timestamp),
@@ -463,7 +516,7 @@ export default function ChartsPage() {
     });
 
     series.setMarkers(resolved);
-  }, [windowMarkers]);
+  }, [windowMarkers, clusterMarkers]);
 
   useEffect(() => {
     const chart = chartRef.current;
@@ -506,6 +559,82 @@ export default function ChartsPage() {
 
     decisionConnectorRef.current?.setData(connectorData);
   }, [decisionTimeline, resolveDecisionColor]);
+
+  const positionBands = useMemo(() => {
+    if (!decisionTimeline.length || !visibleCandles.length) return [] as Array<{ start: number; end: number; price: number; direction: 'long' | 'short' }>;
+    const candleByTime = new Map<number, Candle>();
+    visibleCandles.forEach((candle) => {
+      candleByTime.set(toUtcSeconds(candle.timestamp), candle);
+    });
+
+    const sorted = [...decisionTimeline].sort((a, b) => Number(a.time) - Number(b.time));
+    const bands: Array<{ start: number; end: number; price: number; direction: 'long' | 'short' }> = [];
+    let activePosition: { time: number; price: number; direction: 'long' | 'short' } | null = null;
+
+    const resolvePrice = (timeSec: number) => {
+      const candle = candleByTime.get(timeSec);
+      return candle?.close ?? candle?.open ?? null;
+    };
+
+    sorted.forEach((decision) => {
+      const timeSec = Number(decision.time);
+      if (!Number.isFinite(timeSec)) return;
+      const action = (decision.action || '').toLowerCase();
+
+      if (action === 'buy' && !activePosition) {
+        const price = resolvePrice(timeSec);
+        if (price !== null) activePosition = { time: timeSec, price, direction: 'long' };
+        return;
+      }
+
+      if (action === 'sell' && activePosition?.direction === 'long') {
+        const price = resolvePrice(timeSec) ?? activePosition.price;
+        bands.push({ start: activePosition.time, end: timeSec, price, direction: 'long' });
+        activePosition = null;
+        return;
+      }
+    });
+
+    if (activePosition) {
+      const pos = activePosition as { time: number; price: number; direction: 'long' | 'short' };
+      const lastVisible = visibleCandles.at(-1);
+      const endTime = lastVisible ? toUtcSeconds(lastVisible.timestamp) : pos.time;
+      bands.push({ start: pos.time, end: endTime, price: pos.price, direction: pos.direction });
+    }
+
+    return bands;
+  }, [decisionTimeline, visibleCandles]);
+
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart) return;
+
+    if (!positionBandRef.current) {
+      positionBandRef.current = chart.addAreaSeries({
+        priceLineVisible: false,
+        crosshairMarkerVisible: false,
+        topColor: 'rgba(16,185,129,0.08)',
+        bottomColor: 'rgba(16,185,129,0.02)',
+      });
+    }
+
+    const series = positionBandRef.current;
+
+    if (!positionBands.length) {
+      series.setData([]);
+      return;
+    }
+
+    const points: Array<{ time: Time; value: number }> = [];
+    positionBands.forEach((band) => {
+      const color = band.direction === 'short' ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.08)';
+      series.applyOptions({ topColor: color, bottomColor: color });
+      points.push({ time: band.start as Time, value: band.price });
+      points.push({ time: band.end as Time, value: band.price });
+    });
+
+    series.setData(points);
+  }, [positionBands]);
 
   useEffect(() => {
     let mounted = true;
