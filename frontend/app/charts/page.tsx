@@ -123,6 +123,7 @@ export default function ChartsPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [indicatorSeriesMap, setIndicatorSeriesMap] = useState<IndicatorMap | null>(null);
   const [decisionTimeline, setDecisionTimeline] = useState<ExplainDecision[]>([]);
+  const [wsDecisionTimeline, setWsDecisionTimeline] = useState<ExplainDecision[]>([]);
   const [hoveredCandle, setHoveredCandle] = useState<ChartHoverPayload | null>(null);
   const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
@@ -608,11 +609,16 @@ export default function ChartsPage() {
   const visibleCandles = useMemo(() => candles.slice(-windowSize), [candles, windowSize]);
   const candleTimeIndex = useMemo(() => buildCandleTimeIndex(visibleCandles), [visibleCandles]);
 
+  const effectiveTimeline = useMemo(() => {
+    if (decisionTimeline.length) return decisionTimeline;
+    return wsDecisionTimeline;
+  }, [decisionTimeline, wsDecisionTimeline]);
+
   const latestDecision = useMemo(() => {
-    if (!decisionTimeline.length) return null;
-    const sorted = [...decisionTimeline].sort((a, b) => Number(a.time) - Number(b.time));
+    if (!effectiveTimeline.length) return null;
+    const sorted = [...effectiveTimeline].sort((a, b) => Number(a.time) - Number(b.time));
     return sorted.at(-1) ?? null;
-  }, [decisionTimeline]);
+  }, [effectiveTimeline]);
 
   const dominantIntent = useMemo<DominantIntent>(() => {
     if (!latestDecision) return "NEUTRAL";
@@ -717,7 +723,7 @@ export default function ChartsPage() {
   useEffect(() => {
     const chart = chartRef.current;
     if (!chart) return;
-    if (!decisionTimeline.length) {
+    if (!effectiveTimeline.length) {
       if (decisionConnectorRef.current) {
         chart.removeSeries(decisionConnectorRef.current);
         decisionConnectorRef.current = null;
@@ -739,7 +745,7 @@ export default function ChartsPage() {
       candleByTime.set(toUtcSeconds(candle.timestamp), candle);
     });
 
-    const connectorData = decisionTimeline
+    const connectorData = effectiveTimeline
       .map((decision) => {
         const rawTime = Number(decision.time);
         if (!Number.isFinite(rawTime)) return null;
@@ -756,16 +762,16 @@ export default function ChartsPage() {
       .filter(Boolean) as Array<{ time: Time; value: number; color?: string }>;
 
     decisionConnectorRef.current?.setData(connectorData);
-  }, [decisionTimeline, resolveDecisionColor, candleTimeIndex]);
+  }, [effectiveTimeline, resolveDecisionColor, candleTimeIndex]);
 
   const positionBands = useMemo(() => {
-    if (!decisionTimeline.length || !visibleCandles.length) return [] as Array<{ start: number; end: number; price: number; direction: 'long' | 'short' }>;
+    if (!effectiveTimeline.length || !visibleCandles.length) return [] as Array<{ start: number; end: number; price: number; direction: 'long' | 'short' }>;
     const candleByTime = new Map<number, Candle>();
     visibleCandles.forEach((candle) => {
       candleByTime.set(toUtcSeconds(candle.timestamp), candle);
     });
 
-    const sorted = [...decisionTimeline].sort((a, b) => Number(a.time) - Number(b.time));
+    const sorted = [...effectiveTimeline].sort((a, b) => Number(a.time) - Number(b.time));
     const bands: Array<{ start: number; end: number; price: number; direction: 'long' | 'short' }> = [];
     let activePosition: { time: number; price: number; direction: 'long' | 'short' } | null = null;
 
@@ -803,9 +809,9 @@ export default function ChartsPage() {
     }
 
     return bands;
-  }, [decisionTimeline, visibleCandles, candleTimeIndex]);
+  }, [effectiveTimeline, visibleCandles, candleTimeIndex]);
 
-  const confidenceData = useMemo(() => buildConfidenceSeries(decisionTimeline), [buildConfidenceSeries, decisionTimeline]);
+  const confidenceData = useMemo(() => buildConfidenceSeries(effectiveTimeline), [buildConfidenceSeries, effectiveTimeline]);
 
   useEffect(() => {
     const chart = chartRef.current;
@@ -1043,6 +1049,10 @@ export default function ChartsPage() {
             const confidence = Number(decision?.confidence ?? decision?.intensity);
             const reason = typeof decision?.reason === 'string' ? decision.reason : (typeof decision?.outcome === 'string' ? decision.outcome : undefined);
             setMarkers((prev) => [...prev, { id, action, timestamp, confidence, reason }].slice(-MAX_MARKERS));
+            setWsDecisionTimeline((prev) => {
+              const next = [...prev, { time: Math.floor(timestamp / 1000), action, confidence }].slice(-MAX_MARKERS);
+              return next;
+            });
           }
         } catch (error) {
           console.warn('[charts] ws parse error', error);
