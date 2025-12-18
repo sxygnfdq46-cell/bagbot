@@ -76,6 +76,27 @@ const MAX_MARKERS = 80;
 const OBS_BADGE = "OBSERVATION MODE — READ-ONLY";
 const CONFIDENCE_SCALE_ID = "confidence-pane";
 
+const buildCandleTimeIndex = (candles: Candle[]) =>
+  candles
+    .map((candle) => Number(toUtcSeconds(candle.timestamp)))
+    .filter((time) => Number.isFinite(time))
+    .sort((a, b) => a - b);
+
+const mapToCandleTime = (index: number[], time: number) => {
+  if (!Number.isFinite(time) || !index.length) return null;
+  let lo = 0;
+  let hi = index.length - 1;
+  if (time < index[0]) return null;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    const value = index[mid];
+    if (value === time) return value;
+    if (value < time) lo = mid + 1;
+    else hi = mid - 1;
+  }
+  return index[Math.max(0, hi)] ?? null;
+};
+
 const resolveWindowSize = (frame: string) => WINDOW_BY_TIMEFRAME[frame?.toUpperCase?.() ?? frame] ?? DEFAULT_WINDOW;
 const clampCandlesToWindow = (series: Candle[], frame: string) => {
   const windowSize = resolveWindowSize(frame);
@@ -558,6 +579,7 @@ export default function ChartsPage() {
   }, [applySnapshot, asset, timeframe]);
 
   const visibleCandles = useMemo(() => candles.slice(-windowSize), [candles, windowSize]);
+  const candleTimeIndex = useMemo(() => buildCandleTimeIndex(visibleCandles), [visibleCandles]);
 
   useEffect(() => {
     visibleCandlesRef.current = visibleCandles;
@@ -593,7 +615,7 @@ export default function ChartsPage() {
       return;
     }
 
-    const resolved: Array<SeriesMarker<Time>> = clustered.map((marker) => {
+    const resolved = clustered.map((marker) => {
       const action = marker.action?.toLowerCase?.() ?? "hold";
       const shape: SeriesMarker<Time>["shape"] = action === "sell" ? "arrowDown" : action === "buy" ? "arrowUp" : "circle";
       const color = action === "sell" ? "rgba(239,68,68,0.9)" : action === "buy" ? "rgba(16,185,129,0.9)" : "rgba(148,163,184,0.9)";
@@ -603,9 +625,11 @@ export default function ChartsPage() {
       const shortReason = (marker.reason ?? "").slice(0, 42);
       const countLabel = marker.count && marker.count > 1 ? `${marker.count}×` : null;
       const text = [countLabel, action.toUpperCase(), percent, shortReason].filter(Boolean).join(" · ");
+      const mappedTime = mapToCandleTime(candleTimeIndex, toUtcSeconds(marker.timestamp));
+      if (!mappedTime) return null;
       return {
         id: marker.id,
-        time: toUtcSeconds(marker.timestamp),
+        time: mappedTime as Time,
         position,
         shape,
         color,
@@ -613,8 +637,8 @@ export default function ChartsPage() {
       };
     });
 
-    series.setMarkers(resolved);
-  }, [windowMarkers, clusterMarkers]);
+    series.setMarkers(resolved.filter(Boolean) as Array<SeriesMarker<Time>>);
+  }, [windowMarkers, clusterMarkers, candleTimeIndex]);
 
   useEffect(() => {
     const chart = chartRef.current;
@@ -643,12 +667,14 @@ export default function ChartsPage() {
 
     const connectorData = decisionTimeline
       .map((decision) => {
-        const timeSec = Number(decision.time);
-        if (!Number.isFinite(timeSec)) return null;
-        const candle = candleByTime.get(timeSec);
+        const rawTime = Number(decision.time);
+        if (!Number.isFinite(rawTime)) return null;
+        const mappedTime = mapToCandleTime(candleTimeIndex, rawTime);
+        if (!mappedTime) return null;
+        const candle = candleByTime.get(mappedTime);
         if (!candle) return null;
         return {
-          time: timeSec as Time,
+          time: mappedTime as Time,
           value: candle.close,
           color: resolveDecisionColor(decision.action),
         };
@@ -656,7 +682,7 @@ export default function ChartsPage() {
       .filter(Boolean) as Array<{ time: Time; value: number; color?: string }>;
 
     decisionConnectorRef.current?.setData(connectorData);
-  }, [decisionTimeline, resolveDecisionColor]);
+  }, [decisionTimeline, resolveDecisionColor, candleTimeIndex]);
 
   const positionBands = useMemo(() => {
     if (!decisionTimeline.length || !visibleCandles.length) return [] as Array<{ start: number; end: number; price: number; direction: 'long' | 'short' }>;
@@ -677,17 +703,19 @@ export default function ChartsPage() {
     sorted.forEach((decision) => {
       const timeSec = Number(decision.time);
       if (!Number.isFinite(timeSec)) return;
+      const mappedTime = mapToCandleTime(candleTimeIndex, timeSec);
+      if (!mappedTime) return;
       const action = (decision.action || '').toLowerCase();
 
       if (action === 'buy' && !activePosition) {
-        const price = resolvePrice(timeSec);
+        const price = resolvePrice(mappedTime);
         if (price !== null) activePosition = { time: timeSec, price, direction: 'long' };
         return;
       }
 
       if (action === 'sell' && activePosition?.direction === 'long') {
-        const price = resolvePrice(timeSec) ?? activePosition.price;
-        bands.push({ start: activePosition.time, end: timeSec, price, direction: 'long' });
+        const price = resolvePrice(mappedTime) ?? activePosition.price;
+        bands.push({ start: activePosition.time, end: mappedTime, price, direction: 'long' });
         activePosition = null;
         return;
       }
@@ -762,72 +790,66 @@ export default function ChartsPage() {
       bottomColor: palette.fillBottom,
     });
 
-    const lineData = confidenceData.points.map((point) => ({
-      time: point.time as Time,
+    const mappedPoints = confidenceData.points
+      .map((point) => {
+        const mappedTime = mapToCandleTime(candleTimeIndex, Number(point.time));
+        if (!mappedTime) return null;
+        return { ...point, mappedTime };
+      })
+      .filter(Boolean) as Array<ConfidencePoint & { mappedTime: number }>;
+
+    if (!mappedPoints.length) {
+      confidenceSeriesRef.current?.setData([]);
+      confidenceInflectionRef.current?.setData([]);
+      confidenceRiskRef.current?.setData([]);
+      return;
+    }
+
+    const lineData = mappedPoints.map((point) => ({
+      time: point.mappedTime as Time,
       value: Math.max(0, Math.min(1, point.value)),
     }));
 
-    const inflectionData = confidenceData.inflections.map((inflection) => ({
-      time: inflection.time as Time,
-      value: Number((inflection.to - inflection.from).toFixed(3)),
-      color: inflection.direction === 'up' ? palette.inflectionUp : palette.inflectionDown,
-    }));
+    const inflectionData = confidenceData.inflections
+      .map((inflection) => {
+        const mappedTime = mapToCandleTime(candleTimeIndex, Number(inflection.time));
+        if (!mappedTime) return null;
+        return {
+          time: mappedTime as Time,
+          value: Number((inflection.to - inflection.from).toFixed(3)),
+          color: inflection.direction === 'up' ? palette.inflectionUp : palette.inflectionDown,
+        };
+      })
+      .filter(Boolean) as Array<{ time: Time; value: number; color: string }>;
 
-    const riskShading = confidenceData.points.map((point) => {
+    const riskShading = mappedPoints.map((point) => {
       const risk = Math.max(0, Math.min(1, 1 - point.value));
       const color = risk > 0.55 ? "rgba(248,113,113,0.16)" : risk > 0.35 ? "rgba(251,191,36,0.13)" : "rgba(94,234,212,0.08)";
-      return { time: point.time as Time, value: risk, color };
+      return { time: point.mappedTime as Time, value: risk, color };
     });
 
     const inflectionMarkers = confidenceData.inflections.map((inflection) => {
+      const mappedTime = mapToCandleTime(candleTimeIndex, Number(inflection.time));
+      if (!mappedTime) return null;
       const label = inflection.direction === 'up' ? '↗' : '↘';
       const position: SeriesMarker<Time>["position"] = inflection.direction === 'up' ? 'aboveBar' : 'belowBar';
       const color = inflection.direction === 'up' ? palette.inflectionUp : palette.inflectionDown;
       return {
-        time: inflection.time as Time,
+        time: mappedTime as Time,
         position,
         color,
         shape: inflection.direction === 'up' ? 'arrowUp' : 'arrowDown',
         size: 0.8,
         text: label,
       } as SeriesMarker<Time>;
-    });
+    }).filter(Boolean) as Array<SeriesMarker<Time>>;
 
     confidenceRiskRef.current?.setData(riskShading);
     confidenceSeriesRef.current?.setData(lineData);
     confidenceSeriesRef.current?.setMarkers(inflectionMarkers);
     confidenceInflectionRef.current?.setData(inflectionData);
-  }, [confidenceData, resolveConfidencePalette]);
+  }, [confidenceData, resolveConfidencePalette, candleTimeIndex]);
 
-  useEffect(() => {
-    const chart = chartRef.current;
-    if (!chart) return;
-    if (!confidenceData.points.length) return;
-    if (!visibleCandlesRef.current.length) return;
-
-    const candleTimes = visibleCandlesRef.current
-      .map((candle) => toUtcSeconds(candle.timestamp))
-      .filter((time) => Number.isFinite(time));
-    const confidenceTimes = confidenceData.points
-      .map((point) => Number(point.time))
-      .filter((time) => Number.isFinite(time));
-
-    const allTimes = [...candleTimes, ...confidenceTimes];
-    if (!allTimes.length) return;
-
-    const minTime = Math.min(...allTimes);
-    const maxTime = Math.max(...allTimes);
-    if (!Number.isFinite(minTime) || !Number.isFinite(maxTime) || minTime === maxTime) return;
-
-    const timeScale = chart.timeScale();
-    const current = timeScale.getVisibleRange();
-    const currentFrom = current ? Number(current.from as number) : NaN;
-    const currentTo = current ? Number(current.to as number) : NaN;
-    const alreadyCovers = Number.isFinite(currentFrom) && Number.isFinite(currentTo) && currentFrom <= minTime && currentTo >= maxTime;
-    if (alreadyCovers) return;
-
-    timeScale.setVisibleRange({ from: minTime as Time, to: maxTime as Time });
-  }, [confidenceData]);
 
   useEffect(() => {
     const chart = chartRef.current;
