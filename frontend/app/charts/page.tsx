@@ -32,6 +32,8 @@ import { LineStyle, type IChartApi, type MouseEventParams, type SeriesMarker, ty
 
 type ChartHoverPayload = Candle & { index: number; time: number };
 type ChartMarker = { id: string; action: string; timestamp: number; confidence?: number; reason?: string; count?: number };
+type ConfidencePoint = { time: number; value: number; action?: string; phase?: string };
+type ConfidenceInflection = { time: number; from: number; to: number; direction: 'up' | 'down'; action?: string; phase?: string };
 
 type ExplainIndicatorPoint = {
   time: number;
@@ -72,6 +74,7 @@ const WINDOW_BUFFER = 12;
 const DEFAULT_WINDOW = 180;
 const MAX_MARKERS = 80;
 const OBS_BADGE = "OBSERVATION MODE — READ-ONLY";
+const CONFIDENCE_SCALE_ID = "confidence-pane";
 
 const resolveWindowSize = (frame: string) => WINDOW_BY_TIMEFRAME[frame?.toUpperCase?.() ?? frame] ?? DEFAULT_WINDOW;
 const clampCandlesToWindow = (series: Candle[], frame: string) => {
@@ -108,6 +111,9 @@ export default function ChartsPage() {
   const indicatorRendererRef = useRef<ReturnType<typeof createIndicatorRenderer> | null>(null);
   const decisionConnectorRef = useRef<ReturnType<IChartApi["addLineSeries"]> | null>(null);
   const positionBandRef = useRef<ReturnType<IChartApi["addAreaSeries"]> | null>(null);
+  const confidenceSeriesRef = useRef<ReturnType<IChartApi["addAreaSeries"]> | null>(null);
+  const confidenceInflectionRef = useRef<ReturnType<IChartApi["addHistogramSeries"]> | null>(null);
+  const confidenceRiskRef = useRef<ReturnType<IChartApi["addHistogramSeries"]> | null>(null);
   const visibleCandlesRef = useRef<Candle[]>([]);
   const heroFeedStatus = `SYNCED • ${timeframe.toUpperCase()}`;
   const heroHint = `Asset ${asset}`;
@@ -227,6 +233,44 @@ export default function ChartsPage() {
       .filter(Boolean) as ChartMarker[];
   }, []);
 
+  const buildConfidenceSeries = useCallback((timeline: ExplainDecision[]) => {
+    const points: ConfidencePoint[] = [];
+    const inflections: ConfidenceInflection[] = [];
+    let prev: ConfidencePoint | null = null;
+
+    timeline
+      .filter((decision) => Number.isFinite(Number(decision.confidence)))
+      .sort((a, b) => Number(a.time) - Number(b.time))
+      .forEach((decision) => {
+        const time = Number(decision.time);
+        const value = Number(decision.confidence);
+        if (!Number.isFinite(time) || !Number.isFinite(value)) return;
+        const point: ConfidencePoint = {
+          time,
+          value,
+          action: decision.action,
+          phase: decision.phase,
+        };
+        if (prev) {
+          const delta = value - prev.value;
+          if (Math.abs(delta) >= 0.1) {
+            inflections.push({
+              time,
+              from: prev.value,
+              to: value,
+              direction: delta >= 0 ? 'up' : 'down',
+              action: decision.action,
+              phase: decision.phase,
+            });
+          }
+        }
+        points.push(point);
+        prev = point;
+      });
+
+    return { points, inflections } as const;
+  }, []);
+
   const clusterMarkers = useCallback((raw: ChartMarker[]): ChartMarker[] => {
     if (!raw.length) return raw;
     const buckets = new Map<number, ChartMarker[]>();
@@ -277,6 +321,48 @@ export default function ChartsPage() {
     if (lowered === 'buy') return "rgba(16,185,129,0.8)";
     if (lowered === 'sell') return "rgba(239,68,68,0.82)";
     return "rgba(148,163,184,0.55)";
+  }, []);
+
+  const resolveConfidencePalette = useCallback((value?: number) => {
+    const v = Number(value);
+    const base = {
+      inflectionUp: "rgba(16,185,129,0.5)",
+      inflectionDown: "rgba(239,68,68,0.48)",
+    };
+
+    if (!Number.isFinite(v)) {
+      return {
+        line: "rgba(94,234,212,0.78)",
+        fillTop: "rgba(94,234,212,0.1)",
+        fillBottom: "rgba(94,234,212,0.035)",
+        ...base,
+      };
+    }
+
+    if (v < 0.42) {
+      return {
+        line: "rgba(248,113,113,0.72)",
+        fillTop: "rgba(248,113,113,0.09)",
+        fillBottom: "rgba(248,113,113,0.03)",
+        ...base,
+      };
+    }
+
+    if (v < 0.65) {
+      return {
+        line: "rgba(251,191,36,0.74)",
+        fillTop: "rgba(251,191,36,0.08)",
+        fillBottom: "rgba(251,191,36,0.028)",
+        ...base,
+      };
+    }
+
+    return {
+      line: "rgba(94,234,212,0.78)",
+      fillTop: "rgba(94,234,212,0.1)",
+      fillBottom: "rgba(94,234,212,0.035)",
+      ...base,
+    };
   }, []);
 
   const persistSnapshot = useCallback(
@@ -437,6 +523,18 @@ export default function ChartsPage() {
       if (decisionConnectorRef.current) {
         chart.removeSeries(decisionConnectorRef.current);
         decisionConnectorRef.current = null;
+      }
+      if (confidenceSeriesRef.current) {
+        chart.removeSeries(confidenceSeriesRef.current);
+        confidenceSeriesRef.current = null;
+      }
+      if (confidenceInflectionRef.current) {
+        chart.removeSeries(confidenceInflectionRef.current);
+        confidenceInflectionRef.current = null;
+      }
+      if (confidenceRiskRef.current) {
+        chart.removeSeries(confidenceRiskRef.current);
+        confidenceRiskRef.current = null;
       }
       if (positionBandRef.current) {
         chart.removeSeries(positionBandRef.current);
@@ -605,6 +703,102 @@ export default function ChartsPage() {
     return bands;
   }, [decisionTimeline, visibleCandles]);
 
+  const confidenceData = useMemo(() => buildConfidenceSeries(decisionTimeline), [buildConfidenceSeries, decisionTimeline]);
+
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart) return;
+
+    if (!confidenceData.points.length) {
+      confidenceSeriesRef.current?.setData([]);
+      confidenceInflectionRef.current?.setData([]);
+      confidenceRiskRef.current?.setData([]);
+      return;
+    }
+
+    chart.priceScale(CONFIDENCE_SCALE_ID).applyOptions({
+      scaleMargins: { top: 0.72, bottom: 0.08 },
+      borderVisible: false,
+    });
+
+    if (!confidenceRiskRef.current) {
+      confidenceRiskRef.current = chart.addHistogramSeries({
+        priceScaleId: CONFIDENCE_SCALE_ID,
+        priceFormat: { type: "price", precision: 2, minMove: 0.01 },
+        priceLineVisible: false,
+        base: 0,
+        color: "rgba(248,113,113,0.12)",
+      });
+    }
+
+    if (!confidenceSeriesRef.current) {
+      confidenceSeriesRef.current = chart.addAreaSeries({
+        priceScaleId: CONFIDENCE_SCALE_ID,
+        lineWidth: 1.6,
+        priceFormat: { type: "price", precision: 2, minMove: 0.01 },
+        priceLineVisible: false,
+        crosshairMarkerVisible: false,
+        lastValueVisible: false,
+        topColor: "rgba(94,234,212,0.09)",
+        bottomColor: "rgba(94,234,212,0.03)",
+        lineColor: "rgba(94,234,212,0.78)",
+      });
+    }
+
+    if (!confidenceInflectionRef.current) {
+      confidenceInflectionRef.current = chart.addHistogramSeries({
+        priceScaleId: CONFIDENCE_SCALE_ID,
+        priceFormat: { type: "price", precision: 2, minMove: 0.01 },
+        priceLineVisible: false,
+        base: 0,
+        color: "rgba(148,163,184,0.28)",
+      });
+    }
+
+    const palette = resolveConfidencePalette(confidenceData.points.at(-1)?.value);
+    confidenceSeriesRef.current?.applyOptions({
+      lineColor: palette.line,
+      topColor: palette.fillTop,
+      bottomColor: palette.fillBottom,
+    });
+
+    const lineData = confidenceData.points.map((point) => ({
+      time: point.time as Time,
+      value: Math.max(0, Math.min(1, point.value)),
+    }));
+
+    const inflectionData = confidenceData.inflections.map((inflection) => ({
+      time: inflection.time as Time,
+      value: Number((inflection.to - inflection.from).toFixed(3)),
+      color: inflection.direction === 'up' ? palette.inflectionUp : palette.inflectionDown,
+    }));
+
+    const riskShading = confidenceData.points.map((point) => {
+      const risk = Math.max(0, Math.min(1, 1 - point.value));
+      const color = risk > 0.55 ? "rgba(248,113,113,0.16)" : risk > 0.35 ? "rgba(251,191,36,0.13)" : "rgba(94,234,212,0.08)";
+      return { time: point.time as Time, value: risk, color };
+    });
+
+    const inflectionMarkers = confidenceData.inflections.map((inflection) => {
+      const label = inflection.direction === 'up' ? '↗' : '↘';
+      const position: SeriesMarker<Time>["position"] = inflection.direction === 'up' ? 'aboveBar' : 'belowBar';
+      const color = inflection.direction === 'up' ? palette.inflectionUp : palette.inflectionDown;
+      return {
+        time: inflection.time as Time,
+        position,
+        color,
+        shape: inflection.direction === 'up' ? 'arrowUp' : 'arrowDown',
+        size: 0.8,
+        text: label,
+      } as SeriesMarker<Time>;
+    });
+
+    confidenceRiskRef.current?.setData(riskShading);
+    confidenceSeriesRef.current?.setData(lineData);
+    confidenceSeriesRef.current?.setMarkers(inflectionMarkers);
+    confidenceInflectionRef.current?.setData(inflectionData);
+  }, [confidenceData, resolveConfidencePalette]);
+
   useEffect(() => {
     const chart = chartRef.current;
     if (!chart) return;
@@ -613,8 +807,8 @@ export default function ChartsPage() {
       positionBandRef.current = chart.addAreaSeries({
         priceLineVisible: false,
         crosshairMarkerVisible: false,
-        topColor: 'rgba(16,185,129,0.08)',
-        bottomColor: 'rgba(16,185,129,0.02)',
+        topColor: 'rgba(125,211,252,0.06)',
+        bottomColor: 'rgba(125,211,252,0.02)',
       });
     }
 
@@ -627,7 +821,7 @@ export default function ChartsPage() {
 
     const points: Array<{ time: Time; value: number }> = [];
     positionBands.forEach((band) => {
-      const color = band.direction === 'short' ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.08)';
+      const color = band.direction === 'short' ? 'rgba(248,113,113,0.08)' : 'rgba(94,234,212,0.06)';
       series.applyOptions({ topColor: color, bottomColor: color });
       points.push({ time: band.start as Time, value: band.price });
       points.push({ time: band.end as Time, value: band.price });
