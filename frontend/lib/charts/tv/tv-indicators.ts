@@ -22,31 +22,31 @@ type IndicatorMap = Record<string, IndicatorSeries>;
 type IndicatorSeriesRef = Record<string, ISeriesApi<SeriesType>>;
 
 const OVERLAY_LINE: LineSeriesPartialOptions = {
-  color: "rgba(94, 211, 255, 0.65)",
+  color: "rgba(154, 205, 255, 0.55)",
   lineWidth: 2,
   priceLineVisible: false,
 };
 
 const RSI_LINE: LineSeriesPartialOptions = {
-  color: "rgba(245, 196, 106, 0.65)",
+  color: "rgba(255, 214, 137, 0.6)",
   lineWidth: 2,
   priceLineVisible: false,
 };
 
 const MACD_LINE: LineSeriesPartialOptions = {
-  color: "rgba(147, 197, 253, 0.7)",
+  color: "rgba(147, 197, 253, 0.6)",
   lineWidth: 2,
   priceLineVisible: false,
 };
 
 const MACD_SIGNAL_LINE: LineSeriesPartialOptions = {
-  color: "rgba(94, 234, 212, 0.7)",
+  color: "rgba(119, 232, 211, 0.6)",
   lineWidth: 2,
   priceLineVisible: false,
 };
 
 const MACD_HISTOGRAM: HistogramSeriesPartialOptions = {
-  color: "rgba(94, 234, 212, 0.25)",
+  color: "rgba(94, 234, 212, 0.18)",
   priceFormat: { type: "price", precision: 2, minMove: 0.01 },
   priceLineVisible: false,
   priceScaleId: "macd-pane",

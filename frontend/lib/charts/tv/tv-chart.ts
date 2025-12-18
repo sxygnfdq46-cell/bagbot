@@ -10,22 +10,22 @@ export const createTvChart = (container: HTMLElement): TvChartHandle => {
     width: container.clientWidth,
     height: container.clientHeight,
     layout: {
-      background: { color: "#0c111a" },
-      textColor: "#9aa3b5",
+      background: { color: "#0b1018" },
+      textColor: "#a6b3c8",
       attributionLogo: false,
     },
     grid: {
-      vertLines: { color: "rgba(255,255,255,0.04)" },
-      horzLines: { color: "rgba(255,255,255,0.04)" },
+      vertLines: { color: "rgba(255,255,255,0.025)" },
+      horzLines: { color: "rgba(255,255,255,0.025)" },
     },
     crosshair: {
       vertLine: {
-        color: "rgba(180,195,210,0.6)",
+        color: "rgba(180,195,210,0.35)",
         style: LineStyle.Dashed,
         width: 1,
       },
       horzLine: {
-        color: "rgba(180,195,210,0.6)",
+        color: "rgba(180,195,210,0.35)",
         style: LineStyle.Dashed,
         width: 1,
       },

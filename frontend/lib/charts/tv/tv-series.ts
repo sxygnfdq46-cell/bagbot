@@ -10,19 +10,19 @@ export type TvSeries = {
 
 export const createPriceVolumeSeries = (chart: IChartApi): TvSeries => {
   const candleSeries = chart.addCandlestickSeries({
-    upColor: "#2ec7a6",
-    downColor: "#d46a6a",
+    upColor: "rgba(46,199,166,0.9)",
+    downColor: "rgba(212,106,106,0.9)",
     borderUpColor: "#2ec7a6",
     borderDownColor: "#d46a6a",
-    wickUpColor: "rgba(46,199,166,0.35)",
-    wickDownColor: "rgba(212,106,106,0.35)",
+    wickUpColor: "rgba(46,199,166,0.28)",
+    wickDownColor: "rgba(212,106,106,0.28)",
   });
 
   const histogramOptions: HistogramSeriesPartialOptions = {
     priceScaleId: "volume",
     priceFormat: { type: "volume" },
     priceLineVisible: false,
-    color: "rgba(46,199,166,0.35)",
+    color: "rgba(46,199,166,0.2)",
   };
 
   const volumeSeries = chart.addHistogramSeries(histogramOptions);

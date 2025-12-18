@@ -339,49 +339,49 @@ export default function ChartsPage() {
 
   const resolveDecisionColor = useCallback((action: string) => {
     const lowered = action.toLowerCase();
-    if (lowered === 'buy') return "rgba(16,185,129,0.8)";
-    if (lowered === 'sell') return "rgba(239,68,68,0.82)";
-    return "rgba(148,163,184,0.55)";
+    if (lowered === 'buy') return "rgba(56,189,148,0.75)";
+    if (lowered === 'sell') return "rgba(244,114,114,0.78)";
+    return "rgba(160,174,192,0.48)";
   }, []);
 
   const resolveConfidencePalette = useCallback((value?: number) => {
     const v = Number(value);
     const base = {
-      inflectionUp: "rgba(16,185,129,0.5)",
-      inflectionDown: "rgba(239,68,68,0.48)",
+      inflectionUp: "rgba(16,185,129,0.42)",
+      inflectionDown: "rgba(248,113,113,0.4)",
     };
 
     if (!Number.isFinite(v)) {
       return {
-        line: "rgba(94,234,212,0.78)",
-        fillTop: "rgba(94,234,212,0.1)",
-        fillBottom: "rgba(94,234,212,0.035)",
+        line: "rgba(120,212,203,0.6)",
+        fillTop: "rgba(120,212,203,0.16)",
+        fillBottom: "rgba(120,212,203,0.06)",
         ...base,
       };
     }
 
     if (v < 0.42) {
       return {
-        line: "rgba(248,113,113,0.72)",
-        fillTop: "rgba(248,113,113,0.09)",
-        fillBottom: "rgba(248,113,113,0.03)",
+        line: "rgba(248,113,113,0.64)",
+        fillTop: "rgba(248,113,113,0.14)",
+        fillBottom: "rgba(248,113,113,0.05)",
         ...base,
       };
     }
 
     if (v < 0.65) {
       return {
-        line: "rgba(251,191,36,0.74)",
-        fillTop: "rgba(251,191,36,0.08)",
-        fillBottom: "rgba(251,191,36,0.028)",
+        line: "rgba(251,191,36,0.63)",
+        fillTop: "rgba(251,191,36,0.12)",
+        fillBottom: "rgba(251,191,36,0.045)",
         ...base,
       };
     }
 
     return {
-      line: "rgba(94,234,212,0.78)",
-      fillTop: "rgba(94,234,212,0.1)",
-      fillBottom: "rgba(94,234,212,0.035)",
+      line: "rgba(56,189,248,0.62)",
+      fillTop: "rgba(56,189,248,0.15)",
+      fillBottom: "rgba(56,189,248,0.055)",
       ...base,
     };
   }, []);
@@ -767,9 +767,9 @@ export default function ChartsPage() {
         priceLineVisible: false,
         crosshairMarkerVisible: false,
         lastValueVisible: false,
-        topColor: "rgba(94,234,212,0.09)",
-        bottomColor: "rgba(94,234,212,0.03)",
-        lineColor: "rgba(94,234,212,0.78)",
+        topColor: "rgba(120,212,203,0.16)",
+        bottomColor: "rgba(120,212,203,0.06)",
+        lineColor: "rgba(120,212,203,0.6)",
       });
     }
 
@@ -824,7 +824,7 @@ export default function ChartsPage() {
 
     const riskShading = mappedPoints.map((point) => {
       const risk = Math.max(0, Math.min(1, 1 - point.value));
-      const color = risk > 0.55 ? "rgba(248,113,113,0.16)" : risk > 0.35 ? "rgba(251,191,36,0.13)" : "rgba(94,234,212,0.08)";
+      const color = risk > 0.55 ? "rgba(248,113,113,0.14)" : risk > 0.35 ? "rgba(251,191,36,0.1)" : "rgba(56,189,248,0.07)";
       return { time: point.mappedTime as Time, value: risk, color };
     });
 
