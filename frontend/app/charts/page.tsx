@@ -802,6 +802,36 @@ export default function ChartsPage() {
   useEffect(() => {
     const chart = chartRef.current;
     if (!chart) return;
+    if (!confidenceData.points.length) return;
+    if (!visibleCandlesRef.current.length) return;
+
+    const candleTimes = visibleCandlesRef.current
+      .map((candle) => toUtcSeconds(candle.timestamp))
+      .filter((time) => Number.isFinite(time));
+    const confidenceTimes = confidenceData.points
+      .map((point) => Number(point.time))
+      .filter((time) => Number.isFinite(time));
+
+    const allTimes = [...candleTimes, ...confidenceTimes];
+    if (!allTimes.length) return;
+
+    const minTime = Math.min(...allTimes);
+    const maxTime = Math.max(...allTimes);
+    if (!Number.isFinite(minTime) || !Number.isFinite(maxTime) || minTime === maxTime) return;
+
+    const timeScale = chart.timeScale();
+    const current = timeScale.getVisibleRange();
+    const currentFrom = current ? Number(current.from as number) : NaN;
+    const currentTo = current ? Number(current.to as number) : NaN;
+    const alreadyCovers = Number.isFinite(currentFrom) && Number.isFinite(currentTo) && currentFrom <= minTime && currentTo >= maxTime;
+    if (alreadyCovers) return;
+
+    timeScale.setVisibleRange({ from: minTime as Time, to: maxTime as Time });
+  }, [confidenceData]);
+
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart) return;
 
     if (!positionBandRef.current) {
       positionBandRef.current = chart.addAreaSeries({
