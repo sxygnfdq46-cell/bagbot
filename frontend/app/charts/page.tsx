@@ -1,1434 +1,1010 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  ColorType,
+  CrosshairMode,
+  LineStyle,
+  createChart,
+  type IChartApi,
+  type ISeriesApi,
+  type SeriesMarker,
+  type Time,
+  type UTCTimestamp,
+  type SeriesOptionsMap,
+} from "lightweight-charts";
 import Card from "@/components/ui/card";
-import Button from "@/components/ui/button";
-import Skeleton from "@/components/ui/skeleton";
-import OhlcPanel from "@/components/charts/ohlc-panel";
-import Sparkline from "@/components/ui/sparkline";
-import GlobalHeroBadge from "@/components/ui/global-hero-badge";
 import MetricLabel from "@/components/ui/metric-label";
 import TerminalShell from "@/components/ui/terminal-shell";
-import {
-  adaptCandlesToPriceData,
-  adaptCandlesToVolumeData,
-  type CandleSeries,
-  createPriceVolumeSeries,
-  createTvChart,
-  toUtcSeconds,
-  type VolumeSeries,
-} from "@/lib/charts/tv";
-import { createIndicatorRenderer, type IndicatorMap } from "@/lib/charts/tv/tv-indicators";
-import {
-  chartsApi,
-  type Candle,
-  type ChartOverviewStat,
-  type LiveFeedEvent,
-  type MiniChart,
-  type ChartSnapshot
-} from "@/lib/api/charts";
-import { resolveWsUrl } from "@/lib/api-client";
-import { LineStyle, type IChartApi, type MouseEventParams, type SeriesMarker, type Time } from "lightweight-charts";
 
-type ChartHoverPayload = Candle & { index: number; time: number };
-type ChartMarker = { id: string; action: string; timestamp: number; confidence?: number; reason?: string; count?: number; phase?: "entry" | "hold" | "exit" };
-type ConfidencePoint = { time: number; value: number; action?: string; phase?: string };
-type ConfidenceInflection = { time: number; from: number; to: number; direction: 'up' | 'down'; action?: string; phase?: string };
-
-type ExplainIndicatorPoint = {
-  time: number;
-  value?: number;
-  macd?: number;
-  signal?: number;
-  histogram?: number;
-  color?: string;
+type Candle = {
+  time: number; // unix seconds
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
 };
 
-type ExplainIndicatorSeries = Record<string, ExplainIndicatorPoint[]>;
-
-type ExplainVote = { indicator: string; role?: string; state?: string; support?: string; strength?: number };
-
-type ExplainDecision = {
-  time: number;
-  action: string;
-  phase?: "entry" | "hold" | "exit";
-  strategy?: string;
-  confidence?: number;
-  indicator_states?: Record<string, { value?: number; state?: string }>;
-  indicator_votes?: ExplainVote[];
-  blocks?: string[];
-  reasoning?: string;
+type IndicatorPoint = {
+  time: UTCTimestamp;
+  value: number;
 };
 
-type DominantIntent = "STRONG_BUY" | "BUY" | "NEUTRAL" | "SELL" | "STRONG_SELL";
-
-const TIMEFRAMES = chartsApi.listTimeframes();
-const ASSETS = chartsApi.listAssets();
-const CACHE_KEY = (asset: string, timeframe: string) => `charts-cache-${asset}-${timeframe}`;
-const WINDOW_BY_TIMEFRAME: Record<string, number> = {
-  '1H': 90,
-  '4H': 140,
-  '1D': 200,
-  '1W': 240,
-  '1M': 260,
+type BandIndicatorPoint = {
+  time: UTCTimestamp;
+  upper: number;
+  middle?: number;
+  lower: number;
 };
-const WINDOW_BUFFER = 12;
-const DEFAULT_WINDOW = 180;
-const MAX_MARKERS = 80;
-const OBS_BADGE = "OBSERVATION MODE — READ-ONLY";
-const CONFIDENCE_SCALE_ID = "confidence-pane";
 
-const buildCandleTimeIndex = (candles: Candle[]) =>
-  candles
-    .map((candle) => Number(toUtcSeconds(candle.timestamp)))
-    .filter((time) => Number.isFinite(time))
-    .sort((a, b) => a - b);
+type PositionSide = "long" | "short";
 
-const mapToCandleTime = (index: number[], time: number) => {
-  if (!Number.isFinite(time) || !index.length) return null;
-  let lo = 0;
-  let hi = index.length - 1;
-  if (time < index[0]) return null;
-  while (lo <= hi) {
-    const mid = (lo + hi) >> 1;
-    const value = index[mid];
-    if (value === time) return value;
-    if (value < time) lo = mid + 1;
-    else hi = mid - 1;
+type PositionLifecycle = {
+  id: string;
+  side: PositionSide;
+  entryIndex: number;
+  exitIndex?: number;
+};
+
+type ReasoningPhase = "ENTRY" | "HOLD" | "EXIT";
+
+type ReasoningAnchor = {
+  id: string;
+  positionId: string;
+  phase: ReasoningPhase;
+  time: UTCTimestamp;
+  price: number;
+  reasons: string[];
+  confidence: "steady" | "cautious" | "measured";
+};
+
+const TIMEFRAME_SECONDS: Record<string, number> = {
+  "1m": 60,
+  "5m": 5 * 60,
+  "15m": 15 * 60,
+  "1h": 60 * 60,
+  "4h": 4 * 60 * 60,
+  "1d": 24 * 60 * 60,
+};
+
+const WINDOW_SIZE = 420; // stable window between 300-500
+const LIVE_TICK_MS = 3200;
+const DEFAULT_SYMBOL = "BTC-USD";
+const DEFAULT_TIMEFRAME = "1h";
+
+const palette = {
+  background: "#070c19",
+  gridMinor: "rgba(255,255,255,0.05)",
+  gridMajor: "rgba(255,255,255,0.07)",
+  textMuted: "#cbd5e1",
+  priceUp: "#16a34a",
+  priceDown: "#ef4444",
+  wickUp: "#22c55e",
+  wickDown: "#f97316",
+  volumeUp: "rgba(34,197,94,0.28)",
+  volumeDown: "rgba(239,68,68,0.28)",
+  overlaySMA: "rgba(245,158,11,0.7)",
+  overlayEMA: "rgba(34,211,238,0.75)",
+  overlayVWAP: "rgba(168,85,247,0.78)",
+  overlayBBEdge: "rgba(148,163,184,0.7)",
+  overlayBBMid: "rgba(148,163,184,0.45)",
+  oscillator: "rgba(14,165,233,0.8)",
+  crosshair: "#38bdf8",
+  lifecycleLong: "rgba(34,197,94,0.35)",
+  lifecycleShort: "rgba(239,68,68,0.32)",
+  markerLong: "#22c55e",
+  markerShort: "#f87171",
+  markerExit: "#eab308",
+  markerReason: "#f8fafc",
+  reasoningFill: "rgba(255,255,255,0.08)",
+  reasoningBorder: "rgba(255,255,255,0.18)",
+};
+
+const adjustAlpha = (rgba: string, factor: number) => {
+  const match = rgba.match(/^rgba\((\d+),\s*(\d+),\s*(\d+),\s*(0?\.\d+|1)\)$/i);
+  if (!match) return rgba;
+  const [, r, g, b, a] = match;
+  const nextA = Math.max(0, Math.min(1, parseFloat(a) * factor));
+  return `rgba(${r},${g},${b},${nextA})`;
+};
+
+const hashSeed = (input: string) => {
+  let hash = 0;
+  for (let i = 0; i < input.length; i += 1) {
+    hash = (hash << 5) - hash + input.charCodeAt(i);
+    hash |= 0; // force 32-bit
   }
-  return index[Math.max(0, hi)] ?? null;
+  return Math.abs(hash) || 1;
 };
 
-const resolveWindowSize = (frame: string) => WINDOW_BY_TIMEFRAME[frame?.toUpperCase?.() ?? frame] ?? DEFAULT_WINDOW;
-const clampCandlesToWindow = (series: Candle[], frame: string) => {
-  const windowSize = resolveWindowSize(frame);
-  const limit = Math.max(windowSize + WINDOW_BUFFER, windowSize);
-  return series.slice(-limit);
+const createRng = (seed: number) => {
+  let state = seed >>> 0;
+  return () => {
+    state = (1664525 * state + 1013904223) >>> 0;
+    return state / 0xffffffff;
+  };
+};
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+const buildHistory = (symbol: string, timeframe: string, windowSize: number, rng: () => number): Candle[] => {
+  const spacing = TIMEFRAME_SECONDS[timeframe] ?? TIMEFRAME_SECONDS[DEFAULT_TIMEFRAME];
+  const start = Math.floor(Date.UTC(2024, 0, 1) / 1000);
+  const basePrice = 120 + rng() * 40;
+  const series: Candle[] = [];
+  let anchor = basePrice;
+
+  for (let i = 0; i < windowSize; i += 1) {
+    const drift = (rng() - 0.5) * 4.2 + Math.sin(i / 12) * 1.4;
+    const open = anchor;
+    const close = clamp(open + drift, 40, 480);
+    const high = Math.max(open, close) + rng() * 2.4;
+    const low = Math.min(open, close) - rng() * 2.4;
+    const volume = 900 + Math.round(400 * rng() + 280 * Math.abs(Math.sin(i / 8)));
+    series.push({
+      time: start + i * spacing,
+      open: Number(open.toFixed(2)),
+      high: Number(high.toFixed(2)),
+      low: Number(low.toFixed(2)),
+      close: Number(close.toFixed(2)),
+      volume,
+    });
+    anchor = close;
+  }
+
+  return series;
+};
+
+const appendNextCandle = (prev: Candle, rng: () => number, timeframe: string): Candle => {
+  const spacing = TIMEFRAME_SECONDS[timeframe] ?? TIMEFRAME_SECONDS[DEFAULT_TIMEFRAME];
+  const drift = (rng() - 0.5) * 3.6;
+  const wiggle = 1.6 + rng() * 1.8;
+  const open = prev.close;
+  const close = clamp(open + drift, 40, 520);
+  const high = Math.max(open, close) + wiggle;
+  const low = Math.min(open, close) - wiggle;
+  const volumeBaseline = prev.volume * (0.9 + rng() * 0.2);
+  const volume = Math.max(300, Math.round(volumeBaseline));
+
+  return {
+    time: prev.time + spacing,
+    open: Number(open.toFixed(2)),
+    high: Number(high.toFixed(2)),
+    low: Number(low.toFixed(2)),
+    close: Number(close.toFixed(2)),
+    volume,
+  };
+};
+
+const toTimestamp = (timeSec: number): UTCTimestamp => timeSec as UTCTimestamp;
+
+const buildTimeIndex = (candles: Candle[]) => new Set(candles.map((c) => toTimestamp(c.time)));
+
+const computeSMA = (candles: Candle[], period: number, index: Set<UTCTimestamp>): IndicatorPoint[] => {
+  if (candles.length < period) return [];
+  const result: IndicatorPoint[] = [];
+  for (let i = period - 1; i < candles.length; i += 1) {
+    let sum = 0;
+    for (let j = i - period + 1; j <= i; j += 1) {
+      sum += candles[j].close;
+    }
+    const time = toTimestamp(candles[i].time);
+    if (!index.has(time)) continue;
+    result.push({ time, value: Number((sum / period).toFixed(4)) });
+  }
+  return result;
+};
+
+const computeEMA = (candles: Candle[], period: number, index: Set<UTCTimestamp>): IndicatorPoint[] => {
+  if (candles.length < period) return [];
+  const k = 2 / (period + 1);
+  const result: IndicatorPoint[] = [];
+  let ema = candles.slice(0, period).reduce((sum, c) => sum + c.close, 0) / period;
+  for (let i = period - 1; i < candles.length; i += 1) {
+    const close = candles[i].close;
+    ema = i === period - 1 ? ema : close * k + ema * (1 - k);
+    const time = toTimestamp(candles[i].time);
+    if (!index.has(time)) continue;
+    result.push({ time, value: Number(ema.toFixed(4)) });
+  }
+  return result;
+};
+
+const computeVWAP = (candles: Candle[], index: Set<UTCTimestamp>): IndicatorPoint[] => {
+  if (!candles.length) return [];
+  const result: IndicatorPoint[] = [];
+  let cumulativePV = 0;
+  let cumulativeVolume = 0;
+  candles.forEach((candle) => {
+    const typical = (candle.high + candle.low + candle.close) / 3;
+    cumulativePV += typical * candle.volume;
+    cumulativeVolume += candle.volume;
+    if (cumulativeVolume === 0) return;
+    const time = toTimestamp(candle.time);
+    if (!index.has(time)) return;
+    result.push({ time, value: Number((cumulativePV / cumulativeVolume).toFixed(4)) });
+  });
+  return result;
+};
+
+const computeBollinger = (candles: Candle[], period: number, stdDev = 2, index: Set<UTCTimestamp>): BandIndicatorPoint[] => {
+  if (candles.length < period) return [];
+  const result: BandIndicatorPoint[] = [];
+  for (let i = period - 1; i < candles.length; i += 1) {
+    const window = candles.slice(i - period + 1, i + 1).map((c) => c.close);
+    const mean = window.reduce((sum, v) => sum + v, 0) / period;
+    const variance = window.reduce((sum, v) => sum + (v - mean) ** 2, 0) / period;
+    const sigma = Math.sqrt(variance);
+    const upper = mean + stdDev * sigma;
+    const lower = mean - stdDev * sigma;
+    const time = toTimestamp(candles[i].time);
+    if (!index.has(time)) continue;
+    result.push({
+      time,
+      upper: Number(upper.toFixed(4)),
+      middle: Number(mean.toFixed(4)),
+      lower: Number(lower.toFixed(4)),
+    });
+  }
+  return result;
+};
+
+const computeRSI = (candles: Candle[], period: number, index: Set<UTCTimestamp>): IndicatorPoint[] => {
+  if (candles.length < period + 1) return [];
+  let gain = 0;
+  let loss = 0;
+  for (let i = 1; i <= period; i += 1) {
+    const delta = candles[i].close - candles[i - 1].close;
+    if (delta >= 0) gain += delta; else loss -= delta;
+  }
+  gain /= period;
+  loss /= period;
+  const result: IndicatorPoint[] = [];
+  for (let i = period + 1; i < candles.length; i += 1) {
+    const delta = candles[i].close - candles[i - 1].close;
+    if (delta >= 0) {
+      gain = (gain * (period - 1) + delta) / period;
+      loss = (loss * (period - 1)) / period;
+    } else {
+      gain = (gain * (period - 1)) / period;
+      loss = (loss * (period - 1) - delta) / period;
+    }
+    const rs = loss === 0 ? 100 : 100 - 100 / (1 + gain / loss || 0);
+    const time = toTimestamp(candles[i].time);
+    if (!index.has(time)) continue;
+    result.push({ time, value: Number(rs.toFixed(4)) });
+  }
+  return result;
+};
+
+const derivePositions = (candles: Candle[]): PositionLifecycle[] => {
+  if (candles.length < 60) return [];
+  const first = Math.floor(candles.length * 0.22);
+  const second = Math.floor(candles.length * 0.44);
+  const third = Math.floor(candles.length * 0.72);
+  const clampIndex = (idx: number) => Math.min(Math.max(idx, 0), candles.length - 1);
+
+  const longEntry = clampIndex(first);
+  const longExit = clampIndex(first + 48);
+  const shortEntry = clampIndex(third);
+
+  return [
+    { id: "pos-long", side: "long", entryIndex: longEntry, exitIndex: longExit },
+    { id: "pos-short", side: "short", entryIndex: shortEntry },
+  ];
+};
+
+const deriveReasoningAnchors = (candles: Candle[], positions: PositionLifecycle[]): ReasoningAnchor[] => {
+  if (!candles.length || !positions.length) return [];
+
+  const trendPhrases = ["trend intact", "drift steady", "momentum aligned", "structure balanced"];
+  const volatilityPhrases = ["range contained", "vol expansion easing", "calm tape", "measured volatility"];
+  const structurePhrases = ["wick absorption", "support respected", "lower-timeframe drift", "prior level held"];
+
+  const anchors: ReasoningAnchor[] = [];
+
+  positions.forEach((position, idx) => {
+    const entryCandle = candles[position.entryIndex];
+    if (!entryCandle) return;
+    const exitIdx = position.exitIndex ?? candles.length - 1;
+    const exitCandle = candles[Math.min(exitIdx, candles.length - 1)];
+
+    const pick = (list: string[], offset: number) => list[(idx + offset) % list.length];
+
+    anchors.push({
+      id: `${position.id}-entry`,
+      positionId: position.id,
+      phase: "ENTRY",
+      time: toTimestamp(entryCandle.time),
+      price: entryCandle.close,
+      reasons: [pick(trendPhrases, 0), pick(structurePhrases, 1), pick(volatilityPhrases, 2)],
+      confidence: "steady",
+    });
+
+    const holdIdx = Math.min(position.entryIndex + 12, candles.length - 1, exitIdx);
+    const holdCandle = candles[holdIdx];
+    if (holdCandle && holdIdx > position.entryIndex) {
+      anchors.push({
+        id: `${position.id}-hold`,
+        positionId: position.id,
+        phase: "HOLD",
+        time: toTimestamp(holdCandle.time),
+        price: holdCandle.close,
+        reasons: [pick(structurePhrases, 2), pick(trendPhrases, 1), "risk contained"],
+        confidence: "measured",
+      });
+    }
+
+    if (position.exitIndex !== undefined && exitCandle) {
+      anchors.push({
+        id: `${position.id}-exit`,
+        positionId: position.id,
+        phase: "EXIT",
+        time: toTimestamp(exitCandle.time),
+        price: exitCandle.close,
+        reasons: ["objective met", pick(volatilityPhrases, 3), "pace slowing"],
+        confidence: "cautious",
+      });
+    } else if (exitCandle) {
+      anchors.push({
+        id: `${position.id}-open`,
+        positionId: position.id,
+        phase: "HOLD",
+        time: toTimestamp(exitCandle.time),
+        price: exitCandle.close,
+        reasons: [pick(trendPhrases, 2), "monitoring flow", "risk steady"],
+        confidence: "measured",
+      });
+    }
+  });
+
+  return anchors;
 };
 
 export default function ChartsPage() {
-  const [timeframe, setTimeframe] = useState(TIMEFRAMES[0]);
-  const [asset, setAsset] = useState(ASSETS[0]);
-  const [candles, setCandles] = useState<Candle[]>([]);
-  const [miniCharts, setMiniCharts] = useState<MiniChart[]>([]);
-  const [overviewStats, setOverviewStats] = useState<ChartOverviewStat[]>([]);
-  const [pulse, setPulse] = useState<number[]>([]);
-  const [feed, setFeed] = useState<LiveFeedEvent[]>([]);
-  const [markers, setMarkers] = useState<ChartMarker[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [chartMode, setChartMode] = useState<"full" | "mini">("full");
-  const [focusMode, setFocusMode] = useState<"normal" | "focus" | "immersive">("normal");
-  const [coachEnabled, setCoachEnabled] = useState(true);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [indicatorSeriesMap, setIndicatorSeriesMap] = useState<IndicatorMap | null>(null);
-  const [decisionTimeline, setDecisionTimeline] = useState<ExplainDecision[]>([]);
-  const [wsDecisionTimeline, setWsDecisionTimeline] = useState<ExplainDecision[]>([]);
-  const [hoveredCandle, setHoveredCandle] = useState<ChartHoverPayload | null>(null);
-  const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
-  const wsRef = useRef<WebSocket | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const indicatorPaneRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
-  const chartContainerRef = useRef<HTMLDivElement | null>(null);
-  const chartSectionRef = useRef<HTMLDivElement | null>(null);
-  const candleSeriesRef = useRef<CandleSeries | null>(null);
-  const volumeSeriesRef = useRef<VolumeSeries | null>(null);
-  const indicatorRendererRef = useRef<ReturnType<typeof createIndicatorRenderer> | null>(null);
-  const decisionConnectorRef = useRef<ReturnType<IChartApi["addLineSeries"]> | null>(null);
-  const positionBandRef = useRef<ReturnType<IChartApi["addAreaSeries"]> | null>(null);
-  const confidenceSeriesRef = useRef<ReturnType<IChartApi["addAreaSeries"]> | null>(null);
-  const confidenceInflectionRef = useRef<ReturnType<IChartApi["addHistogramSeries"]> | null>(null);
-  const confidenceRiskRef = useRef<ReturnType<IChartApi["addHistogramSeries"]> | null>(null);
-  const visibleCandlesRef = useRef<Candle[]>([]);
-  const heroFeedStatus = `SYNCED • ${timeframe.toUpperCase()}`;
-  const heroHint = `Asset ${asset}`;
-  const windowSize = useMemo(() => resolveWindowSize(timeframe), [timeframe]);
-  const isFocus = focusMode !== 'normal';
-  const isImmersive = focusMode === 'immersive';
-  const chartMinHeight = isImmersive ? "84vh" : "80vh";
-  const resolvedChartHeight = isFullscreen ? "100vh" : chartMinHeight;
+  const candleSeriesRef = useRef<ReturnType<IChartApi["addCandlestickSeries"]> | null>(null);
+  const volumeSeriesRef = useRef<ReturnType<IChartApi["addHistogramSeries"]> | null>(null);
+  const overlaySeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());
+  const lifecycleSeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());
+  const oscillatorChartRef = useRef<IChartApi | null>(null);
+  const oscillatorSeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());
+  const [focusedAnchorId, setFocusedAnchorId] = useState<string | null>(null);
+  const [hoverAnchor, setHoverAnchor] = useState<{ anchor: ReasoningAnchor; point: { x: number; y: number } } | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const seed = useMemo(() => hashSeed(`${DEFAULT_SYMBOL}-${DEFAULT_TIMEFRAME}`), []);
+  const rng = useMemo(() => createRng(seed), [seed]);
+  const [candles, setCandles] = useState<Candle[]>(() => buildHistory(DEFAULT_SYMBOL, DEFAULT_TIMEFRAME, WINDOW_SIZE, rng));
+  const initialHistoryRef = useRef<Candle[]>(candles);
+  const [toggleEMA, setToggleEMA] = useState(false);
+  const [toggleSMA, setToggleSMA] = useState(false);
+  const [toggleVWAP, setToggleVWAP] = useState(false);
+  const [toggleBB, setToggleBB] = useState(false);
+  const [toggleRSI, setToggleRSI] = useState(false);
+  const positions = useMemo(() => derivePositions(candles), [candles]);
+  const reasoningAnchors = useMemo(() => deriveReasoningAnchors(candles, positions), [candles, positions]);
 
-  const decorateIndicatorSeries = useCallback((seriesMap: ExplainIndicatorSeries | null, timeline: ExplainDecision[]): IndicatorMap | null => {
-    if (!seriesMap || !Object.keys(seriesMap).length) return null;
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return undefined;
 
-    const supportMap = new Map<string, Set<number>>();
-    const blockMap = new Map<string, Set<number>>();
-    const activeByTime = new Map<number, Set<string>>();
-    let latestDecisionTime: number | null = null;
-    let latestActive = new Set<string>();
-
-    timeline.forEach((decision) => {
-      const time = Number(decision.time);
-      if (!Number.isFinite(time)) return;
-      const active = activeByTime.get(time) ?? new Set<string>();
-
-      // Votes explicitly reference indicators.
-      decision.indicator_votes?.forEach((vote) => {
-        const key = vote.indicator;
-        if (!key) return;
-        active.add(key);
-        const support = (vote.support || "support").toLowerCase();
-        const bucket = support.includes("exit") || support.includes("block") || support.includes("short") ? blockMap : supportMap;
-        if (!bucket.has(key)) bucket.set(key, new Set());
-        bucket.get(key)?.add(time);
-      });
-
-      // Indicator state mentions also count as active context.
-      Object.keys(decision.indicator_states ?? {}).forEach((key) => {
-        active.add(key);
-      });
-
-      if (!latestDecisionTime || time >= latestDecisionTime) {
-        latestDecisionTime = time;
-        latestActive = new Set(active);
-      }
-
-      if (active.size) {
-        activeByTime.set(time, active);
-      }
+    const chart = createChart(container, {
+      width: container.clientWidth,
+      height: container.clientHeight,
+      layout: {
+        background: { type: ColorType.Solid, color: palette.background },
+        textColor: palette.textMuted,
+      },
+      grid: {
+        vertLines: { color: palette.gridMinor },
+        horzLines: { color: palette.gridMajor },
+      },
+      crosshair: {
+        mode: CrosshairMode.Normal,
+        vertLine: { width: 1, color: palette.crosshair, style: 1, labelBackgroundColor: "#0b213c" },
+        horzLine: { width: 1, color: palette.crosshair, style: 1, labelBackgroundColor: "#0b213c" },
+      },
+      timeScale: {
+        borderVisible: false,
+        fixLeftEdge: false,
+        fixRightEdge: false,
+        timeVisible: true,
+        secondsVisible: false,
+      },
+      rightPriceScale: {
+        borderVisible: false,
+      },
     });
 
-    const decorated: IndicatorMap = {};
-    const baseColor = "rgba(148,163,184,0.25)";
+    chartRef.current = chart;
 
-    Object.entries(seriesMap).forEach(([indicator, rows]) => {
-      const resolved = rows
-        .map((row) => {
-          const time = Number(row.time);
-          if (!Number.isFinite(time)) return null;
-          const activeSet = activeByTime.get(time);
-          const supported = supportMap.get(indicator)?.has(time);
-          const blocked = blockMap.get(indicator)?.has(time);
-          let color = typeof row.color === 'string' ? row.color : baseColor;
-          if (activeSet?.has(indicator) && !supported && !blocked) {
-            color = "rgba(148,163,184,0.65)";
-          }
-          if (supported) color = "rgba(16,185,129,0.9)";
-          if (blocked) color = "rgba(239,68,68,0.78)";
-          const isLatestDecision = latestDecisionTime !== null && time === latestDecisionTime;
-          if (isLatestDecision) {
-            const highlighted = latestActive.has(indicator);
-            color = highlighted ? "rgba(148,197,255,0.9)" : "rgba(148,163,184,0.18)";
-          }
-          return { ...row, color } as ExplainIndicatorPoint;
-        })
-        .filter(Boolean) as ExplainIndicatorPoint[];
-
-      if (resolved.length) {
-        decorated[indicator] = resolved;
-      }
+    const candleSeries = chart.addCandlestickSeries({
+      upColor: palette.priceUp,
+      downColor: palette.priceDown,
+      wickUpColor: palette.wickUp,
+      wickDownColor: palette.wickDown,
+      borderUpColor: "rgba(255,255,255,0.12)",
+      borderDownColor: "rgba(255,255,255,0.12)",
+      borderVisible: true,
+      wickVisible: true,
     });
 
-    if (!Object.keys(decorated).length) return null;
-    return decorated;
-  }, []);
-
-  const adaptExplainCandles = useCallback((rawCandles: Array<Record<string, any>>) => {
-    if (!Array.isArray(rawCandles) || rawCandles.length === 0) return [] as Candle[];
-    const adapted: Candle[] = rawCandles
-      .map((row) => {
-        const seconds = Number(row.time ?? row.timestamp);
-        if (!Number.isFinite(seconds)) return null;
-        return {
-          timestamp: seconds * 1000,
-          open: Number(row.open ?? row.close ?? 0),
-          high: Number(row.high ?? row.close ?? 0),
-          low: Number(row.low ?? row.close ?? 0),
-          close: Number(row.close ?? row.open ?? 0),
-          volume: Number(row.volume ?? 0),
-          source: 'MOCK',
-          validForLearning: false,
-        } as Candle;
-      })
-      .filter((row): row is Candle => Boolean(row?.timestamp));
-    return clampCandlesToWindow(adapted, timeframe);
-  }, [timeframe]);
-
-  const buildDecisionMarkers = useCallback((timeline: ExplainDecision[]): ChartMarker[] => {
-    if (!timeline.length) return [];
-    return timeline
-      .map((decision) => {
-        const tsSeconds = Number(decision.time);
-        if (!Number.isFinite(tsSeconds)) return null;
-        const support = (decision.indicator_votes || [])
-          .filter((vote) => vote.indicator)
-          .map((vote) => `${vote.indicator}${vote.state ? `:${vote.state}` : ''}`)
-          .slice(0, 4)
-          .join(', ');
-        const blocked = (decision.blocks || []).slice(0, 3).join(', ');
-        const reason = [support && `Support ${support}`, blocked && `Blocks ${blocked}`, decision.reasoning]
-          .filter(Boolean)
-          .join(' • ');
-        return {
-          id: `timeline-${decision.action}-${tsSeconds}`,
-          action: decision.action,
-          timestamp: tsSeconds * 1000,
-          confidence: decision.confidence,
-          phase: decision.phase,
-          reason,
-        } as ChartMarker;
-      })
-      .filter(Boolean) as ChartMarker[];
-  }, []);
-
-  const buildConfidenceSeries = useCallback((timeline: ExplainDecision[]) => {
-    const points: ConfidencePoint[] = [];
-    const inflections: ConfidenceInflection[] = [];
-    let prev: ConfidencePoint | null = null;
-
-    timeline
-      .filter((decision) => Number.isFinite(Number(decision.confidence)))
-      .sort((a, b) => Number(a.time) - Number(b.time))
-      .forEach((decision) => {
-        const time = Number(decision.time);
-        const value = Number(decision.confidence);
-        if (!Number.isFinite(time) || !Number.isFinite(value)) return;
-        const point: ConfidencePoint = {
-          time,
-          value,
-          action: decision.action,
-          phase: decision.phase,
-        };
-        if (prev) {
-          const delta = value - prev.value;
-          if (Math.abs(delta) >= 0.1) {
-            inflections.push({
-              time,
-              from: prev.value,
-              to: value,
-              direction: delta >= 0 ? 'up' : 'down',
-              action: decision.action,
-              phase: decision.phase,
-            });
-          }
-        }
-        points.push(point);
-        prev = point;
-      });
-
-    return { points, inflections } as const;
-  }, []);
-
-  const clusterMarkers = useCallback((raw: ChartMarker[]): ChartMarker[] => {
-    if (!raw.length) return raw;
-    const buckets = new Map<number, ChartMarker[]>();
-    raw.forEach((marker) => {
-      const bucket = toUtcSeconds(marker.timestamp);
-      if (!buckets.has(bucket)) buckets.set(bucket, []);
-      buckets.get(bucket)?.push(marker);
+    const volumeSeries = chart.addHistogramSeries({
+      priceScaleId: "volume",
+      priceFormat: { type: "volume" },
+      color: palette.volumeUp,
+      base: 0,
     });
 
-    const clustered: ChartMarker[] = [];
+    candleSeriesRef.current = candleSeries;
+    volumeSeriesRef.current = volumeSeries;
 
-    buckets.forEach((entries, bucket) => {
-      if (entries.length === 1) {
-        clustered.push(entries[0]);
-        return;
-      }
-
-      const byAction = new Map<string, { count: number; top?: ChartMarker }>();
-      entries.forEach((marker) => {
-        const action = marker.action.toLowerCase();
-        const confidence = Number.isFinite(marker.confidence) ? marker.confidence ?? 0 : 0;
-        const current = byAction.get(action) ?? { count: 0, top: undefined };
-        const top = current.top;
-        const nextTop = !top || (Number.isFinite(confidence) && confidence > (top.confidence ?? 0)) ? marker : top;
-        byAction.set(action, { count: current.count + 1, top: nextTop });
-      });
-
-      const sortedActions = Array.from(byAction.entries()).sort((a, b) => b[1].count - a[1].count || (b[1].top?.confidence ?? 0) - (a[1].top?.confidence ?? 0));
-      const [dominantAction, dominantMeta] = sortedActions[0];
-      const topMarker = dominantMeta.top ?? entries[0];
-      const confidence = topMarker.confidence;
-      const reason = (topMarker.reason ?? '').slice(0, 42);
-      clustered.push({
-        id: `cluster-${bucket}-${dominantAction}`,
-        action: dominantAction,
-        timestamp: bucket * 1000,
-        confidence,
-        reason: reason || `${entries.length} decisions`,
-        phase: dominantMeta.top?.phase,
-        count: entries.length,
-      });
+    chart.priceScale("volume").applyOptions({
+      scaleMargins: { top: 0.78, bottom: 0 },
+      borderVisible: false,
+      textColor: "#94a3b8",
     });
 
-    return clustered.slice(-MAX_MARKERS);
-  }, []);
+    const syncData = (nextCandles: Candle[]) => {
+      const candleData = nextCandles.map((candle) => ({
+        ...candle,
+        time: candle.time as Time,
+      }));
 
-  const resolveDecisionColor = useCallback((action: string) => {
-    const lowered = action.toLowerCase();
-    if (lowered === 'buy') return "rgba(56,189,148,0.75)";
-    if (lowered === 'sell') return "rgba(244,114,114,0.78)";
-    return "rgba(160,174,192,0.48)";
-  }, []);
-
-  const resolveMarkerVisual = useCallback((action: string, phase?: ChartMarker["phase"]) => {
-    const baseColor = resolveDecisionColor(action);
-    const withAlpha = (alpha: number) => baseColor.replace(/0\.?\d+\)/, `${alpha})`);
-    if (phase === 'entry') return { color: withAlpha(0.95), size: 1.2 };
-    if (phase === 'exit') return { color: withAlpha(0.9), size: 1.15 };
-    if (phase === 'hold') return { color: withAlpha(0.55), size: 0.85 };
-    return { color: baseColor, size: 1 };
-  }, [resolveDecisionColor]);
-
-  const resolveConfidencePalette = useCallback((value: number | undefined, intent: DominantIntent) => {
-    const v = Number(value);
-    const strongIntent = intent === "STRONG_BUY" || intent === "STRONG_SELL";
-    const tint = intent === "STRONG_BUY" ? "rgba(34,197,141,0.06)" : intent === "STRONG_SELL" ? "rgba(244,63,94,0.06)" : null;
-    const base = {
-      inflectionUp: "rgba(16,185,129,0.48)",
-      inflectionDown: "rgba(248,113,113,0.46)",
+      candleSeries.setData(candleData);
+      volumeSeries.setData(
+        nextCandles.map((candle) => ({
+          time: candle.time as Time,
+          value: candle.volume,
+          color: candle.close >= candle.open ? palette.volumeUp : palette.volumeDown,
+        }))
+      );
     };
 
-    if (!Number.isFinite(v)) {
-      return {
-        line: strongIntent ? "rgba(120,212,203,0.7)" : "rgba(120,212,203,0.6)",
-        fillTop: tint ?? "rgba(120,212,203,0.16)",
-        fillBottom: tint ?? "rgba(120,212,203,0.06)",
-        ...base,
-      };
-    }
+    syncData(initialHistoryRef.current);
 
-    if (v < 0.42) {
-      return {
-        line: "rgba(248,113,113,0.68)",
-        fillTop: "rgba(248,113,113,0.16)",
-        fillBottom: "rgba(248,113,113,0.055)",
-        ...base,
-      };
-    }
-
-    if (v < 0.65) {
-      return {
-        line: "rgba(251,191,36,0.68)",
-        fillTop: "rgba(251,191,36,0.14)",
-        fillBottom: "rgba(251,191,36,0.05)",
-        ...base,
-      };
-    }
-
-    return {
-      line: strongIntent ? "rgba(56,189,248,0.78)" : "rgba(56,189,248,0.68)",
-      fillTop: tint ?? "rgba(56,189,248,0.17)",
-      fillBottom: tint ?? "rgba(56,189,248,0.06)",
-      ...base,
+    const handleResize = () => {
+      if (!container) return;
+      chart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
     };
-  }, []);
 
-  const persistSnapshot = useCallback(
-    (snapshot: Partial<ChartSnapshot>) => {
-      try {
-        const targetWindow = Math.max(resolveWindowSize(timeframe) + WINDOW_BUFFER, resolveWindowSize(timeframe));
-        const length = snapshot.candles?.length ?? 0;
-        if (length && length < targetWindow) {
-          if (process.env.NODE_ENV !== 'production') {
-            console.warn('[charts][cache][skip] window too small', { length, targetWindow, timeframe });
-          }
-          return;
-        }
-        const cache = {
-          candles: snapshot.candles,
-          miniCharts: snapshot.miniCharts,
-          overview: snapshot.overview,
-          pulse: snapshot.pulse,
-          feed: snapshot.feed,
-        };
-        sessionStorage.setItem(CACHE_KEY(asset, timeframe), JSON.stringify(cache));
-      } catch (_error) {
-        /* ignore cache write failures */
-      }
-    },
-    [asset, timeframe]
-  );
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(container);
+    window.addEventListener("resize", handleResize);
 
-  const applySnapshot = useCallback((snapshot: Awaited<ReturnType<typeof chartsApi.getSnapshot>>) => {
-    const trimmedCandles = clampCandlesToWindow(snapshot.candles, timeframe);
-    setCandles(trimmedCandles);
-    setMiniCharts(snapshot.miniCharts);
-    setOverviewStats(snapshot.overview);
-    setPulse(snapshot.pulse);
-    setFeed(snapshot.feed);
-    setHoveredCandle(null);
-    persistSnapshot({ ...snapshot, candles: trimmedCandles });
-  }, [persistSnapshot, timeframe]);
-
-  const loadSnapshot = useCallback(async () => {
-    try {
-      const cached = typeof window !== 'undefined' ? sessionStorage.getItem(CACHE_KEY(asset, timeframe)) : null;
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        const targetWindow = Math.max(resolveWindowSize(timeframe) + WINDOW_BUFFER, resolveWindowSize(timeframe));
-        if (parsed?.candles?.length && parsed.candles.length >= targetWindow) {
-          const trimmedCandles = clampCandlesToWindow(parsed.candles ?? [], timeframe);
-          setCandles(trimmedCandles);
-          setMiniCharts(parsed.miniCharts ?? []);
-          setOverviewStats(parsed.overview ?? []);
-          setPulse(parsed.pulse ?? []);
-          setFeed(parsed.feed ?? []);
-          setHoveredCandle(null);
-        } else if (process.env.NODE_ENV !== 'production') {
-          console.warn('[charts][cache][ignore] cached window too small', {
-            length: parsed?.candles?.length ?? 0,
-            targetWindow,
-            timeframe,
-          });
-        }
-      }
-    } catch (_error) {
-      /* ignore cache read failures */
-    }
-    return chartsApi.getSnapshot(asset, timeframe);
-  }, [asset, timeframe]);
-
-  useEffect(() => {
-    let mounted = true;
-    setLoading(true);
-    loadSnapshot()
-      .then((snapshot) => {
-        if (!mounted) return;
-        applySnapshot(snapshot);
-      })
-      .catch((error) => {
-        if (!mounted) return;
-        console.warn('[charts] snapshot failed', error);
-      })
-      .finally(() => {
-        if (mounted) setLoading(false);
-      });
-    return () => {
-      mounted = false;
-    };
-  }, [loadSnapshot, applySnapshot]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const width = window.innerWidth;
-    const coarse = window.matchMedia?.('(pointer: coarse)').matches;
-    if (coarse || width < 820) {
-      setFocusMode('immersive');
-      setChartMode('full');
-      return;
-    }
-    if (width < 1180 && focusMode === 'normal') {
-      setFocusMode('focus');
-    }
-  }, [focusMode]);
-
-  useEffect(() => {
-    setCandles((current) => clampCandlesToWindow(current, timeframe));
-  }, [timeframe]);
-
-  useEffect(() => {
     const handleFullscreenChange = () => {
       const active = Boolean(document.fullscreenElement);
       setIsFullscreen(active);
-    };
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-    };
-  }, []);
-
-  useEffect(() => {
-    const container = chartContainerRef.current;
-    if (!container) return;
-
-    const { chart, cleanup } = createTvChart(container);
-    chartRef.current = chart;
-    const { candleSeries, volumeSeries } = createPriceVolumeSeries(chart);
-    candleSeriesRef.current = candleSeries;
-    volumeSeriesRef.current = volumeSeries;
-    indicatorRendererRef.current = createIndicatorRenderer(chart);
-
-    const handleCrosshairMove = (event: MouseEventParams) => {
-      if (!event.time || typeof event.time !== 'number') {
-        setHoveredCandle(null);
-        return;
-      }
-
-      const match = visibleCandlesRef.current.find(
-        (candle) => toUtcSeconds(candle.timestamp) === event.time
-      );
-
-      if (!match) {
-        setHoveredCandle(null);
-        return;
-      }
-
-      setHoveredCandle({
-        ...match,
-        index: visibleCandlesRef.current.indexOf(match),
-        time: match.timestamp,
-      });
+      handleResize();
     };
 
-    chart.subscribeCrosshairMove(handleCrosshairMove);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+
+    const overlayStore = overlaySeriesRef.current;
+    const lifecycleStore = lifecycleSeriesRef.current;
 
     return () => {
-      chart.unsubscribeCrosshairMove(handleCrosshairMove);
-      cleanup();
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      window.removeEventListener("resize", handleResize);
+      resizeObserver.disconnect();
+      chart.remove();
       chartRef.current = null;
       candleSeriesRef.current = null;
       volumeSeriesRef.current = null;
-      if (decisionConnectorRef.current) {
-        chart.removeSeries(decisionConnectorRef.current);
-        decisionConnectorRef.current = null;
-      }
-      if (confidenceSeriesRef.current) {
-        chart.removeSeries(confidenceSeriesRef.current);
-        confidenceSeriesRef.current = null;
-      }
-      if (confidenceInflectionRef.current) {
-        chart.removeSeries(confidenceInflectionRef.current);
-        confidenceInflectionRef.current = null;
-      }
-      if (confidenceRiskRef.current) {
-        chart.removeSeries(confidenceRiskRef.current);
-        confidenceRiskRef.current = null;
-      }
-      if (positionBandRef.current) {
-        chart.removeSeries(positionBandRef.current);
-        positionBandRef.current = null;
-      }
-      indicatorRendererRef.current?.clear();
-      indicatorRendererRef.current = null;
+      overlayStore.clear();
+      lifecycleStore.clear();
     };
   }, []);
 
-  const handleRefresh = useCallback(async () => {
-    try {
-      setRefreshing(true);
-      const snapshot = await chartsApi.getSnapshot(asset, timeframe, { cache: "no-store" });
-      applySnapshot(snapshot);
-    } catch (error) {
-      console.warn('[charts] manual refresh failed', error);
-    } finally {
-      setRefreshing(false);
-    }
-  }, [applySnapshot, asset, timeframe]);
-
-  const visibleCandles = useMemo(() => candles.slice(-windowSize), [candles, windowSize]);
-  const candleTimeIndex = useMemo(() => buildCandleTimeIndex(visibleCandles), [visibleCandles]);
-
-  const effectiveTimeline = useMemo(() => {
-    if (decisionTimeline.length) return decisionTimeline;
-    return wsDecisionTimeline;
-  }, [decisionTimeline, wsDecisionTimeline]);
-
-  const latestDecision = useMemo(() => {
-    if (!effectiveTimeline.length) return null;
-    const sorted = [...effectiveTimeline].sort((a, b) => Number(a.time) - Number(b.time));
-    return sorted.at(-1) ?? null;
-  }, [effectiveTimeline]);
-
-  const dominantIntent = useMemo<DominantIntent>(() => {
-    if (!latestDecision) return "NEUTRAL";
-    const action = latestDecision.action?.toLowerCase?.() ?? "hold";
-    const confidence = Number(latestDecision.confidence);
-    const isStrong = Number.isFinite(confidence) && confidence >= 0.74;
-    const isLean = Number.isFinite(confidence) && confidence >= 0.55;
-    if (action === 'buy') return isStrong ? "STRONG_BUY" : isLean ? "BUY" : "NEUTRAL";
-    if (action === 'sell') return isStrong ? "STRONG_SELL" : isLean ? "SELL" : "NEUTRAL";
-    return "NEUTRAL";
-  }, [latestDecision]);
-
-  const intentVisual = useMemo(() => {
-    switch (dominantIntent) {
-      case "STRONG_BUY":
-        return { wash: "rgba(34,197,141,0.08)", frame: null };
-      case "BUY":
-        return { wash: null, frame: "rgba(34,197,141,0.5)" };
-      case "STRONG_SELL":
-        return { wash: "rgba(244,63,94,0.08)", frame: null };
-      case "SELL":
-        return { wash: null, frame: "rgba(244,63,94,0.5)" };
-      default:
-        return { wash: null, frame: null };
-    }
-  }, [dominantIntent]);
-
   useEffect(() => {
-    visibleCandlesRef.current = visibleCandles;
+    const container = indicatorPaneRef.current;
+    if (!container) return undefined;
 
-    const priceData = adaptCandlesToPriceData(visibleCandles);
-    if (priceData.length) {
-      const lastIndex = priceData.length - 1;
-      const lastCandle = visibleCandles.at(-1);
-      const isUp = lastCandle ? lastCandle.close >= lastCandle.open : false;
-      priceData[lastIndex] = {
-        ...priceData[lastIndex],
-        color: isUp ? "rgba(46,199,166,0.98)" : "rgba(212,106,106,0.98)",
-        borderColor: isUp ? "rgba(46,199,166,1)" : "rgba(212,106,106,1)",
-        wickColor: isUp ? "rgba(46,199,166,0.9)" : "rgba(212,106,106,0.9)",
-      } as typeof priceData[number];
-    }
-
-    candleSeriesRef.current?.setData(priceData);
-    volumeSeriesRef.current?.setData(adaptCandlesToVolumeData(visibleCandles));
-    if (indicatorRendererRef.current && indicatorSeriesMap) {
-      indicatorRendererRef.current.setIndicators(indicatorSeriesMap);
-    }
-  }, [visibleCandles, indicatorSeriesMap]);
-
-  const latestCandle = useMemo(() => {
-    const last = visibleCandles.at(-1);
-    if (!last) return null;
-    return { ...last, index: visibleCandles.length - 1, time: last.timestamp } as ChartHoverPayload;
-  }, [visibleCandles]);
-
-  const activeCandle = hoveredCandle ?? latestCandle;
-
-  const windowStart = visibleCandles[0]?.timestamp ?? null;
-  const windowMarkers = useMemo(() => {
-    const scoped = windowStart ? markers.filter((marker) => marker.timestamp >= windowStart) : markers;
-    return scoped.slice(-MAX_MARKERS);
-  }, [markers, windowStart]);
-
-  useEffect(() => {
-    const series = candleSeriesRef.current;
-    if (!series) return;
-
-    const clustered = clusterMarkers(windowMarkers);
-
-    if (!clustered.length) {
-      series.setMarkers([]);
-      return;
-    }
-
-    const resolved = clustered.map((marker) => {
-      const action = marker.action?.toLowerCase?.() ?? "hold";
-      const shape: SeriesMarker<Time>["shape"] = action === "sell" ? "arrowDown" : action === "buy" ? "arrowUp" : "circle";
-      const { color, size } = resolveMarkerVisual(action, marker.phase);
-      const position: SeriesMarker<Time>["position"] = action === "sell" ? "aboveBar" : action === "buy" ? "belowBar" : "inBar";
-      const confidence = Number.isFinite(marker.confidence) ? Math.max(0, Math.min(1, marker.confidence ?? 0)) : undefined;
-      const percent = confidence !== undefined ? `${(confidence * 100).toFixed(0)}%` : null;
-      const shortReason = (marker.reason ?? "").slice(0, 42);
-      const countLabel = marker.count && marker.count > 1 ? `${marker.count}×` : null;
-      const text = [countLabel, action.toUpperCase(), percent, shortReason].filter(Boolean).join(" · ");
-      const mappedTime = mapToCandleTime(candleTimeIndex, toUtcSeconds(marker.timestamp));
-      if (!mappedTime) return null;
-      return {
-        id: marker.id,
-        time: mappedTime as Time,
-        position,
-        shape,
-        color,
-        size,
-        text,
-      };
+    const chart = createChart(container, {
+      width: container.clientWidth,
+      height: container.clientHeight,
+      layout: {
+        background: { type: ColorType.Solid, color: "#0b1224" },
+        textColor: "#cbd5e1",
+      },
+      grid: {
+        vertLines: { color: "rgba(255,255,255,0.04)" },
+        horzLines: { color: "rgba(255,255,255,0.06)" },
+      },
+      crosshair: {
+        mode: CrosshairMode.Normal,
+        vertLine: { width: 1, color: "#38bdf8", style: 1 },
+        horzLine: { width: 1, color: "#38bdf8", style: 1 },
+      },
+      timeScale: {
+        borderVisible: false,
+        timeVisible: true,
+        secondsVisible: false,
+      },
+      rightPriceScale: {
+        borderVisible: false,
+      },
     });
 
-    series.setMarkers(resolved.filter(Boolean) as Array<SeriesMarker<Time>>);
-  }, [windowMarkers, clusterMarkers, candleTimeIndex, resolveMarkerVisual]);
+    oscillatorChartRef.current = chart;
 
-  useEffect(() => {
-    const chart = chartRef.current;
-    if (!chart) return;
-    if (!effectiveTimeline.length) {
-      if (decisionConnectorRef.current) {
-        chart.removeSeries(decisionConnectorRef.current);
-        decisionConnectorRef.current = null;
-      }
-      return;
-    }
-
-    if (!decisionConnectorRef.current) {
-      decisionConnectorRef.current = chart.addLineSeries({
-        color: "rgba(148,163,184,0.35)",
-        lineStyle: LineStyle.Dotted,
-        lineWidth: 1,
-        priceLineVisible: false,
-      });
-    }
-
-    const candleByTime = new Map<number, Candle>();
-    visibleCandlesRef.current.forEach((candle) => {
-      candleByTime.set(toUtcSeconds(candle.timestamp), candle);
-    });
-
-    const connectorData = effectiveTimeline
-      .map((decision) => {
-        const rawTime = Number(decision.time);
-        if (!Number.isFinite(rawTime)) return null;
-        const mappedTime = mapToCandleTime(candleTimeIndex, rawTime);
-        if (!mappedTime) return null;
-        const candle = candleByTime.get(mappedTime);
-        if (!candle) return null;
-        return {
-          time: mappedTime as Time,
-          value: candle.close,
-          color: resolveDecisionColor(decision.action),
-        };
-      })
-      .filter(Boolean) as Array<{ time: Time; value: number; color?: string }>;
-
-    decisionConnectorRef.current?.setData(connectorData);
-  }, [effectiveTimeline, resolveDecisionColor, candleTimeIndex]);
-
-  const positionBands = useMemo(() => {
-    if (!effectiveTimeline.length || !visibleCandles.length) return [] as Array<{ start: number; end: number; price: number; direction: 'long' | 'short' }>;
-    const candleByTime = new Map<number, Candle>();
-    visibleCandles.forEach((candle) => {
-      candleByTime.set(toUtcSeconds(candle.timestamp), candle);
-    });
-
-    const sorted = [...effectiveTimeline].sort((a, b) => Number(a.time) - Number(b.time));
-    const bands: Array<{ start: number; end: number; price: number; direction: 'long' | 'short' }> = [];
-    let activePosition: { time: number; price: number; direction: 'long' | 'short' } | null = null;
-
-    const resolvePrice = (timeSec: number) => {
-      const candle = candleByTime.get(timeSec);
-      return candle?.close ?? candle?.open ?? null;
+    const handleResize = () => {
+      chart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
     };
 
-    sorted.forEach((decision) => {
-      const timeSec = Number(decision.time);
-      if (!Number.isFinite(timeSec)) return;
-      const mappedTime = mapToCandleTime(candleTimeIndex, timeSec);
-      if (!mappedTime) return;
-      const action = (decision.action || '').toLowerCase();
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(container);
+    window.addEventListener("resize", handleResize);
 
-      if (action === 'buy' && !activePosition) {
-        const price = resolvePrice(mappedTime);
-        if (price !== null) activePosition = { time: timeSec, price, direction: 'long' };
-        return;
-      }
+    const oscStore = oscillatorSeriesRef.current;
 
-      if (action === 'sell' && activePosition?.direction === 'long') {
-        const price = resolvePrice(mappedTime) ?? activePosition.price;
-        bands.push({ start: activePosition.time, end: mappedTime, price, direction: 'long' });
-        activePosition = null;
-        return;
-      }
-    });
-
-    if (activePosition) {
-      const pos = activePosition as { time: number; price: number; direction: 'long' | 'short' };
-      const lastVisible = visibleCandles.at(-1);
-      const endTime = lastVisible ? toUtcSeconds(lastVisible.timestamp) : pos.time;
-      bands.push({ start: pos.time, end: endTime, price: pos.price, direction: pos.direction });
-    }
-
-    return bands;
-  }, [effectiveTimeline, visibleCandles, candleTimeIndex]);
-
-  const confidenceData = useMemo(() => buildConfidenceSeries(effectiveTimeline), [buildConfidenceSeries, effectiveTimeline]);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      resizeObserver.disconnect();
+      chart.remove();
+      oscillatorChartRef.current = null;
+      oscStore.clear();
+    };
+  }, []);
 
   useEffect(() => {
-    const chart = chartRef.current;
-    if (!chart) return;
+    if (!candles.length) return;
+    const candleSeries = candleSeriesRef.current;
+    const volumeSeries = volumeSeriesRef.current;
+    if (!candleSeries || !volumeSeries) return;
 
-    if (!confidenceData.points.length) {
-      confidenceSeriesRef.current?.setData([]);
-      confidenceInflectionRef.current?.setData([]);
-      confidenceRiskRef.current?.setData([]);
+    const candleData = candles.map((candle) => ({ ...candle, time: candle.time as Time }));
+    candleSeries.setData(candleData);
+    volumeSeries.setData(
+      candles.map((candle) => ({
+        time: candle.time as Time,
+        value: candle.volume,
+        color: candle.close >= candle.open ? palette.volumeUp : palette.volumeDown,
+      }))
+    );
+  }, [candles]);
+
+  const ensureSeries = <T extends ISeriesApi<keyof SeriesOptionsMap>>(store: Map<string, T>, id: string, create: () => T) => {
+    if (store.has(id)) return store.get(id) as T;
+    const series = create();
+    store.set(id, series);
+    return series;
+  };
+
+  const removeSeries = <T extends ISeriesApi<keyof SeriesOptionsMap>>(chart: IChartApi, store: Map<string, T>, id: string) => {
+    const series = store.get(id);
+    if (series) {
+      chart.removeSeries(series);
+      store.delete(id);
+    }
+  };
+
+  useEffect(() => {
+    if (!candles.length) return;
+    const priceChart = chartRef.current;
+    if (!priceChart) return;
+
+    const active = new Set<string>();
+
+    if (!positions.length) {
+      removeSeries(priceChart, lifecycleSeriesRef.current, "markers");
+      lifecycleSeriesRef.current.forEach((_, id) => {
+        if (id.startsWith("band-")) removeSeries(priceChart, lifecycleSeriesRef.current, id);
+      });
       return;
     }
 
-    chart.priceScale(CONFIDENCE_SCALE_ID).applyOptions({
-      scaleMargins: { top: 0.72, bottom: 0.08 },
-      borderVisible: false,
+    positions.forEach((position) => {
+      const entryCandle = candles[position.entryIndex];
+      if (!entryCandle) return;
+      const exitIdx = position.exitIndex ?? candles.length - 1;
+      const exitCandle = candles[Math.min(exitIdx, candles.length - 1)];
+      if (!exitCandle) return;
+
+      const bandId = `band-${position.id}`;
+      active.add(bandId);
+
+      const baseColor = position.side === "long" ? palette.lifecycleLong : palette.lifecycleShort;
+      const emphasis = focusedAnchorId && focusedAnchorId.startsWith(position.id) ? 1.35 : 1;
+      const band = ensureSeries(lifecycleSeriesRef.current, bandId, () =>
+        priceChart.addLineSeries({
+          color: baseColor,
+          lineWidth: 4,
+          priceLineVisible: false,
+          lastValueVisible: false,
+          crosshairMarkerVisible: false,
+          autoscaleInfoProvider: () => null,
+        })
+      );
+      band.applyOptions({ color: adjustAlpha(baseColor, emphasis) });
+
+      const data = candles
+        .slice(position.entryIndex, Math.min(exitIdx, candles.length - 1) + 1)
+        .map((candle) => ({ time: candle.time as Time, value: entryCandle.close }));
+
+      band.setData(data);
     });
 
-    if (!confidenceRiskRef.current) {
-      confidenceRiskRef.current = chart.addHistogramSeries({
-        priceScaleId: CONFIDENCE_SCALE_ID,
-        priceFormat: { type: "price", precision: 2, minMove: 0.01 },
+    const markerSeries = ensureSeries(lifecycleSeriesRef.current, "markers", () =>
+      priceChart.addLineSeries({
+        color: "transparent",
+        lineWidth: 1,
         priceLineVisible: false,
-        base: 0,
-        color: "rgba(248,113,113,0.12)",
-      });
-    }
-
-    if (!confidenceSeriesRef.current) {
-      confidenceSeriesRef.current = chart.addAreaSeries({
-        priceScaleId: CONFIDENCE_SCALE_ID,
-        lineWidth: 2,
-        priceFormat: { type: "price", precision: 2, minMove: 0.01 },
-        priceLineVisible: false,
-        crosshairMarkerVisible: false,
         lastValueVisible: false,
-        topColor: "rgba(120,212,203,0.16)",
-        bottomColor: "rgba(120,212,203,0.06)",
-        lineColor: "rgba(120,212,203,0.6)",
-      });
-    }
+        crosshairMarkerVisible: false,
+        autoscaleInfoProvider: () => null,
+      })
+    );
 
-    if (!confidenceInflectionRef.current) {
-      confidenceInflectionRef.current = chart.addHistogramSeries({
-        priceScaleId: CONFIDENCE_SCALE_ID,
-        priceFormat: { type: "price", precision: 2, minMove: 0.01 },
-        priceLineVisible: false,
-        base: 0,
-        color: "rgba(148,163,184,0.28)",
-      });
-    }
+    const markers: { time: Time; position: "aboveBar" | "belowBar"; color: string; shape: "arrowUp" | "arrowDown" | "circle"; text?: string }[] = [];
 
-    const palette = resolveConfidencePalette(confidenceData.points.at(-1)?.value, dominantIntent);
-    confidenceSeriesRef.current?.applyOptions({
-      lineColor: palette.line,
-      topColor: palette.fillTop,
-      bottomColor: palette.fillBottom,
+    positions.forEach((position) => {
+      const entry = candles[position.entryIndex];
+      if (entry) {
+        markers.push({
+          time: entry.time as Time,
+          position: position.side === "long" ? "belowBar" : "aboveBar",
+          color: position.side === "long" ? palette.markerLong : palette.markerShort,
+          shape: position.side === "long" ? "arrowUp" : "arrowDown",
+        });
+      }
+
+      const exitIdx = position.exitIndex ?? candles.length - 1;
+      const exit = candles[Math.min(exitIdx, candles.length - 1)];
+      if (exit && position.exitIndex !== undefined) {
+        markers.push({
+          time: exit.time as Time,
+          position: position.side === "long" ? "aboveBar" : "belowBar",
+          color: palette.markerExit,
+          shape: position.side === "long" ? "arrowDown" : "arrowUp",
+        });
+      } else if (exit && position.exitIndex === undefined) {
+        markers.push({
+          time: exit.time as Time,
+          position: "aboveBar",
+          color: position.side === "long" ? palette.markerLong : palette.markerShort,
+          shape: "circle",
+          text: "OPEN",
+        });
+      }
     });
 
-    const mappedPoints = confidenceData.points
-      .map((point) => {
-        const mappedTime = mapToCandleTime(candleTimeIndex, Number(point.time));
-        if (!mappedTime) return null;
-        return { ...point, mappedTime };
-      })
-      .filter(Boolean) as Array<ConfidencePoint & { mappedTime: number }>;
+    markerSeries.setMarkers(markers);
+    active.add("markers");
 
-    if (!mappedPoints.length) {
-      confidenceSeriesRef.current?.setData([]);
-      confidenceInflectionRef.current?.setData([]);
-      confidenceRiskRef.current?.setData([]);
+    lifecycleSeriesRef.current.forEach((_, id) => {
+      if (!active.has(id)) {
+        removeSeries(priceChart, lifecycleSeriesRef.current, id);
+      }
+    });
+  }, [candles, focusedAnchorId, positions]);
+
+  useEffect(() => {
+    const priceChart = chartRef.current;
+    if (!priceChart || !reasoningAnchors.length) {
+      const existing = lifecycleSeriesRef.current.get("reasoning-markers");
+      if (priceChart && existing) removeSeries(priceChart, lifecycleSeriesRef.current, "reasoning-markers");
       return;
     }
 
-    const lineData = mappedPoints.map((point) => ({
-      time: point.mappedTime as Time,
-      value: Math.max(0, Math.min(1, point.value)),
+    removeSeries(priceChart, lifecycleSeriesRef.current, "reasoning-markers");
+
+    const markerHost = ensureSeries(lifecycleSeriesRef.current, "reasoning-markers", () =>
+      priceChart.addLineSeries({
+        color: "transparent",
+        lineWidth: 1,
+        priceLineVisible: false,
+        lastValueVisible: false,
+        crosshairMarkerVisible: false,
+        autoscaleInfoProvider: () => null,
+      })
+    );
+
+    const markers = reasoningAnchors.map<SeriesMarker<Time>>((anchor) => ({
+      time: anchor.time as Time,
+      position: anchor.phase === "ENTRY" ? "belowBar" : anchor.phase === "EXIT" ? "aboveBar" : "aboveBar",
+      color: palette.markerReason,
+      shape: "circle",
+      text: anchor.phase === "ENTRY" ? "EN" : anchor.phase === "EXIT" ? "EX" : "HD",
     }));
 
-    const inflectionData = confidenceData.inflections
-      .map((inflection) => {
-        const mappedTime = mapToCandleTime(candleTimeIndex, Number(inflection.time));
-        if (!mappedTime) return null;
-        const magnitude = Math.abs(inflection.to - inflection.from);
-        const emphasizeDrop = inflection.direction === 'down' && magnitude >= 0.12;
-        const color = emphasizeDrop ? "rgba(248,113,113,0.7)" : inflection.direction === 'up' ? palette.inflectionUp : palette.inflectionDown;
-        return {
-          time: mappedTime as Time,
-          value: Number((inflection.to - inflection.from).toFixed(3)),
-          color,
-        };
-      })
-      .filter(Boolean) as Array<{ time: Time; value: number; color: string }>;
-
-    const riskShading = mappedPoints.map((point) => {
-      const risk = Math.max(0, Math.min(1, 1 - point.value));
-      const color = risk > 0.55 ? "rgba(248,113,113,0.14)" : risk > 0.35 ? "rgba(251,191,36,0.1)" : "rgba(56,189,248,0.07)";
-      return { time: point.mappedTime as Time, value: risk, color };
-    });
-
-    const inflectionMarkers = confidenceData.inflections.map((inflection) => {
-      const mappedTime = mapToCandleTime(candleTimeIndex, Number(inflection.time));
-      if (!mappedTime) return null;
-      const label = inflection.direction === 'up' ? '↗' : '↘';
-      const position: SeriesMarker<Time>["position"] = inflection.direction === 'up' ? 'aboveBar' : 'belowBar';
-      const color = inflection.direction === 'up' ? palette.inflectionUp : palette.inflectionDown;
-      return {
-        time: mappedTime as Time,
-        position,
-        color,
-        shape: inflection.direction === 'up' ? 'arrowUp' : 'arrowDown',
-        size: 0.8,
-        text: label,
-      } as SeriesMarker<Time>;
-    }).filter(Boolean) as Array<SeriesMarker<Time>>;
-
-    confidenceRiskRef.current?.setData(riskShading);
-    confidenceSeriesRef.current?.setData(lineData);
-    confidenceSeriesRef.current?.setMarkers(inflectionMarkers);
-    confidenceInflectionRef.current?.setData(inflectionData);
-  }, [confidenceData, resolveConfidencePalette, dominantIntent, candleTimeIndex]);
-
+    markerHost.setMarkers(markers);
+  }, [reasoningAnchors]);
 
   useEffect(() => {
-    const chart = chartRef.current;
+    if (!candles.length) return;
+    const priceChart = chartRef.current;
+    if (!priceChart) return;
+
+    const timeIndex = buildTimeIndex(candles);
+
+    const sma = computeSMA(candles, 20, timeIndex);
+    const ema = computeEMA(candles, 21, timeIndex);
+    const vwap = computeVWAP(candles, timeIndex);
+    const bb = computeBollinger(candles, 20, 2, timeIndex);
+
+    const applyLine = (
+      id: string,
+      data: IndicatorPoint[],
+      color: string,
+      visible: boolean
+    ) => {
+      if (!visible || !data.length) {
+        removeSeries(priceChart, overlaySeriesRef.current, id);
+        return;
+      }
+      const series = ensureSeries(overlaySeriesRef.current, id, () =>
+        priceChart.addLineSeries({
+          color,
+          lineWidth: 2,
+          lineStyle: LineStyle.Solid,
+          priceLineVisible: false,
+          lastValueVisible: false,
+          autoscaleInfoProvider: () => null,
+        })
+      );
+      series.setData(data);
+    };
+
+    applyLine("sma", sma, palette.overlaySMA, toggleSMA);
+    applyLine("ema", ema, palette.overlayEMA, toggleEMA);
+    applyLine("vwap", vwap, palette.overlayVWAP, toggleVWAP);
+
+    if (!toggleBB || !bb.length) {
+      removeSeries(priceChart, overlaySeriesRef.current, "bb-upper");
+      removeSeries(priceChart, overlaySeriesRef.current, "bb-lower");
+      removeSeries(priceChart, overlaySeriesRef.current, "bb-mid");
+    } else {
+      const upper = ensureSeries(overlaySeriesRef.current, "bb-upper", () =>
+        priceChart.addLineSeries({
+          color: palette.overlayBBEdge,
+          lineWidth: 1,
+          priceLineVisible: false,
+          lastValueVisible: false,
+          autoscaleInfoProvider: () => null,
+        })
+      );
+      const lower = ensureSeries(overlaySeriesRef.current, "bb-lower", () =>
+        priceChart.addLineSeries({
+          color: palette.overlayBBEdge,
+          lineWidth: 1,
+          priceLineVisible: false,
+          lastValueVisible: false,
+          autoscaleInfoProvider: () => null,
+        })
+      );
+      const mid = ensureSeries(overlaySeriesRef.current, "bb-mid", () =>
+        priceChart.addLineSeries({
+          color: palette.overlayBBMid,
+          lineWidth: 1,
+          lineStyle: LineStyle.Dotted,
+          priceLineVisible: false,
+          lastValueVisible: false,
+          autoscaleInfoProvider: () => null,
+        })
+      );
+
+      upper.setData(bb.map((row) => ({ time: row.time, value: row.upper })));
+      lower.setData(bb.map((row) => ({ time: row.time, value: row.lower })));
+      mid.setData(bb.map((row) => ({ time: row.time, value: row.middle ?? (row.upper + row.lower) / 2 })));
+    }
+  }, [candles, toggleBB, toggleEMA, toggleSMA, toggleVWAP]);
+
+  useEffect(() => {
+    if (!candles.length) return;
+    const chart = oscillatorChartRef.current;
     if (!chart) return;
 
-    if (!positionBandRef.current) {
-      positionBandRef.current = chart.addAreaSeries({
-        priceLineVisible: false,
-        crosshairMarkerVisible: false,
-        topColor: 'rgba(125,211,252,0.06)',
-        bottomColor: 'rgba(125,211,252,0.02)',
-      });
-    }
+    const timeIndex = buildTimeIndex(candles);
+    const rsi = computeRSI(candles, 14, timeIndex);
 
-    const series = positionBandRef.current;
-
-    if (!positionBands.length) {
-      series.setData([]);
+    if (!toggleRSI || !rsi.length) {
+      removeSeries(chart, oscillatorSeriesRef.current, "rsi");
       return;
     }
 
-    const points: Array<{ time: Time; value: number }> = [];
-    positionBands.forEach((band) => {
-      const color = band.direction === 'short' ? 'rgba(248,113,113,0.08)' : 'rgba(94,234,212,0.06)';
-      series.applyOptions({ topColor: color, bottomColor: color });
-      points.push({ time: band.start as Time, value: band.price });
-      points.push({ time: band.end as Time, value: band.price });
-    });
+    const series = ensureSeries(oscillatorSeriesRef.current, "rsi", () =>
+      chart.addLineSeries({
+        color: palette.oscillator,
+        lineWidth: 2,
+        priceLineVisible: false,
+        lastValueVisible: false,
+      })
+    );
 
-    series.setData(points);
-  }, [positionBands]);
+    series.setData(rsi);
+    chart.priceScale("right").applyOptions({
+      autoScale: true,
+      scaleMargins: { top: 0.12, bottom: 0.12 },
+    });
+    chart.timeScale().fitContent();
+  }, [candles, toggleRSI]);
+
+  useEffect(() => {
+    const priceChart = chartRef.current;
+    const container = containerRef.current;
+    if (!priceChart || !container) return;
+
+    const anchorByTime = new Map<number, ReasoningAnchor>();
+    reasoningAnchors.forEach((anchor) => anchorByTime.set(anchor.time as number, anchor));
+
+    const handleMove = (param: any) => {
+      if (!param?.time || !param?.point) {
+        setHoverAnchor(null);
+        return;
+      }
+      const anchor = anchorByTime.get(param.time as number);
+      if (anchor) {
+        setHoverAnchor({ anchor, point: { x: param.point.x, y: param.point.y } });
+      } else {
+        setHoverAnchor(null);
+      }
+    };
+
+    const handleClick = (param: any) => {
+      if (!param?.time) return;
+      const anchor = anchorByTime.get(param.time as number);
+      if (anchor) {
+        setFocusedAnchorId(anchor.id);
+      } else {
+        setFocusedAnchorId(null);
+      }
+    };
+
+    priceChart.subscribeCrosshairMove(handleMove);
+    priceChart.subscribeClick(handleClick);
+
+    return () => {
+      priceChart.unsubscribeCrosshairMove(handleMove);
+      priceChart.unsubscribeClick(handleClick);
+    };
+  }, [reasoningAnchors]);
 
   useEffect(() => {
     let mounted = true;
+
     const tick = () => {
-      chartsApi
-        .streamPulse(asset)
-        .then((response) => {
-          if (!mounted) return;
-          setPulse(response.pulse);
-          setFeed(response.feed);
-          if ('candles' in response && Array.isArray((response as any).candles)) {
-            const nextCandles = clampCandlesToWindow((response as any).candles as Candle[], timeframe);
-            setCandles(nextCandles);
-          }
-        })
-        .catch((error) => {
-          if (!mounted) return;
-          console.warn('[charts] pulse failed', error);
-        });
+      setCandles((current) => {
+        if (!mounted || !current.length) return current;
+        const nextCandle = appendNextCandle(current[current.length - 1], rng, DEFAULT_TIMEFRAME);
+        const nextSeries = [...current, nextCandle];
+        return nextSeries.slice(-WINDOW_SIZE);
+      });
     };
-    const interval = setInterval(tick, 2200);
+
+    const interval = setInterval(tick, LIVE_TICK_MS);
     return () => {
       mounted = false;
       clearInterval(interval);
     };
-  }, [asset, timeframe]);
+  }, [rng]);
 
-  useEffect(() => {
-    // Synthetic price drift to keep the surface moving while in observation-only mode.
-    const mutateNextCandle = () => {
-      setCandles((current) => {
-        if (!current.length) return current;
-        const last = current[current.length - 1];
-        const drift = (Math.random() - 0.5) * Math.max(1, last.close * 0.0015);
-        const close = Math.max(0.01, last.close + drift);
-        const high = Math.max(last.high, close + Math.random() * Math.max(1, last.close * 0.0008));
-        const low = Math.min(last.low, close - Math.random() * Math.max(1, last.close * 0.0008));
-        const volume = Math.max(10, last.volume * (0.9 + Math.random() * 0.2));
-        const next: Candle = {
-          timestamp: Date.now(),
-          open: last.close,
-          high,
-          low,
-          close,
-          volume,
-          source: 'MOCK',
-          validForLearning: false,
-        };
-        return clampCandlesToWindow([...current, next], timeframe);
+  const toggleFullscreen = () => {
+    const host = containerRef.current?.closest("section");
+    if (!host) return;
+    if (!document.fullscreenElement) {
+      host.requestFullscreen?.().catch(() => {
+        /* ignore fullscreen errors */
       });
-    };
-
-    const interval = setInterval(mutateNextCandle, 2600);
-    return () => clearInterval(interval);
-  }, [asset, timeframe]);
-
-  useEffect(() => {
-    // Persist the current view so refresh keeps playback continuity.
-    if (!candles.length) return;
-    persistSnapshot({ candles, miniCharts, overview: overviewStats, pulse, feed });
-  }, [candles, miniCharts, overviewStats, pulse, feed, persistSnapshot]);
-
-  useEffect(() => {
-    setMarkers([]);
-    setFallbackNotice(null);
-
-    const url = resolveWsUrl('/ws/brain');
-    let closed = false;
-    try {
-      const ws = new WebSocket(url);
-      wsRef.current = ws;
-
-      ws.onmessage = (event) => {
-        try {
-          const message = JSON.parse(typeof event.data === 'string' ? event.data : 'null');
-          if (!message) return;
-          const channel = message.channel || message.type;
-          if (channel === 'brain_decision') {
-            const decision = message.data || message;
-            const action = String(decision?.action || 'hold').toLowerCase();
-            const timestamp = Date.parse(decision?.timestamp || '') || Date.now();
-            const id = String(decision?.id || `${timestamp}-${action}`);
-            const confidence = Number(decision?.confidence ?? decision?.intensity);
-            const reason = typeof decision?.reason === 'string' ? decision.reason : (typeof decision?.outcome === 'string' ? decision.outcome : undefined);
-            setMarkers((prev) => [...prev, { id, action, timestamp, confidence, reason }].slice(-MAX_MARKERS));
-            setWsDecisionTimeline((prev) => {
-              const next = [...prev, { time: Math.floor(timestamp / 1000), action, confidence }].slice(-MAX_MARKERS);
-              return next;
-            });
-          }
-        } catch (error) {
-          console.warn('[charts] ws parse error', error);
-        }
-      };
-
-      ws.onerror = () => {
-        if (closed) return;
-        setFallbackNotice('Live brain feed unavailable — showing simulated playback');
-      };
-
-      ws.onclose = () => {
-        closed = true;
-        setFallbackNotice('Live brain feed unavailable — showing simulated playback');
-      };
-    } catch (error) {
-      console.warn('[charts] ws init failed', error);
-      setFallbackNotice('Live brain feed unavailable — showing simulated playback');
+    } else {
+      document.exitFullscreen?.();
     }
+  };
 
-    return () => {
-      closed = true;
-      wsRef.current?.close();
-      wsRef.current = null;
-    };
-  }, [asset, timeframe]);
-
-  useEffect(() => {
-    let aborted = false;
-    const loadExplain = async () => {
-      try {
-        const isProd = process.env.NODE_ENV === 'production';
-        const urls = Array.from(
-          new Set(
-            isProd
-              ? ['https://bagbot2-backend.onrender.com/api/brain/explain']
-              : ['/api/brain/explain']
-          )
-        ) as string[];
-
-        let payload: any = null;
-        for (const url of urls) {
-          try {
-            const response = await fetch(url);
-            if (response.ok) {
-              payload = await response.json();
-              break;
-            }
-          } catch (_error) {
-            /* retry next url */
-          }
-        }
-        if (aborted || !payload) return;
-
-        const timeline = Array.isArray(payload?.decision_timeline) ? (payload.decision_timeline as ExplainDecision[]) : [];
-        setDecisionTimeline(timeline);
-
-        const seriesByStrategy = (payload?.meta?.strategy_indicator_series ?? {}) as Record<string, ExplainIndicatorSeries>;
-        const strategyId = Object.keys(seriesByStrategy)[0];
-        const rawSeries = strategyId ? seriesByStrategy[strategyId] : null;
-        const decorated = decorateIndicatorSeries(rawSeries, timeline);
-        setIndicatorSeriesMap(decorated ?? null);
-
-        const explainCandles = adaptExplainCandles(payload?.meta?.candles ?? []);
-        if (explainCandles.length && candles.length === 0) {
-          setCandles(explainCandles);
-        }
-
-        const derivedMarkers = buildDecisionMarkers(timeline);
-        setMarkers(derivedMarkers);
-      } catch (_error) {
-        // Hard-fail explain must never break chart; ignore.
-      }
-    };
-    loadExplain();
-    return () => {
-      aborted = true;
-    };
-  }, [adaptExplainCandles, buildDecisionMarkers, candles.length, decorateIndicatorSeries, asset, timeframe]);
+  const LegendItem = ({ label, color, active, hint }: { label: string; color: string; active: boolean; hint?: string }) => (
+    <div className="flex items-center gap-2 text-xs text-slate-200/80">
+      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: color, opacity: active ? 1 : 0.35 }} />
+      <span className={active ? "" : "text-slate-400/60"}>{label}</span>
+      {hint ? <span className="text-[11px] text-slate-400">{hint}</span> : null}
+    </div>
+  );
 
   return (
     <TerminalShell className="stack-gap-lg w-full max-w-full px-0" style={{ minHeight: "calc(100vh - 80px)" }}>
-      <GlobalHeroBadge
-          badge="MARKET CANVAS"
-          metaText="LIGHT LUXE"
-          title="Charts Intelligence"
-          description="Layered telemetry for every trade desk. Pin, compare, and stage premium visualizations without leaving the terminal."
-          statusAdornment={
-            <div>
-              <MetricLabel className="text-[color:var(--accent-gold)]">Feed</MetricLabel>
-              <p className="text-lg font-semibold text-[color:var(--text-main)]">{heroFeedStatus}</p>
-              <span className="status-indicator text-[color:var(--accent-cyan)]">{heroHint}</span>
-            </div>
-          }
-        />
+      <header className="stack-gap-xxs w-full">
+        <MetricLabel className="text-[color:var(--accent-gold)]">Market Canvas</MetricLabel>
+        <h2 className="text-3xl font-semibold leading-tight">Charts</h2>
+        <p className="muted-premium">Lightweight Charts foundation with deterministic price, volume, and optional overlays.</p>
+      </header>
 
-      <section className="stack-gap-sm w-full">
-        <header className="stack-gap-xxs w-full">
-          <MetricLabel className="text-[color:var(--accent-gold)]">Market Canvas</MetricLabel>
-          <h2 className="text-3xl font-semibold leading-tight">Stage premium charting intelligence</h2>
-          <p className="muted-premium">
-            Pin, compare, and stream layered telemetry without leaving the terminal view.
-          </p>
-        </header>
-      </section>
-
-      <div className="stack-gap-md">
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[color:var(--border-soft)]/50 bg-base/60 px-4 py-3 sm:px-6">
-          <div className="rounded-xl border border-[color:var(--border-soft)]/80 bg-base/70 px-4 py-2 text-xs uppercase tracking-[0.35em] text-[color:var(--accent-gold)]">
-            {OBS_BADGE}
-            {fallbackNotice && (
-              <span className="ml-3 text-[color:var(--accent-cyan)] normal-case tracking-tight">{fallbackNotice}</span>
-            )}
+      <Card title="Price & Volume" subtitle="TradingView-style base canvas">
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            <button className="pill" onClick={() => setToggleSMA((v) => !v)} aria-pressed={toggleSMA}>
+              SMA
+            </button>
+            <button className="pill" onClick={() => setToggleEMA((v) => !v)} aria-pressed={toggleEMA}>
+              EMA
+            </button>
+            <button className="pill" onClick={() => setToggleVWAP((v) => !v)} aria-pressed={toggleVWAP}>
+              VWAP
+            </button>
+            <button className="pill" onClick={() => setToggleBB((v) => !v)} aria-pressed={toggleBB}>
+              Bollinger
+            </button>
+            <button className="pill" onClick={() => setToggleRSI((v) => !v)} aria-pressed={toggleRSI}>
+              RSI
+            </button>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant={chartMode === 'full' ? 'secondary' : 'ghost'}
-              onClick={() => {
-                setChartMode('full');
-                setFocusMode('focus');
-              }}
-              aria-pressed={chartMode === 'full'}
-            >
-              Full view
-            </Button>
-            <Button
-              variant={chartMode === 'mini' ? 'secondary' : 'ghost'}
-              onClick={() => {
-                setChartMode('mini');
-                setFocusMode('normal');
-              }}
-              aria-pressed={chartMode === 'mini'}
-            >
-              Mini view
-            </Button>
-            <Button
-              variant={isImmersive ? 'secondary' : 'ghost'}
-              onClick={() => setFocusMode(isImmersive ? 'focus' : 'immersive')}
-              aria-pressed={isImmersive}
-              className="!px-4 !py-2"
-            >
-              Immersive
-            </Button>
-            <Button
-              variant={isFullscreen ? 'secondary' : 'ghost'}
-              onClick={() => {
-                const section = chartSectionRef.current;
-                if (!section) return;
-                if (!document.fullscreenElement) {
-                  section.requestFullscreen?.().catch((error) => {
-                    console.warn('[charts] fullscreen request failed', error);
-                  });
-                } else {
-                  document.exitFullscreen?.().catch((error) => {
-                    console.warn('[charts] exit fullscreen failed', error);
-                  });
-                }
-              }}
+
+          <section className="relative isolate overflow-hidden rounded-2xl border border-[color:var(--border-soft)]/50 bg-gradient-to-b from-[#0c1224] to-[#060914] shadow-xl shadow-black/30" style={{ height: 620 }}>
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-wrap gap-3 p-4 text-xs">
+              <div className="rounded-xl bg-white/5 px-3 py-2 backdrop-blur">
+                <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Canvas</div>
+                <div className="flex items-center gap-2 text-sm font-semibold text-slate-100">{DEFAULT_SYMBOL}<span className="text-slate-400">•</span>{DEFAULT_TIMEFRAME}</div>
+              </div>
+              <div className="rounded-xl bg-white/5 px-3 py-2 backdrop-blur">
+                <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Layers</div>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                  <LegendItem label="Price" color={palette.priceUp} active />
+                  <LegendItem label="Volume" color={palette.volumeUp} active hint="support" />
+                  <LegendItem label="SMA" color={palette.overlaySMA} active={toggleSMA} />
+                  <LegendItem label="EMA" color={palette.overlayEMA} active={toggleEMA} />
+                  <LegendItem label="VWAP" color={palette.overlayVWAP} active={toggleVWAP} />
+                  <LegendItem label="Bollinger" color={palette.overlayBBEdge} active={toggleBB} />
+                  <LegendItem label="RSI" color={palette.oscillator} active={toggleRSI} />
+                </div>
+              </div>
+            </div>
+
+            <div className="absolute inset-x-0 top-0" style={{ height: "65%" }}>
+              <div ref={containerRef} className="absolute inset-0" />
+            </div>
+            <div className="absolute inset-x-0" style={{ bottom: "20%", height: "15%" }}>
+              {/* Volume is rendered inside the main chart via scale margins */}
+            </div>
+            <div className="absolute inset-x-0 bottom-0" style={{ height: "20%" }}>
+              <div ref={indicatorPaneRef} className="absolute inset-0" />
+            </div>
+
+            {positions.some((pos) => pos.exitIndex === undefined) && (
+              <div className="pointer-events-none absolute left-4 bottom-24 z-20 rounded-full border border-white/5 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-white/70 backdrop-blur">
+                Managing live position
+              </div>
+            )}
+
+            {hoverAnchor && (
+              <div
+                className="pointer-events-none absolute z-30 w-56 rounded-xl border px-3 py-2 text-xs text-slate-100 shadow-lg"
+                style={{
+                  left: hoverAnchor.point.x + 12,
+                  top: Math.max(8, hoverAnchor.point.y - 12),
+                  borderColor: palette.reasoningBorder,
+                  background: palette.reasoningFill,
+                }}
+              >
+                <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.18em] text-slate-300">
+                  <span>{hoverAnchor.anchor.phase}</span>
+                  <span className="text-slate-400">{hoverAnchor.anchor.confidence}</span>
+                </div>
+                <ul className="mt-2 space-y-1 text-[12px] text-slate-100/90">
+                  {hoverAnchor.anchor.reasons.slice(0, 4).map((reason) => (
+                    <li key={reason} className="flex items-start gap-2">
+                      <span className="mt-[5px] h-1.5 w-1.5 rounded-full bg-white/70" />
+                      <span className="leading-snug">{reason}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="pointer-events-none absolute inset-x-0 top-[65%] h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 top-[80%] h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              className="absolute right-4 top-4 z-20 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white/80 backdrop-blur transition hover:border-white/30 hover:text-white"
               aria-pressed={isFullscreen}
-              className="!px-4 !py-2"
             >
-              {isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
-            </Button>
-            <Button
-              variant={coachEnabled ? 'secondary' : 'ghost'}
-              onClick={() => setCoachEnabled((state) => !state)}
-              aria-pressed={coachEnabled}
-              className="!px-4 !py-2"
-            >
-              Coach overlay
-            </Button>
-            <Button variant="secondary" onClick={handleRefresh} isLoading={refreshing} className="!px-4 !py-2">
-              Refresh
-            </Button>
-          </div>
+              {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+            </button>
+          </section>
         </div>
-
-        <div className="flex flex-wrap gap-4 rounded-2xl border border-[color:var(--border-soft)]/30 bg-base/40 p-4 sm:p-6">
-          <div className="stack-gap-xxs">
-            <MetricLabel>Timeframe</MetricLabel>
-            <div className="flex flex-wrap gap-2">
-              {TIMEFRAMES.map((frame) => (
-                <Button
-                  key={frame}
-                  variant={frame === timeframe ? 'primary' : 'secondary'}
-                  className="!px-4 !py-2 text-xs uppercase"
-                  onClick={() => setTimeframe(frame)}
-                  aria-pressed={frame === timeframe}
-                >
-                  {frame}
-                </Button>
-              ))}
-            </div>
-          </div>
-          <div className="stack-gap-xxs">
-            <MetricLabel>Asset</MetricLabel>
-            <select
-              className="field-premium field-premium--select min-w-[180px]"
-              value={asset}
-              onChange={(event) => setAsset(event.target.value)}
-            >
-              {ASSETS.map((ticker) => (
-                <option key={ticker} value={ticker}>
-                  {ticker}
-                </option>
-              ))}
-            </select>
-          </div>
-          {!isImmersive && (
-            <p className="muted-premium text-sm max-w-xl">
-              Crosshair, tooltip, volume, and OHLC data are wired locally. Placeholder controls remain ready for backend streaming contracts.
-            </p>
-          )}
-        </div>
-      </div>
-
-      <section
-        ref={chartSectionRef}
-        className={`relative isolate overflow-hidden rounded-3xl border border-[color:var(--border-soft)]/40 bg-base/40 transition-[height,transform] ${isFullscreen ? 'rounded-none border-none' : ''}`}
-        style={{ minHeight: resolvedChartHeight, height: resolvedChartHeight }}
-      >
-        {intentVisual.wash && (
-          <div
-            className="pointer-events-none absolute inset-0 z-[5]"
-            style={{
-              background: `radial-gradient(circle at 30% 20%, ${intentVisual.wash}, transparent 38%), radial-gradient(circle at 70% 30%, ${intentVisual.wash}, transparent 40%)`,
-            }}
-            aria-hidden
-          />
-        )}
-        {intentVisual.frame && (
-          <div
-            className="pointer-events-none absolute inset-0 z-[6]"
-            style={{
-              borderRadius: isFullscreen ? undefined : "1.5rem",
-              boxShadow: `0 0 0 2px ${intentVisual.frame}`,
-            }}
-            aria-hidden
-          />
-        )}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.06),transparent_45%)]" aria-hidden />
-        <div className="absolute right-4 top-4 z-[130]">
-          <Button
-            variant="secondary"
-            onClick={() => {
-              const section = chartSectionRef.current;
-              if (!section) return;
-              if (!document.fullscreenElement) {
-                section.requestFullscreen?.().catch((error) => {
-                  console.warn('[charts] fullscreen request failed', error);
-                });
-              } else {
-                document.exitFullscreen?.().catch((error) => {
-                  console.warn('[charts] exit fullscreen failed', error);
-                });
-              }
-            }}
-            aria-pressed={isFullscreen}
-            className="px-4 py-2 text-xs uppercase tracking-[0.25em] shadow-lg"
-          >
-            {isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
-          </Button>
-        </div>
-        <div className="relative w-full" style={{ minHeight: chartMinHeight, height: "100%" }}>
-          <div className="absolute inset-0">
-            <div ref={chartContainerRef} className="h-full w-full" />
-          </div>
-        </div>
-      </section>
-
-      <section className={`grid gap-4 md:grid-cols-[minmax(0,1fr)_360px] ${isFullscreen ? 'hidden' : ''}`}>
-        <div className="stack-gap-md">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <OhlcPanel candle={activeCandle} loading={loading || refreshing} />
-            {!isImmersive && (
-              <div className="rounded-2xl border border-dashed border-[color:var(--border-soft)] p-3 text-xs">
-                <p className="text-[color:var(--accent-gold)]">Backend wiring placeholder</p>
-                <p className="mt-1 text-sm text-[color:var(--text-main)] opacity-70">
-                  WebSocket + REST endpoints will bind here for live executions once the contracts land in Phase 4.
-                </p>
-                <Button variant="ghost" className="mt-3 w-full opacity-70" disabled>
-                  Awaiting feed binding
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="stack-gap-sm">
-          <div className="rounded-2xl border border-[color:var(--border-soft)]/50 bg-base/70 p-4">
-            <MetricLabel className="text-[color:var(--accent-gold)]">View modes</MetricLabel>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Button variant={focusMode !== 'normal' ? 'secondary' : 'ghost'} onClick={() => setFocusMode('focus')} className="!px-3 !py-1 text-xs uppercase">
-                Focus
-              </Button>
-              <Button variant={isImmersive ? 'secondary' : 'ghost'} onClick={() => setFocusMode(isImmersive ? 'focus' : 'immersive')} className="!px-3 !py-1 text-xs uppercase">
-                Immersive
-              </Button>
-              <Button variant="ghost" onClick={() => setChartMode('full')} className="!px-3 !py-1 text-xs uppercase">
-                Return to live layout
-              </Button>
-            </div>
-          </div>
-
-          {isFocus && (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-2">
-              {overviewStats.map((stat) => (
-                <div key={stat.label} className="info-tablet">
-                  <MetricLabel tone={stat.accent}>{stat.label}</MetricLabel>
-                  <p className="metric-value text-2xl" data-variant="muted">
-                    {loading ? <Skeleton className="h-8 w-20" /> : stat.value}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-      {!isImmersive && !isFullscreen && (
-        <Card title="Quick overview" subtitle="Watchlist spark grid">
-          <div className="grid-premium sm:grid-cols-2 xl:grid-cols-4">
-            {miniCharts.map((chart) => (
-              <div key={chart.symbol} className="dashboard-tile">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <MetricLabel className="text-[color:var(--accent-gold)]">{chart.symbol}</MetricLabel>
-                    <p className={`text-lg font-semibold ${chart.change >= 0 ? 'text-[color:var(--accent-green)]' : 'text-red-400'}`}>
-                      {chart.change >= 0 ? '+' : ''}
-                      {chart.change.toFixed(2)}%
-                    </p>
-                  </div>
-                  <span className="text-xs uppercase tracking-[0.4em] text-[color:var(--accent-cyan)]">{chart.volume}</span>
-                </div>
-                <div className="mt-4 h-20">
-                  {loading ? <Skeleton className="h-full w-full" /> : <Sparkline points={chart.points} />}
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-      {!isImmersive && !isFullscreen && (
-        <Card title="Stream monitor" subtitle="WebSocket placeholder feed">
-          <div className="grid-premium lg:grid-cols-2">
-            <div className="stack-gap-md">
-              <div className="info-tablet">
-                <MetricLabel className="text-[color:var(--accent-gold)]">Live graph</MetricLabel>
-                <div className="mt-4 h-28">
-                  {loading ? <Skeleton className="h-full w-full" /> : <Sparkline points={pulse} stroke="var(--accent-green)" height={90} />}
-                </div>
-              </div>
-              <div className="dashboard-tile">
-                <MetricLabel>Payload cadence</MetricLabel>
-                <div className="mt-4 flex items-baseline gap-2">
-                  <p className="text-4xl font-semibold">{(pulse.at(-1) ?? 0).toFixed(0)}</p>
-                  <span className="text-xs uppercase tracking-[0.4em] text-[color:var(--accent-cyan)]">ms</span>
-                </div>
-              </div>
-            </div>
-            <div className="surface-float stack-gap-sm">
-              <MetricLabel className="text-[color:var(--accent-gold)]">Feed log</MetricLabel>
-              <div className="no-scrollbar max-h-64 overflow-y-auto stack-gap-sm">
-                {feed.map((event) => (
-                  <div key={event.id} className="rounded-[0.85rem] border border-[color:var(--border-soft)] bg-base/70 p-3">
-                    <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-[color:var(--accent-cyan)]">
-                      <span>{event.channel}</span>
-                      <span>{event.latency} ms</span>
-                    </div>
-                    <p className="mt-2 text-sm font-semibold text-[color:var(--text-main)]">{event.payload}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </Card>
-      )}
+      </Card>
     </TerminalShell>
   );
 }

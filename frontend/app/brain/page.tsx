@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Card from '@/components/ui/card';
 import Button from '@/components/ui/button';
 import Skeleton from '@/components/ui/skeleton';
@@ -71,17 +71,19 @@ function ActivityMapPanel() {
   const [status, setStatus] = useState<BrainActivityResponse['status']>('syncing');
   const [wsStatus, setWsStatus] = useState<WsStatus>('disconnected');
 
-  const normalizeActivityEvent = (event: any): BrainActivityEvent => ({
+  const normalizeActivityEvent = useCallback((event: any): BrainActivityEvent => ({
     id: String(event?.id ?? `activity-${Date.now()}`),
     label: String(event?.label ?? 'Decision'),
     location: String(event?.location ?? 'Observation'),
     intensity: Number.isFinite(Number(event?.intensity)) ? Number(event.intensity) : 0,
     status: (typeof event?.status === 'string' ? event.status : 'stable') as BrainActivityEvent['status'],
     timestamp: String(event?.timestamp ?? '')
-  });
+  }), []);
 
-  const coerceActivityEvents = (value: unknown): BrainActivityEvent[] =>
-    (Array.isArray(value) ? value : []).map(normalizeActivityEvent);
+  const coerceActivityEvents = useCallback(
+    (value: unknown): BrainActivityEvent[] => (Array.isArray(value) ? value : []).map(normalizeActivityEvent),
+    [normalizeActivityEvent]
+  );
 
   useEffect(() => {
     let warnedOffline = false;
@@ -136,7 +138,7 @@ function ActivityMapPanel() {
       unsubscribeActivity?.();
       unsubscribeWsStatus?.();
     };
-  }, [notify]);
+  }, [coerceActivityEvents, notify]);
 
   return (
     <Card title="Activity Map" subtitle="Live neuron firing and routing">
@@ -320,15 +322,18 @@ function DecisionTimelinePanel() {
   const [loading, setLoading] = useState(true);
   const { notify } = useToast();
 
-  const clamp = (value: number) => Math.min(1, Math.max(0, value));
-  const normalizeDecision = (input: any): BrainDecision => ({
+  const clamp = useCallback((value: number) => Math.min(1, Math.max(0, value)), []);
+  const normalizeDecision = useCallback((input: any): BrainDecision => ({
     id: String(input?.request_id ?? input?.id ?? `decision-${Date.now()}`),
     timestamp: String(input?.timestamp ?? input?.time ?? new Date().toISOString()),
     outcome: String(input?.outcome ?? input?.label ?? input?.action ?? input?.reason ?? 'decision'),
     confidence: clamp(Number.isFinite(Number(input?.confidence ?? input?.intensity)) ? Number(input.confidence ?? input.intensity) : 0)
-  });
+  }), [clamp]);
 
-  const coerceDecisionList = (value: unknown): BrainDecision[] => (Array.isArray(value) ? value : []).map(normalizeDecision);
+  const coerceDecisionList = useCallback(
+    (value: unknown): BrainDecision[] => (Array.isArray(value) ? value : []).map(normalizeDecision),
+    [normalizeDecision]
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -363,7 +368,7 @@ function DecisionTimelinePanel() {
       unsubscribeActivity?.();
       unsubscribeBrainDecisions?.();
     };
-  }, [notify]);
+  }, [coerceDecisionList, normalizeDecision, notify]);
 
   return (
     <Card title="Decision Timeline" subtitle="Latest calls, confidence, and outcomes">

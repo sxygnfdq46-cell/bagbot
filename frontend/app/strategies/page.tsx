@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Card from '@/components/ui/card';
 import Button from '@/components/ui/button';
 import Skeleton from '@/components/ui/skeleton';
@@ -38,10 +38,12 @@ export default function StrategiesPage() {
     fetchStrategies();
   }, [notify]);
 
-  const runtimeStrategies = runtimeSnapshot.strategies ?? [];
+  const runtimeStrategies = useMemo(() => runtimeSnapshot.strategies ?? [], [runtimeSnapshot.strategies]);
 
-  const resolveEnabled = (strategy: Strategy) =>
-    runtimeStrategies.find((entry) => entry.id === strategy.id)?.enabled ?? strategy.enabled ?? false;
+  const resolveEnabled = useCallback(
+    (strategy: Strategy) => runtimeStrategies.find((entry) => entry.id === strategy.id)?.enabled ?? strategy.enabled ?? false,
+    [runtimeStrategies]
+  );
 
   const toggleStrategy = async (strategy: Strategy) => {
     if (safeMode) return;
@@ -69,7 +71,7 @@ export default function StrategiesPage() {
       Math.max(enabled.length, 1);
     const totalPnl = enabled.reduce((acc, strategy) => acc + (strategy.stats?.pnl ?? 0), 0);
     return { enabled: enabled.length, avgWinRate, totalPnl };
-  }, [strategies]);
+  }, [resolveEnabled, strategies]);
   const enabledCopy = loading ? 'SYNCING' : `${statsSummary.enabled} LIVE`;
   const enabledHint = loading ? 'Refreshing stack' : 'Execution ready';
 
