@@ -31,7 +31,7 @@ import { resolveWsUrl } from "@/lib/api-client";
 import { LineStyle, type IChartApi, type MouseEventParams, type SeriesMarker, type Time } from "lightweight-charts";
 
 type ChartHoverPayload = Candle & { index: number; time: number };
-type ChartMarker = { id: string; action: string; timestamp: number; confidence?: number; reason?: string; count?: number };
+type ChartMarker = { id: string; action: string; timestamp: number; confidence?: number; reason?: string; count?: number; phase?: "entry" | "hold" | "exit" };
 type ConfidencePoint = { time: number; value: number; action?: string; phase?: string };
 type ConfidenceInflection = { time: number; from: number; to: number; direction: 'up' | 'down'; action?: string; phase?: string };
 
@@ -59,6 +59,8 @@ type ExplainDecision = {
   blocks?: string[];
   reasoning?: string;
 };
+
+type DominantIntent = "STRONG_BUY" | "BUY" | "NEUTRAL" | "SELL" | "STRONG_SELL";
 
 const TIMEFRAMES = chartsApi.listTimeframes();
 const ASSETS = chartsApi.listAssets();
@@ -150,6 +152,8 @@ export default function ChartsPage() {
     const supportMap = new Map<string, Set<number>>();
     const blockMap = new Map<string, Set<number>>();
     const activeByTime = new Map<number, Set<string>>();
+    let latestDecisionTime: number | null = null;
+    let latestActive = new Set<string>();
 
     timeline.forEach((decision) => {
       const time = Number(decision.time);
@@ -171,6 +175,11 @@ export default function ChartsPage() {
       Object.keys(decision.indicator_states ?? {}).forEach((key) => {
         active.add(key);
       });
+
+      if (!latestDecisionTime || time >= latestDecisionTime) {
+        latestDecisionTime = time;
+        latestActive = new Set(active);
+      }
 
       if (active.size) {
         activeByTime.set(time, active);
@@ -194,6 +203,11 @@ export default function ChartsPage() {
           }
           if (supported) color = "rgba(16,185,129,0.9)";
           if (blocked) color = "rgba(239,68,68,0.78)";
+          const isLatestDecision = latestDecisionTime !== null && time === latestDecisionTime;
+          if (isLatestDecision) {
+            const highlighted = latestActive.has(indicator);
+            color = highlighted ? "rgba(148,197,255,0.9)" : "rgba(148,163,184,0.18)";
+          }
           return { ...row, color } as ExplainIndicatorPoint;
         })
         .filter(Boolean) as ExplainIndicatorPoint[];
@@ -248,6 +262,7 @@ export default function ChartsPage() {
           action: decision.action,
           timestamp: tsSeconds * 1000,
           confidence: decision.confidence,
+          phase: decision.phase,
           reason,
         } as ChartMarker;
       })
@@ -330,6 +345,7 @@ export default function ChartsPage() {
         timestamp: bucket * 1000,
         confidence,
         reason: reason || `${entries.length} decisions`,
+        phase: dominantMeta.top?.phase,
         count: entries.length,
       });
     });
@@ -344,44 +360,55 @@ export default function ChartsPage() {
     return "rgba(160,174,192,0.48)";
   }, []);
 
-  const resolveConfidencePalette = useCallback((value?: number) => {
+  const resolveMarkerVisual = useCallback((action: string, phase?: ChartMarker["phase"]) => {
+    const baseColor = resolveDecisionColor(action);
+    const withAlpha = (alpha: number) => baseColor.replace(/0\.?\d+\)/, `${alpha})`);
+    if (phase === 'entry') return { color: withAlpha(0.95), size: 1.2 };
+    if (phase === 'exit') return { color: withAlpha(0.9), size: 1.15 };
+    if (phase === 'hold') return { color: withAlpha(0.55), size: 0.85 };
+    return { color: baseColor, size: 1 };
+  }, [resolveDecisionColor]);
+
+  const resolveConfidencePalette = useCallback((value: number | undefined, intent: DominantIntent) => {
     const v = Number(value);
+    const strongIntent = intent === "STRONG_BUY" || intent === "STRONG_SELL";
+    const tint = intent === "STRONG_BUY" ? "rgba(34,197,141,0.06)" : intent === "STRONG_SELL" ? "rgba(244,63,94,0.06)" : null;
     const base = {
-      inflectionUp: "rgba(16,185,129,0.42)",
-      inflectionDown: "rgba(248,113,113,0.4)",
+      inflectionUp: "rgba(16,185,129,0.48)",
+      inflectionDown: "rgba(248,113,113,0.46)",
     };
 
     if (!Number.isFinite(v)) {
       return {
-        line: "rgba(120,212,203,0.6)",
-        fillTop: "rgba(120,212,203,0.16)",
-        fillBottom: "rgba(120,212,203,0.06)",
+        line: strongIntent ? "rgba(120,212,203,0.7)" : "rgba(120,212,203,0.6)",
+        fillTop: tint ?? "rgba(120,212,203,0.16)",
+        fillBottom: tint ?? "rgba(120,212,203,0.06)",
         ...base,
       };
     }
 
     if (v < 0.42) {
       return {
-        line: "rgba(248,113,113,0.64)",
-        fillTop: "rgba(248,113,113,0.14)",
-        fillBottom: "rgba(248,113,113,0.05)",
+        line: "rgba(248,113,113,0.68)",
+        fillTop: "rgba(248,113,113,0.16)",
+        fillBottom: "rgba(248,113,113,0.055)",
         ...base,
       };
     }
 
     if (v < 0.65) {
       return {
-        line: "rgba(251,191,36,0.63)",
-        fillTop: "rgba(251,191,36,0.12)",
-        fillBottom: "rgba(251,191,36,0.045)",
+        line: "rgba(251,191,36,0.68)",
+        fillTop: "rgba(251,191,36,0.14)",
+        fillBottom: "rgba(251,191,36,0.05)",
         ...base,
       };
     }
 
     return {
-      line: "rgba(56,189,248,0.62)",
-      fillTop: "rgba(56,189,248,0.15)",
-      fillBottom: "rgba(56,189,248,0.055)",
+      line: strongIntent ? "rgba(56,189,248,0.78)" : "rgba(56,189,248,0.68)",
+      fillTop: tint ?? "rgba(56,189,248,0.17)",
+      fillBottom: tint ?? "rgba(56,189,248,0.06)",
       ...base,
     };
   }, []);
@@ -581,9 +608,55 @@ export default function ChartsPage() {
   const visibleCandles = useMemo(() => candles.slice(-windowSize), [candles, windowSize]);
   const candleTimeIndex = useMemo(() => buildCandleTimeIndex(visibleCandles), [visibleCandles]);
 
+  const latestDecision = useMemo(() => {
+    if (!decisionTimeline.length) return null;
+    const sorted = [...decisionTimeline].sort((a, b) => Number(a.time) - Number(b.time));
+    return sorted.at(-1) ?? null;
+  }, [decisionTimeline]);
+
+  const dominantIntent = useMemo<DominantIntent>(() => {
+    if (!latestDecision) return "NEUTRAL";
+    const action = latestDecision.action?.toLowerCase?.() ?? "hold";
+    const confidence = Number(latestDecision.confidence);
+    const isStrong = Number.isFinite(confidence) && confidence >= 0.74;
+    const isLean = Number.isFinite(confidence) && confidence >= 0.55;
+    if (action === 'buy') return isStrong ? "STRONG_BUY" : isLean ? "BUY" : "NEUTRAL";
+    if (action === 'sell') return isStrong ? "STRONG_SELL" : isLean ? "SELL" : "NEUTRAL";
+    return "NEUTRAL";
+  }, [latestDecision]);
+
+  const intentVisual = useMemo(() => {
+    switch (dominantIntent) {
+      case "STRONG_BUY":
+        return { wash: "rgba(34,197,141,0.08)", frame: null };
+      case "BUY":
+        return { wash: null, frame: "rgba(34,197,141,0.5)" };
+      case "STRONG_SELL":
+        return { wash: "rgba(244,63,94,0.08)", frame: null };
+      case "SELL":
+        return { wash: null, frame: "rgba(244,63,94,0.5)" };
+      default:
+        return { wash: null, frame: null };
+    }
+  }, [dominantIntent]);
+
   useEffect(() => {
     visibleCandlesRef.current = visibleCandles;
-    candleSeriesRef.current?.setData(adaptCandlesToPriceData(visibleCandles));
+
+    const priceData = adaptCandlesToPriceData(visibleCandles);
+    if (priceData.length) {
+      const lastIndex = priceData.length - 1;
+      const lastCandle = visibleCandles.at(-1);
+      const isUp = lastCandle ? lastCandle.close >= lastCandle.open : false;
+      priceData[lastIndex] = {
+        ...priceData[lastIndex],
+        color: isUp ? "rgba(46,199,166,0.98)" : "rgba(212,106,106,0.98)",
+        borderColor: isUp ? "rgba(46,199,166,1)" : "rgba(212,106,106,1)",
+        wickColor: isUp ? "rgba(46,199,166,0.9)" : "rgba(212,106,106,0.9)",
+      } as typeof priceData[number];
+    }
+
+    candleSeriesRef.current?.setData(priceData);
     volumeSeriesRef.current?.setData(adaptCandlesToVolumeData(visibleCandles));
     if (indicatorRendererRef.current && indicatorSeriesMap) {
       indicatorRendererRef.current.setIndicators(indicatorSeriesMap);
@@ -618,7 +691,7 @@ export default function ChartsPage() {
     const resolved = clustered.map((marker) => {
       const action = marker.action?.toLowerCase?.() ?? "hold";
       const shape: SeriesMarker<Time>["shape"] = action === "sell" ? "arrowDown" : action === "buy" ? "arrowUp" : "circle";
-      const color = action === "sell" ? "rgba(239,68,68,0.9)" : action === "buy" ? "rgba(16,185,129,0.9)" : "rgba(148,163,184,0.9)";
+      const { color, size } = resolveMarkerVisual(action, marker.phase);
       const position: SeriesMarker<Time>["position"] = action === "sell" ? "aboveBar" : action === "buy" ? "belowBar" : "inBar";
       const confidence = Number.isFinite(marker.confidence) ? Math.max(0, Math.min(1, marker.confidence ?? 0)) : undefined;
       const percent = confidence !== undefined ? `${(confidence * 100).toFixed(0)}%` : null;
@@ -633,12 +706,13 @@ export default function ChartsPage() {
         position,
         shape,
         color,
+        size,
         text,
       };
     });
 
     series.setMarkers(resolved.filter(Boolean) as Array<SeriesMarker<Time>>);
-  }, [windowMarkers, clusterMarkers, candleTimeIndex]);
+  }, [windowMarkers, clusterMarkers, candleTimeIndex, resolveMarkerVisual]);
 
   useEffect(() => {
     const chart = chartRef.current;
@@ -729,7 +803,7 @@ export default function ChartsPage() {
     }
 
     return bands;
-  }, [decisionTimeline, visibleCandles]);
+  }, [decisionTimeline, visibleCandles, candleTimeIndex]);
 
   const confidenceData = useMemo(() => buildConfidenceSeries(decisionTimeline), [buildConfidenceSeries, decisionTimeline]);
 
@@ -783,7 +857,7 @@ export default function ChartsPage() {
       });
     }
 
-    const palette = resolveConfidencePalette(confidenceData.points.at(-1)?.value);
+    const palette = resolveConfidencePalette(confidenceData.points.at(-1)?.value, dominantIntent);
     confidenceSeriesRef.current?.applyOptions({
       lineColor: palette.line,
       topColor: palette.fillTop,
@@ -814,10 +888,13 @@ export default function ChartsPage() {
       .map((inflection) => {
         const mappedTime = mapToCandleTime(candleTimeIndex, Number(inflection.time));
         if (!mappedTime) return null;
+        const magnitude = Math.abs(inflection.to - inflection.from);
+        const emphasizeDrop = inflection.direction === 'down' && magnitude >= 0.12;
+        const color = emphasizeDrop ? "rgba(248,113,113,0.7)" : inflection.direction === 'up' ? palette.inflectionUp : palette.inflectionDown;
         return {
           time: mappedTime as Time,
           value: Number((inflection.to - inflection.from).toFixed(3)),
-          color: inflection.direction === 'up' ? palette.inflectionUp : palette.inflectionDown,
+          color,
         };
       })
       .filter(Boolean) as Array<{ time: Time; value: number; color: string }>;
@@ -848,7 +925,7 @@ export default function ChartsPage() {
     confidenceSeriesRef.current?.setData(lineData);
     confidenceSeriesRef.current?.setMarkers(inflectionMarkers);
     confidenceInflectionRef.current?.setData(inflectionData);
-  }, [confidenceData, resolveConfidencePalette, candleTimeIndex]);
+  }, [confidenceData, resolveConfidencePalette, dominantIntent, candleTimeIndex]);
 
 
   useEffect(() => {
@@ -906,7 +983,7 @@ export default function ChartsPage() {
       mounted = false;
       clearInterval(interval);
     };
-  }, [asset]);
+  }, [asset, timeframe]);
 
   useEffect(() => {
     // Synthetic price drift to keep the surface moving while in observation-only mode.
@@ -1187,6 +1264,25 @@ export default function ChartsPage() {
         className={`relative isolate overflow-hidden rounded-3xl border border-[color:var(--border-soft)]/40 bg-base/40 transition-[height,transform] ${isFullscreen ? 'rounded-none border-none' : ''}`}
         style={{ minHeight: resolvedChartHeight, height: resolvedChartHeight }}
       >
+        {intentVisual.wash && (
+          <div
+            className="pointer-events-none absolute inset-0 z-[5]"
+            style={{
+              background: `radial-gradient(circle at 30% 20%, ${intentVisual.wash}, transparent 38%), radial-gradient(circle at 70% 30%, ${intentVisual.wash}, transparent 40%)`,
+            }}
+            aria-hidden
+          />
+        )}
+        {intentVisual.frame && (
+          <div
+            className="pointer-events-none absolute inset-0 z-[6]"
+            style={{
+              borderRadius: isFullscreen ? undefined : "1.5rem",
+              boxShadow: `0 0 0 2px ${intentVisual.frame}`,
+            }}
+            aria-hidden
+          />
+        )}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.06),transparent_45%)]" aria-hidden />
         <div className="absolute right-4 top-4 z-[130]">
           <Button
