@@ -734,7 +734,7 @@ export default function ChartsPage() {
     if (!confidenceSeriesRef.current) {
       confidenceSeriesRef.current = chart.addAreaSeries({
         priceScaleId: CONFIDENCE_SCALE_ID,
-        lineWidth: 1.6,
+        lineWidth: 2,
         priceFormat: { type: "price", precision: 2, minMove: 0.01 },
         priceLineVisible: false,
         crosshairMarkerVisible: false,
