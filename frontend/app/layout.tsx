@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import { ReactNode } from "react";
 import "@/styles/globals.css";
 import Sidebar from "@/components/ui/sidebar";
+import SidebarGuard from "@/components/ui/sidebar-guard";
 import AppProviders from "@/components/app-providers";
 import PageTransition from "@/components/ui/page-transition";
 import GlobalBagbotInscription from "@/components/global-bagbot-inscription";
@@ -40,7 +41,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className={`${inter.variable} bg-base text-text-main`}>
         <AppProviders>
           <div className="layout-shell">
-            <Sidebar />
+            <SidebarGuard>
+              <Sidebar />
+            </SidebarGuard>
             <div className="layout-main">
               <GlobalBagbotInscription />
               <main className="layout-content">
