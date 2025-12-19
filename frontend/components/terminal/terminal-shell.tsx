@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import IconRail from "@/components/terminal/icon-rail";
 import SignalsPanel from "@/components/terminal/signals-panel";
@@ -22,6 +22,8 @@ import ProjectionSelector from "@/components/terminal/projection-selector";
 import type { ChartProjection } from "@/app/charts/chart-canvas";
 import CompareSelector from "@/components/terminal/compare-selector";
 import type { ChartCompare } from "@/app/charts/chart-canvas";
+import SearchOverlay from "@/components/terminal/search-overlay";
+import Tag from "@/components/ui/tag";
 
 type TerminalShellProps = {
   children: ReactNode;
@@ -43,6 +45,11 @@ type TerminalShellProps = {
   compare?: ChartCompare;
   onCompareChange?: (value: ChartCompare) => void;
   compareOptions?: ChartCompare[];
+  searchOpen?: boolean;
+  onSearchOpen?: () => void;
+  onSearchClose?: () => void;
+  onSearchSelect?: (value: string) => void;
+  searchOptions?: string[];
   onSnapshotSave?: () => void;
   onSnapshotRestore?: () => void;
   indicators?: ChartIndicator[];
@@ -70,6 +77,11 @@ export default function TerminalShell({
   compare = "off",
   onCompareChange,
   compareOptions,
+  searchOpen = false,
+  onSearchOpen,
+  onSearchClose,
+  onSearchSelect,
+  searchOptions,
   onSnapshotSave,
   onSnapshotRestore,
   indicators = [],
@@ -90,6 +102,22 @@ export default function TerminalShell({
   const openOrderbook = () => setShowOrderbook(true);
   const closeOrderbook = () => setShowOrderbook(false);
 
+  useEffect(() => {
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (!onSearchOpen) return;
+      const isK = event.key.toLowerCase() === "k";
+      if ((event.metaKey || event.ctrlKey) && isK) {
+        event.preventDefault();
+        onSearchOpen();
+      } else if (event.key === "Escape" && searchOpen) {
+        onSearchClose?.();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeydown);
+    return () => document.removeEventListener("keydown", handleKeydown);
+  }, [onSearchClose, onSearchOpen, searchOpen]);
+
   return (
     <div className="flex min-h-[calc(100vh-80px)] flex-col gap-4 p-4">
       <div
@@ -100,6 +128,17 @@ export default function TerminalShell({
           <InstrumentDisplay timeframe={timeframe} instrument={instrument} />
           {onInstrumentChange ? (
             <InstrumentSelector instrument={instrument} onSelect={onInstrumentChange} options={instrumentOptions} />
+          ) : null}
+          {onSearchOpen ? (
+            <button
+              type="button"
+              onClick={onSearchOpen}
+              className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-semibold text-white/90 transition hover:border-white/25"
+              aria-label="Open search"
+            >
+              <Tag className="text-[11px] uppercase tracking-[0.22em]" variant="default">Search</Tag>
+              <span className="text-xs uppercase tracking-[0.08em] text-slate-200/90">⌘K</span>
+            </button>
           ) : null}
           {onTimeframeChange ? (
             <TimeframeSelector timeframe={timeframe} onSelect={onTimeframeChange} options={timeframeOptions} />
@@ -151,6 +190,13 @@ export default function TerminalShell({
       >
         <BotStatusBar />
       </div>
+
+      <SearchOverlay
+        open={searchOpen}
+        onClose={onSearchClose}
+        onSelect={onSearchSelect}
+        options={searchOptions}
+      />
     </div>
   );
 }

@@ -28,6 +28,7 @@ export default function TerminalPage() {
   const [projection, setProjection] = useState<ChartProjection>("off");
   const [compare, setCompare] = useState<ChartCompare>("off");
   const [indicators, setIndicators] = useState<ChartIndicator[]>([]);
+  const [searchOpen, setSearchOpen] = useState<boolean>(false);
   const chartRef = useRef<ChartCanvasHandle | null>(null);
 
   const handleTimeframeChange = (value: string) => {
@@ -85,6 +86,14 @@ export default function TerminalPage() {
     setCompare(value);
   };
 
+  const openSearch = () => setSearchOpen(true);
+  const closeSearch = () => setSearchOpen(false);
+
+  const handleSearchSelect = (value: string) => {
+    handleInstrumentChange(value);
+    setSearchOpen(false);
+  };
+
   const handleSnapshotSave = () => {
     chartRef.current?.saveSnapshot();
   };
@@ -118,6 +127,11 @@ export default function TerminalPage() {
       compare={compare}
       onCompareChange={handleCompareChange}
       compareOptions={COMPARE_OPTIONS}
+      searchOpen={searchOpen}
+      onSearchOpen={openSearch}
+      onSearchClose={closeSearch}
+      onSearchSelect={handleSearchSelect}
+      searchOptions={INSTRUMENT_OPTIONS}
       onSnapshotSave={handleSnapshotSave}
       onSnapshotRestore={handleSnapshotRestore}
       indicators={indicators}
