@@ -25,6 +25,7 @@ import type { ChartCompare } from "@/app/charts/chart-canvas";
 import SearchOverlay from "@/components/terminal/search-overlay";
 import Tag from "@/components/ui/tag";
 import type { ChartReasoningVisibility } from "@/app/charts/chart-canvas";
+import type { ChartReplayMode } from "@/app/charts/chart-canvas";
 
 type TerminalShellProps = {
   children: ReactNode;
@@ -53,6 +54,11 @@ type TerminalShellProps = {
   searchOptions?: string[];
   reasoningVisibility?: ChartReasoningVisibility;
   onReasoningVisibilityChange?: (value: ChartReasoningVisibility) => void;
+  replayMode?: ChartReplayMode;
+  onReplayModeChange?: (value: ChartReplayMode) => void;
+  replayCursor?: number | null;
+  replayMax?: number;
+  onReplayScrub?: (value: number) => void;
   onSnapshotSave?: () => void;
   onSnapshotRestore?: () => void;
   indicators?: ChartIndicator[];
@@ -87,6 +93,11 @@ export default function TerminalShell({
   searchOptions,
   reasoningVisibility = "on",
   onReasoningVisibilityChange,
+  replayMode = "live",
+  onReplayModeChange,
+  replayCursor,
+  replayMax,
+  onReplayScrub,
   onSnapshotSave,
   onSnapshotRestore,
   indicators = [],
@@ -174,6 +185,20 @@ export default function TerminalShell({
               <span className="text-xs uppercase tracking-[0.08em] text-slate-200/90">{reasoningVisibility === "on" ? "On" : "Off"}</span>
             </button>
           ) : null}
+          {onReplayModeChange ? (
+            <button
+              type="button"
+              onClick={() => onReplayModeChange(replayMode === "replay" ? "live" : "replay")}
+              className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${
+                replayMode === "replay"
+                  ? "border-amber-300/30 bg-amber-500/10 text-white"
+                  : "border-white/10 bg-white/5 text-white/90 hover:border-white/25"
+              }`}
+            >
+              <Tag className="text-[11px] uppercase tracking-[0.22em]" variant="default">Replay</Tag>
+              <span className="text-xs uppercase tracking-[0.08em] text-slate-200/90">{replayMode === "replay" ? "On" : "Off"}</span>
+            </button>
+          ) : null}
           {onIndicatorToggle ? (
             <IndicatorSelector active={indicators} onToggle={onIndicatorToggle} options={indicatorOptions} />
           ) : null}
@@ -182,6 +207,22 @@ export default function TerminalShell({
           ) : null}
         </div>
       </div>
+
+      {replayMode === "replay" ? (
+        <div className="flex items-center gap-3 rounded-xl border border-amber-200/20 bg-amber-500/5 px-4 py-2 text-xs text-amber-100">
+          <Tag className="text-[10px] uppercase tracking-[0.2em]" variant="default">Replay</Tag>
+          <input
+            type="range"
+            min={1}
+            max={Math.max(1, replayMax ?? 1)}
+            value={Math.min(Math.max(1, replayCursor ?? (replayMax ?? 1)), Math.max(1, replayMax ?? 1))}
+            onChange={(event) => onReplayScrub?.(Number(event.target.value))}
+            className="flex-1 accent-amber-300"
+            aria-label="Replay scrubber"
+          />
+          <span className="text-[11px] text-amber-100/80">{replayCursor ?? replayMax ?? 1} / {replayMax ?? 1}</span>
+        </div>
+      ) : null}
 
       <div className="flex-1 overflow-hidden rounded-2xl border border-white/5 bg-slate-900/30">
         <div className="relative flex h-full">

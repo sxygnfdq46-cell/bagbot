@@ -10,6 +10,7 @@ import ChartCanvas, {
   type ChartProjection,
   type ChartCompare,
   type ChartReasoningVisibility,
+  type ChartReplayMode,
 } from "@/app/charts/chart-canvas";
 import TerminalShell from "@/components/terminal/terminal-shell";
 
@@ -29,6 +30,9 @@ export default function TerminalPage() {
   const [projection, setProjection] = useState<ChartProjection>("off");
   const [compare, setCompare] = useState<ChartCompare>("off");
   const [reasoningVisibility, setReasoningVisibility] = useState<ChartReasoningVisibility>("on");
+  const [replayMode, setReplayMode] = useState<ChartReplayMode>("live");
+  const [replayCursor, setReplayCursor] = useState<number | null>(null);
+  const [replayMax, setReplayMax] = useState<number>(1);
   const [indicators, setIndicators] = useState<ChartIndicator[]>([]);
   const [searchOpen, setSearchOpen] = useState<boolean>(false);
   const chartRef = useRef<ChartCanvasHandle | null>(null);
@@ -88,13 +92,29 @@ export default function TerminalPage() {
     setCompare(value);
   };
 
-  const handleReasoningVisibilityChange = (value: "on" | "off") => {
+  const handleReasoningVisibilityChange = (value: ChartReasoningVisibility) => {
     setReasoningVisibility(value);
     chartRef.current?.setReasoningVisibility(value);
   };
 
-  const syncReasoningVisibility = (value: "on" | "off") => {
+  const syncReasoningVisibility = (value: ChartReasoningVisibility) => {
     setReasoningVisibility(value);
+  };
+
+  const handleReplayModeChange = (value: ChartReplayMode) => {
+    setReplayMode(value);
+    chartRef.current?.setReplayMode(value);
+  };
+
+  const handleReplayScrub = (value: number) => {
+    setReplayCursor(value);
+    chartRef.current?.setReplayCursor(value);
+  };
+
+  const syncReplayUpdate = ({ mode, cursor, max }: { mode: ChartReplayMode; cursor: number; max: number }) => {
+    setReplayMode(mode);
+    setReplayMax(max || 1);
+    setReplayCursor(mode === "replay" ? cursor : null);
   };
 
   const openSearch = () => setSearchOpen(true);
@@ -145,6 +165,11 @@ export default function TerminalPage() {
       searchOptions={INSTRUMENT_OPTIONS}
       reasoningVisibility={reasoningVisibility}
       onReasoningVisibilityChange={handleReasoningVisibilityChange}
+      replayMode={replayMode}
+      onReplayModeChange={handleReplayModeChange}
+      replayCursor={replayCursor ?? replayMax}
+      replayMax={replayMax}
+      onReplayScrub={handleReplayScrub}
       onSnapshotSave={handleSnapshotSave}
       onSnapshotRestore={handleSnapshotRestore}
       indicators={indicators}
@@ -159,12 +184,15 @@ export default function TerminalPage() {
         initialProjection={projection}
         initialCompare={compare}
         initialReasoningVisibility={reasoningVisibility}
+        initialReplayMode={replayMode}
+        initialReplayCursor={replayCursor}
         onIndicatorsChange={handleIndicatorsChange}
         onCandleTypeChange={syncCandleType}
         onToolChange={syncTool}
         onProjectionChange={syncProjection}
         onReasoningVisibilityChange={syncReasoningVisibility}
         onCompareChange={syncCompare}
+        onReplayUpdate={syncReplayUpdate}
       />
     </TerminalShell>
   );

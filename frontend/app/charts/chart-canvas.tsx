@@ -65,6 +65,7 @@ export type ChartTool = "off" | "trendline" | "horizontal";
 export type ChartProjection = "off" | "forward" | "trendline";
 export type ChartCompare = "off" | "EURUSD" | "GBPUSD" | "XAUUSD" | "NAS100" | "BTCUSD";
 export type ChartReasoningVisibility = "on" | "off";
+export type ChartReplayMode = "live" | "replay";
 export type ChartSnapshot = {
   instrument: string;
   timeframe: string;
@@ -422,6 +423,8 @@ export type ChartCanvasHandle = {
   setProjection: (value: ChartProjection) => void;
   setCompare: (value: ChartCompare) => void;
   setReasoningVisibility: (value: ChartReasoningVisibility) => void;
+  setReplayMode: (value: ChartReplayMode) => void;
+  setReplayCursor: (value: number | null) => void;
   saveSnapshot: () => ChartSnapshot | null;
   loadSnapshot: () => ChartSnapshot | null;
   currentTimeframe: string;
@@ -431,6 +434,9 @@ export type ChartCanvasHandle = {
   currentProjection: ChartProjection;
   currentCompare: ChartCompare;
   currentReasoningVisibility: ChartReasoningVisibility;
+  currentReplayMode: ChartReplayMode;
+  currentReplayCursor: number | null;
+  currentReplayMax: number;
   setIndicator: (indicator: ChartIndicator, enabled: boolean) => void;
   currentIndicators: ChartIndicator[];
 };
@@ -445,12 +451,15 @@ export const ChartCanvas = forwardRef<
     initialProjection?: ChartProjection;
     initialCompare?: ChartCompare;
     initialReasoningVisibility?: ChartReasoningVisibility;
+    initialReplayMode?: ChartReplayMode;
+    initialReplayCursor?: number | null;
     initialIndicators?: ChartIndicator[];
     onCandleTypeChange?: (value: ChartCandleType) => void;
     onToolChange?: (value: ChartTool) => void;
     onProjectionChange?: (value: ChartProjection) => void;
     onCompareChange?: (value: ChartCompare) => void;
     onReasoningVisibilityChange?: (value: ChartReasoningVisibility) => void;
+    onReplayUpdate?: (info: { mode: ChartReplayMode; cursor: number; max: number }) => void;
     onIndicatorsChange?: (active: ChartIndicator[]) => void;
   }
 >(
@@ -463,12 +472,15 @@ export const ChartCanvas = forwardRef<
       initialProjection = "off",
       initialCompare = "off",
       initialReasoningVisibility = "on",
+      initialReplayMode = "live",
+      initialReplayCursor = null,
       initialIndicators,
       onCandleTypeChange,
       onToolChange,
       onProjectionChange,
       onCompareChange,
       onReasoningVisibilityChange,
+      onReplayUpdate,
       onIndicatorsChange,
     },
     ref
@@ -495,15 +507,26 @@ export const ChartCanvas = forwardRef<
     const seed = useMemo(() => hashSeed(`${instrument}-${timeframe}`), [instrument, timeframe]);
     const rng = useMemo(() => createRng(seed), [seed]);
     const [candles, setCandles] = useState<Candle[]>(() => buildHistory(instrument, timeframe, WINDOW_SIZE, rng));
-    const visualCandles = useMemo<Candle[]>(
-      () => (candleType === "heikin-ashi" ? buildHeikinAshi(candles) : candles),
-      [candleType, candles]
-    );
-    const initialHistoryRef = useRef<Candle[]>(candles);
-    const [activeTool, setActiveTool] = useState<ChartTool>(initialTool);
     const [projectionMode, setProjectionMode] = useState<ChartProjection>(initialProjection);
     const [compareInstrument, setCompareInstrument] = useState<ChartCompare>(initialCompare);
     const [reasoningVisibility, setReasoningVisibility] = useState<ChartReasoningVisibility>(initialReasoningVisibility);
+    const [replayMode, setReplayMode] = useState<ChartReplayMode>(initialReplayMode);
+    const [replayCursor, setReplayCursor] = useState<number | null>(initialReplayCursor);
+    const activeCandles = useMemo<Candle[]>(() => {
+      if (!candles.length) return [];
+      if (replayMode === "replay") {
+        const max = candles.length;
+        const cursor = clamp(replayCursor ?? max, 1, max);
+        return candles.slice(0, cursor);
+      }
+      return candles;
+    }, [candles, replayCursor, replayMode]);
+    const visualCandles = useMemo<Candle[]>(
+      () => (candleType === "heikin-ashi" ? buildHeikinAshi(activeCandles) : activeCandles),
+      [activeCandles, candleType]
+    );
+    const initialHistoryRef = useRef<Candle[]>(candles);
+    const [activeTool, setActiveTool] = useState<ChartTool>(initialTool);
     const compareSeed = useMemo(() => hashSeed(`compare-${compareInstrument}-${timeframe}`), [compareInstrument, timeframe]);
     const compareRng = useMemo(() => createRng(compareSeed), [compareSeed]);
     const [compareCandles, setCompareCandles] = useState<Candle[]>([]);
@@ -515,8 +538,8 @@ export const ChartCanvas = forwardRef<
     const [toggleVWAP, setToggleVWAP] = useState<boolean>(() => initialIndicators?.includes("vwap") ?? false);
     const [toggleBB, setToggleBB] = useState(false);
     const [toggleRSI, setToggleRSI] = useState<boolean>(() => initialIndicators?.includes("rsi") ?? false);
-    const positions = useMemo(() => derivePositions(candles), [candles]);
-    const reasoningAnchors = useMemo(() => deriveReasoningAnchors(candles, positions), [candles, positions]);
+    const positions = useMemo(() => derivePositions(activeCandles), [activeCandles]);
+    const reasoningAnchors = useMemo(() => deriveReasoningAnchors(activeCandles, positions), [activeCandles, positions]);
     const indicatorState = useMemo<ChartIndicator[]>(() => {
       const active: ChartIndicator[] = [];
       if (toggleEMA) active.push("ema");
@@ -524,6 +547,25 @@ export const ChartCanvas = forwardRef<
       if (toggleRSI) active.push("rsi");
       return active;
     }, [toggleEMA, toggleRSI, toggleVWAP]);
+
+    useEffect(() => {
+      if (replayMode !== "replay") return;
+      if (replayCursor === null && candles.length) {
+        setReplayCursor(candles.length);
+        return;
+      }
+      const max = candles.length || 1;
+      const next = clamp(replayCursor ?? max, 1, max);
+      if (next !== (replayCursor ?? max)) {
+        setReplayCursor(next);
+      }
+    }, [candles.length, replayCursor, replayMode]);
+
+    useEffect(() => {
+      const max = candles.length;
+      const cursor = replayMode === "replay" ? clamp(replayCursor ?? max, 1, Math.max(1, max)) : max;
+      onReplayUpdate?.({ mode: replayMode, cursor, max });
+    }, [candles.length, onReplayUpdate, replayCursor, replayMode]);
 
     const priceRange = useMemo(() => {
       if (!visualCandles.length) return { min: 0, max: 1, span: 1 };
@@ -553,6 +595,8 @@ export const ChartCanvas = forwardRef<
       const history = buildHistory(instrument, timeframe, WINDOW_SIZE, rng);
       initialHistoryRef.current = history;
       setCandles(history);
+      setReplayMode("live");
+      setReplayCursor(null);
     }, [instrument, timeframe, rng]);
 
     useEffect(() => {
@@ -601,6 +645,25 @@ export const ChartCanvas = forwardRef<
     const setReasoningVisibilityState = (value: ChartReasoningVisibility) => {
       setReasoningVisibility(value);
     };
+
+    const setReplayModeState = useCallback(
+      (value: ChartReplayMode) => {
+        setReplayMode(value);
+        if (value === "live") {
+          setReplayCursor(null);
+        } else {
+          setReplayCursor((cursor) => cursor ?? candles.length);
+        }
+      },
+      [candles.length]
+    );
+
+    const setReplayCursorState = useCallback((value: number | null) => {
+      setReplayCursor(value);
+      if (value !== null) {
+        setReplayMode("replay");
+      }
+    }, []);
 
     const persistSnapshot = useCallback((snapshot: ChartSnapshot) => {
       snapshotRef.current = snapshot;
@@ -670,6 +733,8 @@ export const ChartCanvas = forwardRef<
         setProjection: (value: ChartProjection) => setProjectionState(value),
         setCompare: (value: ChartCompare) => setCompareState(value),
         setReasoningVisibility: (value: ChartReasoningVisibility) => setReasoningVisibilityState(value),
+        setReplayMode: (value: ChartReplayMode) => setReplayModeState(value),
+        setReplayCursor: (value: number | null) => setReplayCursorState(value),
         saveSnapshot: () => saveSnapshot(),
         loadSnapshot: () => loadSnapshot(),
         setIndicator: (indicator, enabled) => setIndicatorState(indicator, enabled),
@@ -680,9 +745,12 @@ export const ChartCanvas = forwardRef<
         currentProjection: projectionMode,
         currentCompare: compareInstrument,
         currentReasoningVisibility: reasoningVisibility,
+        currentReplayMode: replayMode,
+        currentReplayCursor: replayCursor,
+        currentReplayMax: candles.length,
         currentIndicators: indicatorState,
       }),
-      [activeTool, candleType, compareInstrument, indicatorState, instrument, loadSnapshot, projectionMode, reasoningVisibility, saveSnapshot, timeframe]
+      [activeTool, candles.length, candleType, compareInstrument, indicatorState, instrument, loadSnapshot, projectionMode, reasoningVisibility, replayCursor, replayMode, saveSnapshot, setReplayCursorState, setReplayModeState, timeframe]
     );
 
     useEffect(() => {
@@ -912,7 +980,7 @@ export const ChartCanvas = forwardRef<
   };
 
   useEffect(() => {
-    if (!candles.length) return;
+    if (!activeCandles.length) return;
     const priceChart = chartRef.current;
     if (!priceChart) return;
 
@@ -927,10 +995,10 @@ export const ChartCanvas = forwardRef<
     }
 
     positions.forEach((position) => {
-      const entryCandle = candles[position.entryIndex];
+      const entryCandle = activeCandles[position.entryIndex];
       if (!entryCandle) return;
-      const exitIdx = position.exitIndex ?? candles.length - 1;
-      const exitCandle = candles[Math.min(exitIdx, candles.length - 1)];
+      const exitIdx = position.exitIndex ?? activeCandles.length - 1;
+      const exitCandle = activeCandles[Math.min(exitIdx, activeCandles.length - 1)];
       if (!exitCandle) return;
 
       const bandId = `band-${position.id}`;
@@ -950,8 +1018,8 @@ export const ChartCanvas = forwardRef<
       );
       band.applyOptions({ color: adjustAlpha(baseColor, emphasis) });
 
-      const data = candles
-        .slice(position.entryIndex, Math.min(exitIdx, candles.length - 1) + 1)
+      const data = activeCandles
+        .slice(position.entryIndex, Math.min(exitIdx, activeCandles.length - 1) + 1)
         .map((candle) => ({ time: candle.time as Time, value: entryCandle.close }));
 
       band.setData(data);
@@ -971,7 +1039,7 @@ export const ChartCanvas = forwardRef<
     const markers: { time: Time; position: "aboveBar" | "belowBar"; color: string; shape: "arrowUp" | "arrowDown" | "circle"; text?: string }[] = [];
 
     positions.forEach((position) => {
-      const entry = candles[position.entryIndex];
+      const entry = activeCandles[position.entryIndex];
       if (entry) {
         markers.push({
           time: entry.time as Time,
@@ -981,8 +1049,8 @@ export const ChartCanvas = forwardRef<
         });
       }
 
-      const exitIdx = position.exitIndex ?? candles.length - 1;
-      const exit = candles[Math.min(exitIdx, candles.length - 1)];
+      const exitIdx = position.exitIndex ?? activeCandles.length - 1;
+      const exit = activeCandles[Math.min(exitIdx, activeCandles.length - 1)];
       if (exit && position.exitIndex !== undefined) {
         markers.push({
           time: exit.time as Time,
@@ -1009,7 +1077,7 @@ export const ChartCanvas = forwardRef<
         removeSeries(priceChart, lifecycleSeriesRef.current, id);
       }
     });
-  }, [candles, focusedAnchorId, positions, reasoningVisibility]);
+  }, [activeCandles, focusedAnchorId, positions, reasoningVisibility]);
 
   useEffect(() => {
     const priceChart = chartRef.current;
@@ -1228,6 +1296,7 @@ export const ChartCanvas = forwardRef<
 
     const tick = () => {
       setCandles((current) => {
+        if (!mounted || replayMode === "replay") return current;
         if (!mounted || !current.length) return current;
         const nextCandle = appendNextCandle(current[current.length - 1], rng, timeframe);
         const nextSeries = [...current, nextCandle];
@@ -1235,7 +1304,7 @@ export const ChartCanvas = forwardRef<
       });
 
       setCompareCandles((current) => {
-        if (!mounted || compareInstrument === "off" || !current.length) return current;
+        if (!mounted || compareInstrument === "off" || replayMode === "replay" || !current.length) return current;
         const nextCandle = appendNextCandle(current[current.length - 1], compareRng, timeframe);
         const nextSeries = [...current, nextCandle];
         return nextSeries.slice(-WINDOW_SIZE);
@@ -1247,7 +1316,7 @@ export const ChartCanvas = forwardRef<
       mounted = false;
       clearInterval(interval);
     };
-  }, [compareInstrument, compareRng, rng, timeframe]);
+  }, [compareInstrument, compareRng, replayMode, rng, timeframe]);
 
   useEffect(() => {
     const priceChart = chartRef.current;
@@ -1432,8 +1501,13 @@ export const ChartCanvas = forwardRef<
     }
 
     const len = Math.min(compareCandles.length, visualCandles.length);
-    const baseSlice = visualCandles.slice(-len);
-    const overlaySlice = compareCandles.slice(-len);
+    if (!len) {
+      clearCompare();
+      return;
+    }
+
+    const baseSlice = replayMode === "replay" ? visualCandles.slice(0, len) : visualCandles.slice(-len);
+    const overlaySlice = replayMode === "replay" ? compareCandles.slice(0, len) : compareCandles.slice(-len);
     const baseAnchor = baseSlice[0]?.close ?? 0;
     const compareAnchor = overlaySlice[0]?.close ?? 0;
 
@@ -1466,7 +1540,7 @@ export const ChartCanvas = forwardRef<
         removeSeries(priceChart, compareSeriesRef.current, id);
       }
     });
-  }, [compareCandles, compareInstrument, visualCandles]);
+  }, [compareCandles, compareInstrument, replayMode, visualCandles]);
 
   const toggleFullscreen = () => {
     const host = containerRef.current?.closest("section");
