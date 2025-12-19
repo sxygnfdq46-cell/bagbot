@@ -6,9 +6,11 @@ import Tag from "@/components/ui/tag";
 import { dashboardApi, type MarketPrice } from "@/lib/api/dashboard";
 
 const FALLBACK_SYMBOL = "BTC-USD";
-const FALLBACK_TIMEFRAME = "1h";
+type InstrumentDisplayProps = {
+  timeframe: string;
+};
 
-export default function InstrumentDisplay() {
+export default function InstrumentDisplay({ timeframe }: InstrumentDisplayProps) {
   const [symbol, setSymbol] = useState(FALLBACK_SYMBOL);
   const [lastPrice, setLastPrice] = useState<number | null>(null);
 
@@ -33,7 +35,7 @@ export default function InstrumentDisplay() {
     };
   }, []);
 
-  const label = useMemo(() => `${symbol} • ${FALLBACK_TIMEFRAME.toUpperCase()}`, [symbol]);
+  const label = useMemo(() => `${symbol} • ${timeframe.toUpperCase()}`, [symbol, timeframe]);
 
   return (
     <div className="flex items-center gap-3">

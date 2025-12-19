@@ -362,7 +362,7 @@ const deriveReasoningAnchors = (candles: Candle[], positions: PositionLifecycle[
   return anchors;
 };
 
-export default function ChartsPage() {
+export function ChartCanvas({ timeframe = DEFAULT_TIMEFRAME }: { timeframe?: string }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const indicatorPaneRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -375,10 +375,15 @@ export default function ChartsPage() {
   const [focusedAnchorId, setFocusedAnchorId] = useState<string | null>(null);
   const [hoverAnchor, setHoverAnchor] = useState<{ anchor: ReasoningAnchor; point: { x: number; y: number } } | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const seed = useMemo(() => hashSeed(`${DEFAULT_SYMBOL}-${DEFAULT_TIMEFRAME}`), []);
+  const seed = useMemo(() => hashSeed(`${DEFAULT_SYMBOL}-${timeframe}`), [timeframe]);
   const rng = useMemo(() => createRng(seed), [seed]);
-  const [candles, setCandles] = useState<Candle[]>(() => buildHistory(DEFAULT_SYMBOL, DEFAULT_TIMEFRAME, WINDOW_SIZE, rng));
+  const [candles, setCandles] = useState<Candle[]>(() => buildHistory(DEFAULT_SYMBOL, timeframe, WINDOW_SIZE, rng));
   const initialHistoryRef = useRef<Candle[]>(candles);
+  useEffect(() => {
+    const history = buildHistory(DEFAULT_SYMBOL, timeframe, WINDOW_SIZE, rng);
+    initialHistoryRef.current = history;
+    setCandles(history);
+  }, [timeframe, rng]);
   const [toggleEMA, setToggleEMA] = useState(false);
   const [toggleSMA, setToggleSMA] = useState(false);
   const [toggleVWAP, setToggleVWAP] = useState(false);
@@ -869,7 +874,7 @@ export default function ChartsPage() {
     const tick = () => {
       setCandles((current) => {
         if (!mounted || !current.length) return current;
-        const nextCandle = appendNextCandle(current[current.length - 1], rng, DEFAULT_TIMEFRAME);
+        const nextCandle = appendNextCandle(current[current.length - 1], rng, timeframe);
         const nextSeries = [...current, nextCandle];
         return nextSeries.slice(-WINDOW_SIZE);
       });
@@ -880,7 +885,7 @@ export default function ChartsPage() {
       mounted = false;
       clearInterval(interval);
     };
-  }, [rng]);
+  }, [rng, timeframe]);
 
   const toggleFullscreen = () => {
     const host = containerRef.current?.closest("section");
@@ -934,7 +939,7 @@ export default function ChartsPage() {
             <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-wrap gap-3 p-4 text-xs">
               <div className="rounded-xl bg-white/5 px-3 py-2 backdrop-blur">
                 <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Canvas</div>
-                <div className="flex items-center gap-2 text-sm font-semibold text-slate-100">{DEFAULT_SYMBOL}<span className="text-slate-400">•</span>{DEFAULT_TIMEFRAME}</div>
+                <div className="flex items-center gap-2 text-sm font-semibold text-slate-100">{DEFAULT_SYMBOL}<span className="text-slate-400">•</span>{timeframe}</div>
               </div>
               <div className="rounded-xl bg-white/5 px-3 py-2 backdrop-blur">
                 <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Layers</div>
@@ -1007,4 +1012,8 @@ export default function ChartsPage() {
       </Card>
     </TerminalShell>
   );
+}
+
+export default function ChartsPage() {
+  return <ChartCanvas />;
 }

@@ -9,8 +9,16 @@ import BrainPanel from "@/components/terminal/brain-panel";
 import TradesPanel from "@/components/terminal/trades-panel";
 import OrderbookPanel from "@/components/terminal/orderbook-panel";
 import InstrumentDisplay from "@/components/terminal/instrument-display";
+import TimeframeSelector from "@/components/terminal/timeframe-selector";
 
-export default function TerminalShell({ children }: { children: ReactNode }) {
+type TerminalShellProps = {
+  children: ReactNode;
+  timeframe?: string;
+  onTimeframeChange?: (value: string) => void;
+  timeframeOptions?: string[];
+};
+
+export default function TerminalShell({ children, timeframe = "1h", onTimeframeChange, timeframeOptions }: TerminalShellProps) {
   const [showSignals, setShowSignals] = useState(false);
   const [showBrain, setShowBrain] = useState(false);
   const [showTrades, setShowTrades] = useState(false);
@@ -31,7 +39,12 @@ export default function TerminalShell({ children }: { children: ReactNode }) {
         className="flex h-12 items-center rounded-xl border border-white/5 bg-slate-900/50 px-3 backdrop-blur"
         aria-label="Terminal top bar"
       >
-        <InstrumentDisplay />
+        <div className="flex items-center gap-3">
+          <InstrumentDisplay timeframe={timeframe} />
+          {onTimeframeChange ? (
+            <TimeframeSelector timeframe={timeframe} onSelect={onTimeframeChange} options={timeframeOptions} />
+          ) : null}
+        </div>
       </div>
 
       <div className="flex-1 overflow-hidden rounded-2xl border border-white/5 bg-slate-900/30">
