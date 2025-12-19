@@ -364,11 +364,13 @@ const deriveReasoningAnchors = (candles: Candle[], positions: PositionLifecycle[
 
 export type ChartCanvasHandle = {
   setTimeframe: (value: string) => void;
+  setInstrument: (value: string) => void;
   currentTimeframe: string;
+  currentInstrument: string;
 };
 
-export const ChartCanvas = forwardRef<ChartCanvasHandle, { initialTimeframe?: string }>(
-  function ChartCanvas({ initialTimeframe = DEFAULT_TIMEFRAME }, ref) {
+export const ChartCanvas = forwardRef<ChartCanvasHandle, { initialTimeframe?: string; initialInstrument?: string }>(
+  function ChartCanvas({ initialTimeframe = DEFAULT_TIMEFRAME, initialInstrument = DEFAULT_SYMBOL }, ref) {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const indicatorPaneRef = useRef<HTMLDivElement | null>(null);
     const chartRef = useRef<IChartApi | null>(null);
@@ -381,10 +383,11 @@ export const ChartCanvas = forwardRef<ChartCanvasHandle, { initialTimeframe?: st
     const [focusedAnchorId, setFocusedAnchorId] = useState<string | null>(null);
     const [hoverAnchor, setHoverAnchor] = useState<{ anchor: ReasoningAnchor; point: { x: number; y: number } } | null>(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [instrument, setInstrument] = useState<string>(initialInstrument);
     const [timeframe, setTimeframe] = useState<string>(initialTimeframe);
-    const seed = useMemo(() => hashSeed(`${DEFAULT_SYMBOL}-${timeframe}`), [timeframe]);
+    const seed = useMemo(() => hashSeed(`${instrument}-${timeframe}`), [instrument, timeframe]);
     const rng = useMemo(() => createRng(seed), [seed]);
-    const [candles, setCandles] = useState<Candle[]>(() => buildHistory(DEFAULT_SYMBOL, timeframe, WINDOW_SIZE, rng));
+    const [candles, setCandles] = useState<Candle[]>(() => buildHistory(instrument, timeframe, WINDOW_SIZE, rng));
     const initialHistoryRef = useRef<Candle[]>(candles);
     const [toggleEMA, setToggleEMA] = useState(false);
     const [toggleSMA, setToggleSMA] = useState(false);
@@ -395,18 +398,20 @@ export const ChartCanvas = forwardRef<ChartCanvasHandle, { initialTimeframe?: st
     const reasoningAnchors = useMemo(() => deriveReasoningAnchors(candles, positions), [candles, positions]);
 
     useEffect(() => {
-      const history = buildHistory(DEFAULT_SYMBOL, timeframe, WINDOW_SIZE, rng);
+      const history = buildHistory(instrument, timeframe, WINDOW_SIZE, rng);
       initialHistoryRef.current = history;
       setCandles(history);
-    }, [timeframe, rng]);
+    }, [instrument, timeframe, rng]);
 
     useImperativeHandle(
       ref,
       () => ({
         setTimeframe: (value: string) => setTimeframe(value),
+        setInstrument: (value: string) => setInstrument(value),
         currentTimeframe: timeframe,
+        currentInstrument: instrument,
       }),
-      [timeframe]
+      [timeframe, instrument]
     );
 
     useEffect(() => {
@@ -955,8 +960,8 @@ export const ChartCanvas = forwardRef<ChartCanvasHandle, { initialTimeframe?: st
           <section className="relative isolate overflow-hidden rounded-2xl border border-[color:var(--border-soft)]/50 bg-gradient-to-b from-[#0c1224] to-[#060914] shadow-xl shadow-black/30" style={{ height: 620 }}>
             <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-wrap gap-3 p-4 text-xs">
               <div className="rounded-xl bg-white/5 px-3 py-2 backdrop-blur">
-                <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Canvas</div>
-                <div className="flex items-center gap-2 text-sm font-semibold text-slate-100">{DEFAULT_SYMBOL}<span className="text-slate-400">•</span>{timeframe}</div>
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Canvas</div>
+                  <div className="flex items-center gap-2 text-sm font-semibold text-slate-100">{instrument}<span className="text-slate-400">•</span>{timeframe}</div>
               </div>
               <div className="rounded-xl bg-white/5 px-3 py-2 backdrop-blur">
                 <div className="text-[11px] uppercase tracking-[0.18em] text-slate-400">Layers</div>

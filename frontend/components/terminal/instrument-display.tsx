@@ -1,41 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import MetricLabel from "@/components/ui/metric-label";
 import Tag from "@/components/ui/tag";
-import { dashboardApi, type MarketPrice } from "@/lib/api/dashboard";
 
-const FALLBACK_SYMBOL = "BTC-USD";
 type InstrumentDisplayProps = {
   timeframe: string;
+  instrument: string;
+  lastPrice?: number | null;
 };
 
-export default function InstrumentDisplay({ timeframe }: InstrumentDisplayProps) {
-  const [symbol, setSymbol] = useState(FALLBACK_SYMBOL);
-  const [lastPrice, setLastPrice] = useState<number | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-    const load = async () => {
-      try {
-        const prices: MarketPrice[] = await dashboardApi.getLivePrices();
-        if (!mounted) return;
-        const primary = Array.isArray(prices) && prices.length > 0 ? prices[0] : null;
-        if (primary?.symbol) setSymbol(primary.symbol);
-        if (Number.isFinite(primary?.price)) setLastPrice(Number(primary?.price));
-      } catch (_error) {
-        /* silent fallback */
-      }
-    };
-    load();
-    const interval = setInterval(load, 8000);
-    return () => {
-      mounted = false;
-      clearInterval(interval);
-    };
-  }, []);
-
-  const label = useMemo(() => `${symbol} • ${timeframe.toUpperCase()}`, [symbol, timeframe]);
+export default function InstrumentDisplay({ timeframe, instrument, lastPrice = null }: InstrumentDisplayProps) {
+  const label = useMemo(() => `${instrument} • ${timeframe.toUpperCase()}`, [instrument, timeframe]);
 
   return (
     <div className="flex items-center gap-3">

@@ -10,15 +10,27 @@ import TradesPanel from "@/components/terminal/trades-panel";
 import OrderbookPanel from "@/components/terminal/orderbook-panel";
 import InstrumentDisplay from "@/components/terminal/instrument-display";
 import TimeframeSelector from "@/components/terminal/timeframe-selector";
+import InstrumentSelector from "@/components/terminal/instrument-selector";
 
 type TerminalShellProps = {
   children: ReactNode;
   timeframe?: string;
   onTimeframeChange?: (value: string) => void;
   timeframeOptions?: string[];
+  instrument?: string;
+  onInstrumentChange?: (value: string) => void;
+  instrumentOptions?: string[];
 };
 
-export default function TerminalShell({ children, timeframe = "1h", onTimeframeChange, timeframeOptions }: TerminalShellProps) {
+export default function TerminalShell({
+  children,
+  timeframe = "1h",
+  onTimeframeChange,
+  timeframeOptions,
+  instrument = "BTC-USD",
+  onInstrumentChange,
+  instrumentOptions,
+}: TerminalShellProps) {
   const [showSignals, setShowSignals] = useState(false);
   const [showBrain, setShowBrain] = useState(false);
   const [showTrades, setShowTrades] = useState(false);
@@ -40,7 +52,10 @@ export default function TerminalShell({ children, timeframe = "1h", onTimeframeC
         aria-label="Terminal top bar"
       >
         <div className="flex items-center gap-3">
-          <InstrumentDisplay timeframe={timeframe} />
+          <InstrumentDisplay timeframe={timeframe} instrument={instrument} />
+          {onInstrumentChange ? (
+            <InstrumentSelector instrument={instrument} onSelect={onInstrumentChange} options={instrumentOptions} />
+          ) : null}
           {onTimeframeChange ? (
             <TimeframeSelector timeframe={timeframe} onSelect={onTimeframeChange} options={timeframeOptions} />
           ) : null}
