@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import {
   ColorType,
   CrosshairMode,
@@ -62,6 +62,13 @@ type ReasoningAnchor = {
 export type ChartIndicator = "ema" | "vwap" | "rsi";
 export type ChartCandleType = "candles" | "heikin-ashi";
 export type ChartTool = "off" | "trendline" | "horizontal";
+export type ChartSnapshot = {
+  instrument: string;
+  timeframe: string;
+  candleType: ChartCandleType;
+  indicators: ChartIndicator[];
+  drawings: Drawing[];
+};
 
 const TIMEFRAME_SECONDS: Record<string, number> = {
   "1m": 60,
@@ -317,6 +324,8 @@ type Drawing =
   | { id: string; type: "horizontal"; y: number }
   | { id: string; type: "trendline"; start: NormalizedPoint; end: NormalizedPoint };
 
+const SNAPSHOT_STORAGE_KEY = "bagbot-terminal-snapshot";
+
 const derivePositions = (candles: Candle[]): PositionLifecycle[] => {
   if (candles.length < 60) return [];
   const first = Math.floor(candles.length * 0.22);
@@ -406,6 +415,8 @@ export type ChartCanvasHandle = {
   setInstrument: (value: string) => void;
   setCandleType: (value: ChartCandleType) => void;
   setTool: (value: ChartTool) => void;
+  saveSnapshot: () => ChartSnapshot | null;
+  loadSnapshot: () => ChartSnapshot | null;
   currentTimeframe: string;
   currentInstrument: string;
   currentCandleType: ChartCandleType;
@@ -448,6 +459,7 @@ export const ChartCanvas = forwardRef<
     const overlaySeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());
     const lifecycleSeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());
     const drawingSeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());
+    const snapshotRef = useRef<ChartSnapshot | null>(null);
     const oscillatorChartRef = useRef<IChartApi | null>(null);
     const oscillatorSeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());
     const [focusedAnchorId, setFocusedAnchorId] = useState<string | null>(null);
@@ -534,6 +546,64 @@ export const ChartCanvas = forwardRef<
       setDraftPoint(null);
     };
 
+    const persistSnapshot = useCallback((snapshot: ChartSnapshot) => {
+      snapshotRef.current = snapshot;
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage?.setItem(SNAPSHOT_STORAGE_KEY, JSON.stringify(snapshot));
+        } catch {
+          /* ignore persistence errors */
+        }
+      }
+    }, []);
+
+    const readSnapshot = useCallback((): ChartSnapshot | null => {
+      if (snapshotRef.current) return snapshotRef.current;
+      if (typeof window === "undefined") return null;
+      try {
+        const raw = window.localStorage?.getItem(SNAPSHOT_STORAGE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw) as ChartSnapshot | null;
+        return parsed ?? null;
+      } catch {
+        return null;
+      }
+    }, []);
+
+    const applySnapshot = useCallback(
+      (snapshot: ChartSnapshot | null) => {
+        if (!snapshot) return null;
+        setInstrument(snapshot.instrument);
+        setTimeframe(snapshot.timeframe);
+        setCandleType(snapshot.candleType);
+        setIndicatorState("ema", snapshot.indicators.includes("ema"));
+        setIndicatorState("vwap", snapshot.indicators.includes("vwap"));
+        setIndicatorState("rsi", snapshot.indicators.includes("rsi"));
+        setDrawings(snapshot.drawings);
+        setActiveTool("off");
+        setDraftPoint(null);
+        return snapshot;
+      },
+      []
+    );
+
+    const saveSnapshot = useCallback(() => {
+      const snapshot: ChartSnapshot = {
+        instrument,
+        timeframe,
+        candleType,
+        indicators: indicatorState,
+        drawings,
+      };
+      persistSnapshot(snapshot);
+      return snapshot;
+    }, [candleType, drawings, indicatorState, instrument, persistSnapshot, timeframe]);
+
+    const loadSnapshot = useCallback(() => {
+      const snapshot = readSnapshot();
+      return applySnapshot(snapshot);
+    }, [applySnapshot, readSnapshot]);
+
     useImperativeHandle(
       ref,
       () => ({
@@ -541,6 +611,8 @@ export const ChartCanvas = forwardRef<
         setInstrument: (value: string) => setInstrument(value),
         setCandleType: (value: ChartCandleType) => setCandleType(value),
         setTool: (value: ChartTool) => setToolState(value),
+        saveSnapshot: () => saveSnapshot(),
+        loadSnapshot: () => loadSnapshot(),
         setIndicator: (indicator, enabled) => setIndicatorState(indicator, enabled),
         currentTimeframe: timeframe,
         currentInstrument: instrument,
@@ -548,7 +620,7 @@ export const ChartCanvas = forwardRef<
         currentTool: activeTool,
         currentIndicators: indicatorState,
       }),
-      [activeTool, candleType, indicatorState, instrument, timeframe]
+      [activeTool, candleType, indicatorState, instrument, loadSnapshot, saveSnapshot, timeframe]
     );
 
     useEffect(() => {

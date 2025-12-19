@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import ChartCanvas, { type ChartCanvasHandle, type ChartIndicator, type ChartCandleType, type ChartTool } from "@/app/charts/chart-canvas";
+import ChartCanvas, { type ChartCanvasHandle, type ChartIndicator, type ChartCandleType, type ChartTool, type ChartSnapshot } from "@/app/charts/chart-canvas";
 import TerminalShell from "@/components/terminal/terminal-shell";
 
 const TIMEFRAME_OPTIONS = ["15m", "1h", "4h", "1d"];
@@ -54,6 +54,19 @@ export default function TerminalPage() {
     setTool(value);
   };
 
+  const handleSnapshotSave = () => {
+    chartRef.current?.saveSnapshot();
+  };
+
+  const handleSnapshotRestore = () => {
+    const snapshot: ChartSnapshot | null | undefined = chartRef.current?.loadSnapshot();
+    if (!snapshot) return;
+    setInstrument(snapshot.instrument);
+    setTimeframe(snapshot.timeframe);
+    setCandleType(snapshot.candleType);
+    setIndicators(snapshot.indicators);
+  };
+
   return (
     <TerminalShell
       timeframe={timeframe}
@@ -68,6 +81,8 @@ export default function TerminalPage() {
       tool={tool}
       onToolChange={handleToolChange}
       toolOptions={TOOL_OPTIONS}
+      onSnapshotSave={handleSnapshotSave}
+      onSnapshotRestore={handleSnapshotRestore}
       indicators={indicators}
       onIndicatorToggle={handleIndicatorToggle}
       indicatorOptions={INDICATOR_OPTIONS}

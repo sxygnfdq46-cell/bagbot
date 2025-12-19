@@ -17,6 +17,7 @@ import CandleTypeSelector from "@/components/terminal/candle-type-selector";
 import type { ChartCandleType } from "@/app/charts/chart-canvas";
 import ToolsSelector from "@/components/terminal/tools-selector";
 import type { ChartTool } from "@/app/charts/chart-canvas";
+import SnapshotControl from "@/components/terminal/snapshot-control";
 
 type TerminalShellProps = {
   children: ReactNode;
@@ -32,6 +33,8 @@ type TerminalShellProps = {
   tool?: ChartTool;
   onToolChange?: (value: ChartTool) => void;
   toolOptions?: ChartTool[];
+  onSnapshotSave?: () => void;
+  onSnapshotRestore?: () => void;
   indicators?: ChartIndicator[];
   onIndicatorToggle?: (indicator: ChartIndicator) => void;
   indicatorOptions?: ChartIndicator[];
@@ -51,6 +54,8 @@ export default function TerminalShell({
   tool = "off",
   onToolChange,
   toolOptions,
+  onSnapshotSave,
+  onSnapshotRestore,
   indicators = [],
   onIndicatorToggle,
   indicatorOptions,
@@ -91,6 +96,9 @@ export default function TerminalShell({
           ) : null}
           {onIndicatorToggle ? (
             <IndicatorSelector active={indicators} onToggle={onIndicatorToggle} options={indicatorOptions} />
+          ) : null}
+          {onSnapshotSave || onSnapshotRestore ? (
+            <SnapshotControl onSave={onSnapshotSave} onRestore={onSnapshotRestore} />
           ) : null}
         </div>
       </div>
