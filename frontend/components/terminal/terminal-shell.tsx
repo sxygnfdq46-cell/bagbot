@@ -13,6 +13,8 @@ import TimeframeSelector from "@/components/terminal/timeframe-selector";
 import InstrumentSelector from "@/components/terminal/instrument-selector";
 import IndicatorSelector from "@/components/terminal/indicator-selector";
 import type { ChartIndicator } from "@/app/charts/chart-canvas";
+import CandleTypeSelector from "@/components/terminal/candle-type-selector";
+import type { ChartCandleType } from "@/app/charts/chart-canvas";
 
 type TerminalShellProps = {
   children: ReactNode;
@@ -22,6 +24,9 @@ type TerminalShellProps = {
   instrument?: string;
   onInstrumentChange?: (value: string) => void;
   instrumentOptions?: string[];
+  candleType?: ChartCandleType;
+  onCandleTypeChange?: (value: ChartCandleType) => void;
+  candleTypeOptions?: ChartCandleType[];
   indicators?: ChartIndicator[];
   onIndicatorToggle?: (indicator: ChartIndicator) => void;
   indicatorOptions?: ChartIndicator[];
@@ -35,6 +40,9 @@ export default function TerminalShell({
   instrument = "BTC-USD",
   onInstrumentChange,
   instrumentOptions,
+  candleType = "candles",
+  onCandleTypeChange,
+  candleTypeOptions,
   indicators = [],
   onIndicatorToggle,
   indicatorOptions,
@@ -66,6 +74,9 @@ export default function TerminalShell({
           ) : null}
           {onTimeframeChange ? (
             <TimeframeSelector timeframe={timeframe} onSelect={onTimeframeChange} options={timeframeOptions} />
+          ) : null}
+          {onCandleTypeChange ? (
+            <CandleTypeSelector candleType={candleType} onSelect={onCandleTypeChange} options={candleTypeOptions} />
           ) : null}
           {onIndicatorToggle ? (
             <IndicatorSelector active={indicators} onToggle={onIndicatorToggle} options={indicatorOptions} />

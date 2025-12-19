@@ -60,6 +60,7 @@ type ReasoningAnchor = {
 };
 
 export type ChartIndicator = "ema" | "vwap" | "rsi";
+export type ChartCandleType = "candles" | "heikin-ashi";
 
 const TIMEFRAME_SECONDS: Record<string, number> = {
   "1m": 60,
@@ -280,6 +281,35 @@ const computeRSI = (candles: Candle[], period: number, index: Set<UTCTimestamp>)
   return result;
 };
 
+const buildHeikinAshi = (candles: Candle[]): Candle[] => {
+  if (!candles.length) return [];
+
+  const series: Candle[] = [];
+  let prevOpen = (candles[0].open + candles[0].close) / 2;
+  let prevClose = (candles[0].open + candles[0].high + candles[0].low + candles[0].close) / 4;
+
+  candles.forEach((candle, idx) => {
+    const haClose = (candle.open + candle.high + candle.low + candle.close) / 4;
+    const haOpen = idx === 0 ? (candle.open + candle.close) / 2 : (prevOpen + prevClose) / 2;
+    const haHigh = Math.max(candle.high, haOpen, haClose);
+    const haLow = Math.min(candle.low, haOpen, haClose);
+
+    prevOpen = haOpen;
+    prevClose = haClose;
+
+    series.push({
+      time: candle.time,
+      open: Number(haOpen.toFixed(4)),
+      high: Number(haHigh.toFixed(4)),
+      low: Number(haLow.toFixed(4)),
+      close: Number(haClose.toFixed(4)),
+      volume: candle.volume,
+    });
+  });
+
+  return series;
+};
+
 const derivePositions = (candles: Candle[]): PositionLifecycle[] => {
   if (candles.length < 60) return [];
   const first = Math.floor(candles.length * 0.22);
@@ -367,8 +397,10 @@ const deriveReasoningAnchors = (candles: Candle[], positions: PositionLifecycle[
 export type ChartCanvasHandle = {
   setTimeframe: (value: string) => void;
   setInstrument: (value: string) => void;
+  setCandleType: (value: ChartCandleType) => void;
   currentTimeframe: string;
   currentInstrument: string;
+  currentCandleType: ChartCandleType;
   setIndicator: (indicator: ChartIndicator, enabled: boolean) => void;
   currentIndicators: ChartIndicator[];
 };
@@ -378,12 +410,21 @@ export const ChartCanvas = forwardRef<
   {
     initialTimeframe?: string;
     initialInstrument?: string;
+    initialCandleType?: ChartCandleType;
     initialIndicators?: ChartIndicator[];
+    onCandleTypeChange?: (value: ChartCandleType) => void;
     onIndicatorsChange?: (active: ChartIndicator[]) => void;
   }
 >(
   function ChartCanvas(
-    { initialTimeframe = DEFAULT_TIMEFRAME, initialInstrument = DEFAULT_SYMBOL, initialIndicators, onIndicatorsChange },
+    {
+      initialTimeframe = DEFAULT_TIMEFRAME,
+      initialInstrument = DEFAULT_SYMBOL,
+      initialCandleType = "candles",
+      initialIndicators,
+      onCandleTypeChange,
+      onIndicatorsChange,
+    },
     ref
   ) {
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -400,9 +441,14 @@ export const ChartCanvas = forwardRef<
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [instrument, setInstrument] = useState<string>(initialInstrument);
     const [timeframe, setTimeframe] = useState<string>(initialTimeframe);
+    const [candleType, setCandleType] = useState<ChartCandleType>(initialCandleType);
     const seed = useMemo(() => hashSeed(`${instrument}-${timeframe}`), [instrument, timeframe]);
     const rng = useMemo(() => createRng(seed), [seed]);
     const [candles, setCandles] = useState<Candle[]>(() => buildHistory(instrument, timeframe, WINDOW_SIZE, rng));
+    const visualCandles = useMemo<Candle[]>(
+      () => (candleType === "heikin-ashi" ? buildHeikinAshi(candles) : candles),
+      [candleType, candles]
+    );
     const initialHistoryRef = useRef<Candle[]>(candles);
     const [toggleEMA, setToggleEMA] = useState<boolean>(() => initialIndicators?.includes("ema") ?? false);
     const [toggleSMA, setToggleSMA] = useState(false);
@@ -446,17 +492,23 @@ export const ChartCanvas = forwardRef<
       () => ({
         setTimeframe: (value: string) => setTimeframe(value),
         setInstrument: (value: string) => setInstrument(value),
+        setCandleType: (value: ChartCandleType) => setCandleType(value),
         setIndicator: (indicator, enabled) => setIndicatorState(indicator, enabled),
         currentTimeframe: timeframe,
         currentInstrument: instrument,
+        currentCandleType: candleType,
         currentIndicators: indicatorState,
       }),
-      [indicatorState, instrument, timeframe]
+      [candleType, indicatorState, instrument, timeframe]
     );
 
     useEffect(() => {
       onIndicatorsChange?.(indicatorState);
     }, [indicatorState, onIndicatorsChange]);
+
+    useEffect(() => {
+      onCandleTypeChange?.(candleType);
+    }, [candleType, onCandleTypeChange]);
 
     useEffect(() => {
       const container = containerRef.current;
@@ -535,7 +587,8 @@ export const ChartCanvas = forwardRef<
       );
     };
 
-    syncData(initialHistoryRef.current);
+    const initialView = initialCandleType === "heikin-ashi" ? buildHeikinAshi(initialHistoryRef.current) : initialHistoryRef.current;
+    syncData(initialView);
 
     const handleResize = () => {
       if (!container) return;
@@ -568,7 +621,7 @@ export const ChartCanvas = forwardRef<
         overlayStore.clear();
         lifecycleStore.clear();
       };
-    }, []);
+    }, [initialCandleType]);
 
   useEffect(() => {
     const container = indicatorPaneRef.current;
@@ -622,21 +675,21 @@ export const ChartCanvas = forwardRef<
   }, []);
 
   useEffect(() => {
-    if (!candles.length) return;
+    if (!visualCandles.length) return;
     const candleSeries = candleSeriesRef.current;
     const volumeSeries = volumeSeriesRef.current;
     if (!candleSeries || !volumeSeries) return;
 
-    const candleData = candles.map((candle) => ({ ...candle, time: candle.time as Time }));
+    const candleData = visualCandles.map((candle) => ({ ...candle, time: candle.time as Time }));
     candleSeries.setData(candleData);
     volumeSeries.setData(
-      candles.map((candle) => ({
+      visualCandles.map((candle) => ({
         time: candle.time as Time,
         value: candle.volume,
         color: candle.close >= candle.open ? palette.volumeUp : palette.volumeDown,
       }))
     );
-  }, [candles]);
+  }, [visualCandles]);
 
   const ensureSeries = <T extends ISeriesApi<keyof SeriesOptionsMap>>(store: Map<string, T>, id: string, create: () => T) => {
     if (store.has(id)) return store.get(id) as T;
@@ -786,16 +839,16 @@ export const ChartCanvas = forwardRef<
   }, [reasoningAnchors]);
 
   useEffect(() => {
-    if (!candles.length) return;
+    if (!visualCandles.length) return;
     const priceChart = chartRef.current;
     if (!priceChart) return;
 
-    const timeIndex = buildTimeIndex(candles);
+    const timeIndex = buildTimeIndex(visualCandles);
 
-    const sma = computeSMA(candles, 20, timeIndex);
-    const ema = computeEMA(candles, 21, timeIndex);
-    const vwap = computeVWAP(candles, timeIndex);
-    const bb = computeBollinger(candles, 20, 2, timeIndex);
+    const sma = computeSMA(visualCandles, 20, timeIndex);
+    const ema = computeEMA(visualCandles, 21, timeIndex);
+    const vwap = computeVWAP(visualCandles, timeIndex);
+    const bb = computeBollinger(visualCandles, 20, 2, timeIndex);
 
     const applyLine = (
       id: string,
@@ -862,15 +915,15 @@ export const ChartCanvas = forwardRef<
       lower.setData(bb.map((row) => ({ time: row.time, value: row.lower })));
       mid.setData(bb.map((row) => ({ time: row.time, value: row.middle ?? (row.upper + row.lower) / 2 })));
     }
-  }, [candles, toggleBB, toggleEMA, toggleSMA, toggleVWAP]);
+  }, [toggleBB, toggleEMA, toggleSMA, toggleVWAP, visualCandles]);
 
   useEffect(() => {
-    if (!candles.length) return;
+    if (!visualCandles.length) return;
     const chart = oscillatorChartRef.current;
     if (!chart) return;
 
-    const timeIndex = buildTimeIndex(candles);
-    const rsi = computeRSI(candles, 14, timeIndex);
+    const timeIndex = buildTimeIndex(visualCandles);
+    const rsi = computeRSI(visualCandles, 14, timeIndex);
 
     if (!toggleRSI || !rsi.length) {
       removeSeries(chart, oscillatorSeriesRef.current, "rsi");
@@ -892,7 +945,7 @@ export const ChartCanvas = forwardRef<
       scaleMargins: { top: 0.12, bottom: 0.12 },
     });
     chart.timeScale().fitContent();
-  }, [candles, toggleRSI]);
+  }, [toggleRSI, visualCandles]);
 
   useEffect(() => {
     const priceChart = chartRef.current;
