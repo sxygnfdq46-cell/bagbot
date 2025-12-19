@@ -7,25 +7,46 @@ type IconRailProps = {
   brainActive: boolean;
   onOpenTrades: () => void;
   tradesActive: boolean;
+  onOpenOrderbook: () => void;
+  orderbookActive: boolean;
 };
 
 const glyphs = [IconSpark, IconWave, IconStack, IconPulse, IconGrid, IconCode];
 
-export default function IconRail({ onOpenSignals, signalsActive, onOpenBrain, brainActive, onOpenTrades, tradesActive }: IconRailProps) {
+export default function IconRail({ onOpenSignals, signalsActive, onOpenBrain, brainActive, onOpenTrades, tradesActive, onOpenOrderbook, orderbookActive }: IconRailProps) {
   return (
     <aside
       className="flex w-14 flex-col items-center gap-3 border-r border-white/5 bg-slate-900/40 px-2 py-4 text-slate-200/70"
       aria-label="Terminal tool rail"
     >
       {glyphs.map((Glyph, idx) => {
-        const interactive = idx === 0 || idx === 1 || idx === 2;
+        const interactive = idx === 0 || idx === 1 || idx === 2 || idx === 3;
         if (interactive) {
           const isSignals = idx === 0;
           const isBrain = idx === 1;
           const isTrades = idx === 2;
-          const active = isSignals ? signalsActive : isBrain ? brainActive : tradesActive;
-          const handleClick = isSignals ? onOpenSignals : isBrain ? onOpenBrain : onOpenTrades;
-          const label = isSignals ? "Open Signals panel" : isBrain ? "Open Brain panel" : "Open Trades panel";
+          const isOrderbook = idx === 3;
+          const active = isSignals
+            ? signalsActive
+            : isBrain
+            ? brainActive
+            : isTrades
+            ? tradesActive
+            : orderbookActive;
+          const handleClick = isSignals
+            ? onOpenSignals
+            : isBrain
+            ? onOpenBrain
+            : isTrades
+            ? onOpenTrades
+            : onOpenOrderbook;
+          const label = isSignals
+            ? "Open Signals panel"
+            : isBrain
+            ? "Open Brain panel"
+            : isTrades
+            ? "Open Trades panel"
+            : "Open Order Book panel";
           return (
             <button
               key={idx}
