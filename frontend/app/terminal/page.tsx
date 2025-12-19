@@ -1,6 +1,6 @@
 "use client";
 
-import ChartCanvas from "@/components/charts/chart-canvas";
+import ChartCanvas from "@/app/charts/page";
 import TerminalShell from "@/components/terminal/terminal-shell";
 
 export default function TerminalPage() {
