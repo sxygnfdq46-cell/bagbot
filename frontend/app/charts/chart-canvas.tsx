@@ -59,6 +59,8 @@ type ReasoningAnchor = {
   confidence: "steady" | "cautious" | "measured";
 };
 
+export type ChartIndicator = "ema" | "vwap" | "rsi";
+
 const TIMEFRAME_SECONDS: Record<string, number> = {
   "1m": 60,
   "5m": 5 * 60,
@@ -367,10 +369,23 @@ export type ChartCanvasHandle = {
   setInstrument: (value: string) => void;
   currentTimeframe: string;
   currentInstrument: string;
+  setIndicator: (indicator: ChartIndicator, enabled: boolean) => void;
+  currentIndicators: ChartIndicator[];
 };
 
-export const ChartCanvas = forwardRef<ChartCanvasHandle, { initialTimeframe?: string; initialInstrument?: string }>(
-  function ChartCanvas({ initialTimeframe = DEFAULT_TIMEFRAME, initialInstrument = DEFAULT_SYMBOL }, ref) {
+export const ChartCanvas = forwardRef<
+  ChartCanvasHandle,
+  {
+    initialTimeframe?: string;
+    initialInstrument?: string;
+    initialIndicators?: ChartIndicator[];
+    onIndicatorsChange?: (active: ChartIndicator[]) => void;
+  }
+>(
+  function ChartCanvas(
+    { initialTimeframe = DEFAULT_TIMEFRAME, initialInstrument = DEFAULT_SYMBOL, initialIndicators, onIndicatorsChange },
+    ref
+  ) {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const indicatorPaneRef = useRef<HTMLDivElement | null>(null);
     const chartRef = useRef<IChartApi | null>(null);
@@ -389,13 +404,20 @@ export const ChartCanvas = forwardRef<ChartCanvasHandle, { initialTimeframe?: st
     const rng = useMemo(() => createRng(seed), [seed]);
     const [candles, setCandles] = useState<Candle[]>(() => buildHistory(instrument, timeframe, WINDOW_SIZE, rng));
     const initialHistoryRef = useRef<Candle[]>(candles);
-    const [toggleEMA, setToggleEMA] = useState(false);
+    const [toggleEMA, setToggleEMA] = useState<boolean>(() => initialIndicators?.includes("ema") ?? false);
     const [toggleSMA, setToggleSMA] = useState(false);
-    const [toggleVWAP, setToggleVWAP] = useState(false);
+    const [toggleVWAP, setToggleVWAP] = useState<boolean>(() => initialIndicators?.includes("vwap") ?? false);
     const [toggleBB, setToggleBB] = useState(false);
-    const [toggleRSI, setToggleRSI] = useState(false);
+    const [toggleRSI, setToggleRSI] = useState<boolean>(() => initialIndicators?.includes("rsi") ?? false);
     const positions = useMemo(() => derivePositions(candles), [candles]);
     const reasoningAnchors = useMemo(() => deriveReasoningAnchors(candles, positions), [candles, positions]);
+    const indicatorState = useMemo<ChartIndicator[]>(() => {
+      const active: ChartIndicator[] = [];
+      if (toggleEMA) active.push("ema");
+      if (toggleVWAP) active.push("vwap");
+      if (toggleRSI) active.push("rsi");
+      return active;
+    }, [toggleEMA, toggleRSI, toggleVWAP]);
 
     useEffect(() => {
       const history = buildHistory(instrument, timeframe, WINDOW_SIZE, rng);
@@ -403,16 +425,38 @@ export const ChartCanvas = forwardRef<ChartCanvasHandle, { initialTimeframe?: st
       setCandles(history);
     }, [instrument, timeframe, rng]);
 
+    const setIndicatorState = (indicator: ChartIndicator, enabled: boolean) => {
+      switch (indicator) {
+        case "ema":
+          setToggleEMA(enabled);
+          break;
+        case "vwap":
+          setToggleVWAP(enabled);
+          break;
+        case "rsi":
+          setToggleRSI(enabled);
+          break;
+        default:
+          break;
+      }
+    };
+
     useImperativeHandle(
       ref,
       () => ({
         setTimeframe: (value: string) => setTimeframe(value),
         setInstrument: (value: string) => setInstrument(value),
+        setIndicator: (indicator, enabled) => setIndicatorState(indicator, enabled),
         currentTimeframe: timeframe,
         currentInstrument: instrument,
+        currentIndicators: indicatorState,
       }),
-      [timeframe, instrument]
+      [indicatorState, instrument, timeframe]
     );
+
+    useEffect(() => {
+      onIndicatorsChange?.(indicatorState);
+    }, [indicatorState, onIndicatorsChange]);
 
     useEffect(() => {
       const container = containerRef.current;
@@ -943,16 +987,16 @@ export const ChartCanvas = forwardRef<ChartCanvasHandle, { initialTimeframe?: st
             <button className="pill" onClick={() => setToggleSMA((v) => !v)} aria-pressed={toggleSMA}>
               SMA
             </button>
-            <button className="pill" onClick={() => setToggleEMA((v) => !v)} aria-pressed={toggleEMA}>
+            <button className="pill" onClick={() => setIndicatorState("ema", !toggleEMA)} aria-pressed={toggleEMA}>
               EMA
             </button>
-            <button className="pill" onClick={() => setToggleVWAP((v) => !v)} aria-pressed={toggleVWAP}>
+            <button className="pill" onClick={() => setIndicatorState("vwap", !toggleVWAP)} aria-pressed={toggleVWAP}>
               VWAP
             </button>
             <button className="pill" onClick={() => setToggleBB((v) => !v)} aria-pressed={toggleBB}>
               Bollinger
             </button>
-            <button className="pill" onClick={() => setToggleRSI((v) => !v)} aria-pressed={toggleRSI}>
+            <button className="pill" onClick={() => setIndicatorState("rsi", !toggleRSI)} aria-pressed={toggleRSI}>
               RSI
             </button>
           </div>

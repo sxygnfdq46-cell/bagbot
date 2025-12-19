@@ -11,6 +11,8 @@ import OrderbookPanel from "@/components/terminal/orderbook-panel";
 import InstrumentDisplay from "@/components/terminal/instrument-display";
 import TimeframeSelector from "@/components/terminal/timeframe-selector";
 import InstrumentSelector from "@/components/terminal/instrument-selector";
+import IndicatorSelector from "@/components/terminal/indicator-selector";
+import type { ChartIndicator } from "@/app/charts/chart-canvas";
 
 type TerminalShellProps = {
   children: ReactNode;
@@ -20,6 +22,9 @@ type TerminalShellProps = {
   instrument?: string;
   onInstrumentChange?: (value: string) => void;
   instrumentOptions?: string[];
+  indicators?: ChartIndicator[];
+  onIndicatorToggle?: (indicator: ChartIndicator) => void;
+  indicatorOptions?: ChartIndicator[];
 };
 
 export default function TerminalShell({
@@ -30,6 +35,9 @@ export default function TerminalShell({
   instrument = "BTC-USD",
   onInstrumentChange,
   instrumentOptions,
+  indicators = [],
+  onIndicatorToggle,
+  indicatorOptions,
 }: TerminalShellProps) {
   const [showSignals, setShowSignals] = useState(false);
   const [showBrain, setShowBrain] = useState(false);
@@ -58,6 +66,9 @@ export default function TerminalShell({
           ) : null}
           {onTimeframeChange ? (
             <TimeframeSelector timeframe={timeframe} onSelect={onTimeframeChange} options={timeframeOptions} />
+          ) : null}
+          {onIndicatorToggle ? (
+            <IndicatorSelector active={indicators} onToggle={onIndicatorToggle} options={indicatorOptions} />
           ) : null}
         </div>
       </div>
