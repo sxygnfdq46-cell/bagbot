@@ -9,6 +9,7 @@ import ChartCanvas, {
   type ChartSnapshot,
   type ChartProjection,
   type ChartCompare,
+  type ChartReasoningVisibility,
 } from "@/app/charts/chart-canvas";
 import TerminalShell from "@/components/terminal/terminal-shell";
 
@@ -27,6 +28,7 @@ export default function TerminalPage() {
   const [tool, setTool] = useState<ChartTool>("off");
   const [projection, setProjection] = useState<ChartProjection>("off");
   const [compare, setCompare] = useState<ChartCompare>("off");
+  const [reasoningVisibility, setReasoningVisibility] = useState<ChartReasoningVisibility>("on");
   const [indicators, setIndicators] = useState<ChartIndicator[]>([]);
   const [searchOpen, setSearchOpen] = useState<boolean>(false);
   const chartRef = useRef<ChartCanvasHandle | null>(null);
@@ -86,6 +88,15 @@ export default function TerminalPage() {
     setCompare(value);
   };
 
+  const handleReasoningVisibilityChange = (value: "on" | "off") => {
+    setReasoningVisibility(value);
+    chartRef.current?.setReasoningVisibility(value);
+  };
+
+  const syncReasoningVisibility = (value: "on" | "off") => {
+    setReasoningVisibility(value);
+  };
+
   const openSearch = () => setSearchOpen(true);
   const closeSearch = () => setSearchOpen(false);
 
@@ -132,6 +143,8 @@ export default function TerminalPage() {
       onSearchClose={closeSearch}
       onSearchSelect={handleSearchSelect}
       searchOptions={INSTRUMENT_OPTIONS}
+      reasoningVisibility={reasoningVisibility}
+      onReasoningVisibilityChange={handleReasoningVisibilityChange}
       onSnapshotSave={handleSnapshotSave}
       onSnapshotRestore={handleSnapshotRestore}
       indicators={indicators}
@@ -145,10 +158,12 @@ export default function TerminalPage() {
         initialTool={tool}
         initialProjection={projection}
         initialCompare={compare}
+        initialReasoningVisibility={reasoningVisibility}
         onIndicatorsChange={handleIndicatorsChange}
         onCandleTypeChange={syncCandleType}
         onToolChange={syncTool}
         onProjectionChange={syncProjection}
+        onReasoningVisibilityChange={syncReasoningVisibility}
         onCompareChange={syncCompare}
       />
     </TerminalShell>

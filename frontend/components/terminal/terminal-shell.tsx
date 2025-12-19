@@ -24,6 +24,7 @@ import CompareSelector from "@/components/terminal/compare-selector";
 import type { ChartCompare } from "@/app/charts/chart-canvas";
 import SearchOverlay from "@/components/terminal/search-overlay";
 import Tag from "@/components/ui/tag";
+import type { ChartReasoningVisibility } from "@/app/charts/chart-canvas";
 
 type TerminalShellProps = {
   children: ReactNode;
@@ -50,6 +51,8 @@ type TerminalShellProps = {
   onSearchClose?: () => void;
   onSearchSelect?: (value: string) => void;
   searchOptions?: string[];
+  reasoningVisibility?: ChartReasoningVisibility;
+  onReasoningVisibilityChange?: (value: ChartReasoningVisibility) => void;
   onSnapshotSave?: () => void;
   onSnapshotRestore?: () => void;
   indicators?: ChartIndicator[];
@@ -82,6 +85,8 @@ export default function TerminalShell({
   onSearchClose,
   onSearchSelect,
   searchOptions,
+  reasoningVisibility = "on",
+  onReasoningVisibilityChange,
   onSnapshotSave,
   onSnapshotRestore,
   indicators = [],
@@ -154,6 +159,20 @@ export default function TerminalShell({
           ) : null}
           {onCompareChange ? (
             <CompareSelector compare={compare} onSelect={onCompareChange} options={compareOptions} />
+          ) : null}
+          {onReasoningVisibilityChange ? (
+            <button
+              type="button"
+              onClick={() => onReasoningVisibilityChange(reasoningVisibility === "on" ? "off" : "on")}
+              className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${
+                reasoningVisibility === "on"
+                  ? "border-emerald-300/30 bg-emerald-500/10 text-white"
+                  : "border-white/10 bg-white/5 text-white/90 hover:border-white/25"
+              }`}
+            >
+              <Tag className="text-[11px] uppercase tracking-[0.22em]" variant="default">Reasoning</Tag>
+              <span className="text-xs uppercase tracking-[0.08em] text-slate-200/90">{reasoningVisibility === "on" ? "On" : "Off"}</span>
+            </button>
           ) : null}
           {onIndicatorToggle ? (
             <IndicatorSelector active={indicators} onToggle={onIndicatorToggle} options={indicatorOptions} />

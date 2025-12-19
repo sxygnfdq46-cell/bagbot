@@ -64,6 +64,7 @@ export type ChartCandleType = "candles" | "heikin-ashi";
 export type ChartTool = "off" | "trendline" | "horizontal";
 export type ChartProjection = "off" | "forward" | "trendline";
 export type ChartCompare = "off" | "EURUSD" | "GBPUSD" | "XAUUSD" | "NAS100" | "BTCUSD";
+export type ChartReasoningVisibility = "on" | "off";
 export type ChartSnapshot = {
   instrument: string;
   timeframe: string;
@@ -420,6 +421,7 @@ export type ChartCanvasHandle = {
   setTool: (value: ChartTool) => void;
   setProjection: (value: ChartProjection) => void;
   setCompare: (value: ChartCompare) => void;
+  setReasoningVisibility: (value: ChartReasoningVisibility) => void;
   saveSnapshot: () => ChartSnapshot | null;
   loadSnapshot: () => ChartSnapshot | null;
   currentTimeframe: string;
@@ -428,6 +430,7 @@ export type ChartCanvasHandle = {
   currentTool: ChartTool;
   currentProjection: ChartProjection;
   currentCompare: ChartCompare;
+  currentReasoningVisibility: ChartReasoningVisibility;
   setIndicator: (indicator: ChartIndicator, enabled: boolean) => void;
   currentIndicators: ChartIndicator[];
 };
@@ -441,11 +444,13 @@ export const ChartCanvas = forwardRef<
     initialTool?: ChartTool;
     initialProjection?: ChartProjection;
     initialCompare?: ChartCompare;
+    initialReasoningVisibility?: ChartReasoningVisibility;
     initialIndicators?: ChartIndicator[];
     onCandleTypeChange?: (value: ChartCandleType) => void;
     onToolChange?: (value: ChartTool) => void;
     onProjectionChange?: (value: ChartProjection) => void;
     onCompareChange?: (value: ChartCompare) => void;
+    onReasoningVisibilityChange?: (value: ChartReasoningVisibility) => void;
     onIndicatorsChange?: (active: ChartIndicator[]) => void;
   }
 >(
@@ -457,11 +462,13 @@ export const ChartCanvas = forwardRef<
       initialTool = "off",
       initialProjection = "off",
       initialCompare = "off",
+      initialReasoningVisibility = "on",
       initialIndicators,
       onCandleTypeChange,
       onToolChange,
       onProjectionChange,
       onCompareChange,
+      onReasoningVisibilityChange,
       onIndicatorsChange,
     },
     ref
@@ -496,6 +503,7 @@ export const ChartCanvas = forwardRef<
     const [activeTool, setActiveTool] = useState<ChartTool>(initialTool);
     const [projectionMode, setProjectionMode] = useState<ChartProjection>(initialProjection);
     const [compareInstrument, setCompareInstrument] = useState<ChartCompare>(initialCompare);
+    const [reasoningVisibility, setReasoningVisibility] = useState<ChartReasoningVisibility>(initialReasoningVisibility);
     const compareSeed = useMemo(() => hashSeed(`compare-${compareInstrument}-${timeframe}`), [compareInstrument, timeframe]);
     const compareRng = useMemo(() => createRng(compareSeed), [compareSeed]);
     const [compareCandles, setCompareCandles] = useState<Candle[]>([]);
@@ -590,6 +598,10 @@ export const ChartCanvas = forwardRef<
       setCompareInstrument(value);
     };
 
+    const setReasoningVisibilityState = (value: ChartReasoningVisibility) => {
+      setReasoningVisibility(value);
+    };
+
     const persistSnapshot = useCallback((snapshot: ChartSnapshot) => {
       snapshotRef.current = snapshot;
       if (typeof window !== "undefined") {
@@ -657,6 +669,7 @@ export const ChartCanvas = forwardRef<
         setTool: (value: ChartTool) => setToolState(value),
         setProjection: (value: ChartProjection) => setProjectionState(value),
         setCompare: (value: ChartCompare) => setCompareState(value),
+        setReasoningVisibility: (value: ChartReasoningVisibility) => setReasoningVisibilityState(value),
         saveSnapshot: () => saveSnapshot(),
         loadSnapshot: () => loadSnapshot(),
         setIndicator: (indicator, enabled) => setIndicatorState(indicator, enabled),
@@ -666,9 +679,10 @@ export const ChartCanvas = forwardRef<
         currentTool: activeTool,
         currentProjection: projectionMode,
         currentCompare: compareInstrument,
+        currentReasoningVisibility: reasoningVisibility,
         currentIndicators: indicatorState,
       }),
-      [activeTool, candleType, compareInstrument, indicatorState, instrument, loadSnapshot, projectionMode, saveSnapshot, timeframe]
+      [activeTool, candleType, compareInstrument, indicatorState, instrument, loadSnapshot, projectionMode, reasoningVisibility, saveSnapshot, timeframe]
     );
 
     useEffect(() => {
@@ -690,6 +704,10 @@ export const ChartCanvas = forwardRef<
     useEffect(() => {
       onCompareChange?.(compareInstrument);
     }, [compareInstrument, onCompareChange]);
+
+    useEffect(() => {
+      onReasoningVisibilityChange?.(reasoningVisibility);
+    }, [onReasoningVisibilityChange, reasoningVisibility]);
 
     useEffect(() => {
       const container = containerRef.current;
@@ -900,7 +918,7 @@ export const ChartCanvas = forwardRef<
 
     const active = new Set<string>();
 
-    if (!positions.length) {
+    if (!positions.length || reasoningVisibility === "off") {
       removeSeries(priceChart, lifecycleSeriesRef.current, "markers");
       lifecycleSeriesRef.current.forEach((_, id) => {
         if (id.startsWith("band-")) removeSeries(priceChart, lifecycleSeriesRef.current, id);
@@ -991,11 +1009,11 @@ export const ChartCanvas = forwardRef<
         removeSeries(priceChart, lifecycleSeriesRef.current, id);
       }
     });
-  }, [candles, focusedAnchorId, positions]);
+  }, [candles, focusedAnchorId, positions, reasoningVisibility]);
 
   useEffect(() => {
     const priceChart = chartRef.current;
-    if (!priceChart || !reasoningAnchors.length) {
+    if (!priceChart || !reasoningAnchors.length || reasoningVisibility === "off") {
       const existing = lifecycleSeriesRef.current.get("reasoning-markers");
       if (priceChart && existing) removeSeries(priceChart, lifecycleSeriesRef.current, "reasoning-markers");
       return;
@@ -1023,7 +1041,7 @@ export const ChartCanvas = forwardRef<
     }));
 
     markerHost.setMarkers(markers);
-  }, [activeTool, candleCount, draftPoint, priceMin, priceSpan, reasoningAnchors, timeIndexMap]);
+  }, [activeTool, candleCount, draftPoint, priceMin, priceSpan, reasoningAnchors, reasoningVisibility, timeIndexMap]);
 
   useEffect(() => {
     if (!visualCandles.length) return;
@@ -1137,7 +1155,10 @@ export const ChartCanvas = forwardRef<
   useEffect(() => {
     const priceChart = chartRef.current;
     const container = containerRef.current;
-    if (!priceChart || !container) return;
+    if (!priceChart || !container || reasoningVisibility === "off") {
+      setHoverAnchor(null);
+      return;
+    }
 
     const anchorByTime = new Map<number, ReasoningAnchor>();
     reasoningAnchors.forEach((anchor) => anchorByTime.set(anchor.time as number, anchor));
@@ -1200,7 +1221,7 @@ export const ChartCanvas = forwardRef<
       priceChart.unsubscribeCrosshairMove(handleMove);
       priceChart.unsubscribeClick(handleClick);
     };
-  }, [activeTool, candleCount, draftPoint, priceMin, priceSpan, reasoningAnchors, timeIndexMap]);
+  }, [activeTool, candleCount, draftPoint, priceMin, priceSpan, reasoningAnchors, reasoningVisibility, timeIndexMap]);
 
   useEffect(() => {
     let mounted = true;
