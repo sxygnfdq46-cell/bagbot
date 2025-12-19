@@ -8,6 +8,7 @@ import BotStatusBar from "@/components/terminal/bot-status-bar";
 import BrainPanel from "@/components/terminal/brain-panel";
 import TradesPanel from "@/components/terminal/trades-panel";
 import OrderbookPanel from "@/components/terminal/orderbook-panel";
+import InstrumentDisplay from "@/components/terminal/instrument-display";
 
 export default function TerminalShell({ children }: { children: ReactNode }) {
   const [showSignals, setShowSignals] = useState(false);
@@ -27,9 +28,11 @@ export default function TerminalShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-[calc(100vh-80px)] flex-col gap-4 p-4">
       <div
-        className="h-12 rounded-xl border border-white/5 bg-slate-900/50 backdrop-blur"
+        className="flex h-12 items-center rounded-xl border border-white/5 bg-slate-900/50 px-3 backdrop-blur"
         aria-label="Terminal top bar"
-      />
+      >
+        <InstrumentDisplay />
+      </div>
 
       <div className="flex-1 overflow-hidden rounded-2xl border border-white/5 bg-slate-900/30">
         <div className="relative flex h-full">
