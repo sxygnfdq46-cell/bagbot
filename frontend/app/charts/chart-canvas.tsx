@@ -63,6 +63,7 @@ export type ChartIndicator = "ema" | "vwap" | "rsi";
 export type ChartCandleType = "candles" | "heikin-ashi";
 export type ChartTool = "off" | "trendline" | "horizontal";
 export type ChartProjection = "off" | "forward" | "trendline";
+export type ChartCompare = "off" | "EURUSD" | "GBPUSD" | "XAUUSD" | "NAS100" | "BTCUSD";
 export type ChartSnapshot = {
   instrument: string;
   timeframe: string;
@@ -101,6 +102,7 @@ const palette = {
   overlayVWAP: "rgba(168,85,247,0.78)",
   overlayBBEdge: "rgba(148,163,184,0.7)",
   overlayBBMid: "rgba(148,163,184,0.45)",
+  overlayCompare: "rgba(148,163,184,0.65)",
   oscillator: "rgba(14,165,233,0.8)",
   crosshair: "#38bdf8",
   lifecycleLong: "rgba(34,197,94,0.35)",
@@ -417,6 +419,7 @@ export type ChartCanvasHandle = {
   setCandleType: (value: ChartCandleType) => void;
   setTool: (value: ChartTool) => void;
   setProjection: (value: ChartProjection) => void;
+  setCompare: (value: ChartCompare) => void;
   saveSnapshot: () => ChartSnapshot | null;
   loadSnapshot: () => ChartSnapshot | null;
   currentTimeframe: string;
@@ -424,6 +427,7 @@ export type ChartCanvasHandle = {
   currentCandleType: ChartCandleType;
   currentTool: ChartTool;
   currentProjection: ChartProjection;
+  currentCompare: ChartCompare;
   setIndicator: (indicator: ChartIndicator, enabled: boolean) => void;
   currentIndicators: ChartIndicator[];
 };
@@ -436,10 +440,12 @@ export const ChartCanvas = forwardRef<
     initialCandleType?: ChartCandleType;
     initialTool?: ChartTool;
     initialProjection?: ChartProjection;
+    initialCompare?: ChartCompare;
     initialIndicators?: ChartIndicator[];
     onCandleTypeChange?: (value: ChartCandleType) => void;
     onToolChange?: (value: ChartTool) => void;
     onProjectionChange?: (value: ChartProjection) => void;
+    onCompareChange?: (value: ChartCompare) => void;
     onIndicatorsChange?: (active: ChartIndicator[]) => void;
   }
 >(
@@ -450,10 +456,12 @@ export const ChartCanvas = forwardRef<
       initialCandleType = "candles",
       initialTool = "off",
       initialProjection = "off",
+      initialCompare = "off",
       initialIndicators,
       onCandleTypeChange,
       onToolChange,
       onProjectionChange,
+      onCompareChange,
       onIndicatorsChange,
     },
     ref
@@ -467,6 +475,7 @@ export const ChartCanvas = forwardRef<
     const lifecycleSeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());
     const drawingSeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());
     const projectionSeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());
+    const compareSeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());
     const snapshotRef = useRef<ChartSnapshot | null>(null);
     const oscillatorChartRef = useRef<IChartApi | null>(null);
     const oscillatorSeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());
@@ -486,6 +495,10 @@ export const ChartCanvas = forwardRef<
     const initialHistoryRef = useRef<Candle[]>(candles);
     const [activeTool, setActiveTool] = useState<ChartTool>(initialTool);
     const [projectionMode, setProjectionMode] = useState<ChartProjection>(initialProjection);
+    const [compareInstrument, setCompareInstrument] = useState<ChartCompare>(initialCompare);
+    const compareSeed = useMemo(() => hashSeed(`compare-${compareInstrument}-${timeframe}`), [compareInstrument, timeframe]);
+    const compareRng = useMemo(() => createRng(compareSeed), [compareSeed]);
+    const [compareCandles, setCompareCandles] = useState<Candle[]>([]);
     const [drawings, setDrawings] = useState<Drawing[]>([]);
     const [draftPoint, setDraftPoint] = useState<NormalizedPoint | null>(null);
     const drawingIdRef = useRef(0);
@@ -534,6 +547,20 @@ export const ChartCanvas = forwardRef<
       setCandles(history);
     }, [instrument, timeframe, rng]);
 
+    useEffect(() => {
+      setCompareInstrument("off");
+      setCompareCandles([]);
+    }, [instrument]);
+
+    useEffect(() => {
+      if (compareInstrument === "off") {
+        setCompareCandles([]);
+        return;
+      }
+      const history = buildHistory(compareInstrument, timeframe, WINDOW_SIZE, compareRng);
+      setCompareCandles(history);
+    }, [compareInstrument, timeframe, compareRng]);
+
     const setIndicatorState = (indicator: ChartIndicator, enabled: boolean) => {
       switch (indicator) {
         case "ema":
@@ -557,6 +584,10 @@ export const ChartCanvas = forwardRef<
 
     const setProjectionState = (mode: ChartProjection) => {
       setProjectionMode(mode);
+    };
+
+    const setCompareState = (value: ChartCompare) => {
+      setCompareInstrument(value);
     };
 
     const persistSnapshot = useCallback((snapshot: ChartSnapshot) => {
@@ -625,6 +656,7 @@ export const ChartCanvas = forwardRef<
         setCandleType: (value: ChartCandleType) => setCandleType(value),
         setTool: (value: ChartTool) => setToolState(value),
         setProjection: (value: ChartProjection) => setProjectionState(value),
+        setCompare: (value: ChartCompare) => setCompareState(value),
         saveSnapshot: () => saveSnapshot(),
         loadSnapshot: () => loadSnapshot(),
         setIndicator: (indicator, enabled) => setIndicatorState(indicator, enabled),
@@ -633,9 +665,10 @@ export const ChartCanvas = forwardRef<
         currentCandleType: candleType,
         currentTool: activeTool,
         currentProjection: projectionMode,
+        currentCompare: compareInstrument,
         currentIndicators: indicatorState,
       }),
-      [activeTool, candleType, indicatorState, instrument, loadSnapshot, projectionMode, saveSnapshot, timeframe]
+      [activeTool, candleType, compareInstrument, indicatorState, instrument, loadSnapshot, projectionMode, saveSnapshot, timeframe]
     );
 
     useEffect(() => {
@@ -653,6 +686,10 @@ export const ChartCanvas = forwardRef<
     useEffect(() => {
       onProjectionChange?.(projectionMode);
     }, [onProjectionChange, projectionMode]);
+
+    useEffect(() => {
+      onCompareChange?.(compareInstrument);
+    }, [compareInstrument, onCompareChange]);
 
     useEffect(() => {
       const container = containerRef.current;
@@ -755,6 +792,7 @@ export const ChartCanvas = forwardRef<
     const lifecycleStore = lifecycleSeriesRef.current;
     const drawingStore = drawingSeriesRef.current;
     const projectionStore = projectionSeriesRef.current;
+    const compareStore = compareSeriesRef.current;
 
       return () => {
         document.removeEventListener("fullscreenchange", handleFullscreenChange);
@@ -768,6 +806,7 @@ export const ChartCanvas = forwardRef<
         lifecycleStore.clear();
         drawingStore.clear();
         projectionStore.clear();
+        compareStore.clear();
       };
     }, [initialCandleType]);
 
@@ -1173,6 +1212,13 @@ export const ChartCanvas = forwardRef<
         const nextSeries = [...current, nextCandle];
         return nextSeries.slice(-WINDOW_SIZE);
       });
+
+      setCompareCandles((current) => {
+        if (!mounted || compareInstrument === "off" || !current.length) return current;
+        const nextCandle = appendNextCandle(current[current.length - 1], compareRng, timeframe);
+        const nextSeries = [...current, nextCandle];
+        return nextSeries.slice(-WINDOW_SIZE);
+      });
     };
 
     const interval = setInterval(tick, LIVE_TICK_MS);
@@ -1180,7 +1226,7 @@ export const ChartCanvas = forwardRef<
       mounted = false;
       clearInterval(interval);
     };
-  }, [rng, timeframe]);
+  }, [compareInstrument, compareRng, rng, timeframe]);
 
   useEffect(() => {
     const priceChart = chartRef.current;
@@ -1347,6 +1393,59 @@ export const ChartCanvas = forwardRef<
 
     clearProjection();
   }, [drawings, priceMin, priceSpan, projectionMode, timeframe, visualCandles]);
+
+  useEffect(() => {
+    const priceChart = chartRef.current;
+    if (!priceChart) return;
+
+    const clearCompare = () => {
+      compareSeriesRef.current.forEach((series, id) => {
+        priceChart.removeSeries(series);
+        compareSeriesRef.current.delete(id);
+      });
+    };
+
+    if (compareInstrument === "off" || !compareCandles.length || !visualCandles.length) {
+      clearCompare();
+      return;
+    }
+
+    const len = Math.min(compareCandles.length, visualCandles.length);
+    const baseSlice = visualCandles.slice(-len);
+    const overlaySlice = compareCandles.slice(-len);
+    const baseAnchor = baseSlice[0]?.close ?? 0;
+    const compareAnchor = overlaySlice[0]?.close ?? 0;
+
+    if (!baseAnchor || !compareAnchor) {
+      clearCompare();
+      return;
+    }
+
+    const data = baseSlice.map((candle, idx) => ({
+      time: candle.time as Time,
+      value: Number((baseAnchor * (overlaySlice[idx].close / compareAnchor)).toFixed(4)),
+    }));
+
+    const series = ensureSeries(compareSeriesRef.current, "compare-overlay", () =>
+      priceChart.addLineSeries({
+        color: palette.overlayCompare,
+        lineWidth: 2,
+        lineStyle: LineStyle.LargeDashed,
+        priceLineVisible: false,
+        lastValueVisible: false,
+        crosshairMarkerVisible: false,
+        autoscaleInfoProvider: () => null,
+      })
+    );
+
+    series.setData(data);
+
+    compareSeriesRef.current.forEach((_, id) => {
+      if (id !== "compare-overlay") {
+        removeSeries(priceChart, compareSeriesRef.current, id);
+      }
+    });
+  }, [compareCandles, compareInstrument, visualCandles]);
 
   const toggleFullscreen = () => {
     const host = containerRef.current?.closest("section");

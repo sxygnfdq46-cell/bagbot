@@ -20,6 +20,8 @@ import type { ChartTool } from "@/app/charts/chart-canvas";
 import SnapshotControl from "@/components/terminal/snapshot-control";
 import ProjectionSelector from "@/components/terminal/projection-selector";
 import type { ChartProjection } from "@/app/charts/chart-canvas";
+import CompareSelector from "@/components/terminal/compare-selector";
+import type { ChartCompare } from "@/app/charts/chart-canvas";
 
 type TerminalShellProps = {
   children: ReactNode;
@@ -38,6 +40,9 @@ type TerminalShellProps = {
   projection?: ChartProjection;
   onProjectionChange?: (value: ChartProjection) => void;
   projectionOptions?: ChartProjection[];
+  compare?: ChartCompare;
+  onCompareChange?: (value: ChartCompare) => void;
+  compareOptions?: ChartCompare[];
   onSnapshotSave?: () => void;
   onSnapshotRestore?: () => void;
   indicators?: ChartIndicator[];
@@ -62,6 +67,9 @@ export default function TerminalShell({
   projection = "off",
   onProjectionChange,
   projectionOptions,
+  compare = "off",
+  onCompareChange,
+  compareOptions,
   onSnapshotSave,
   onSnapshotRestore,
   indicators = [],
@@ -104,6 +112,9 @@ export default function TerminalShell({
           ) : null}
           {onProjectionChange ? (
             <ProjectionSelector projection={projection} onSelect={onProjectionChange} options={projectionOptions} />
+          ) : null}
+          {onCompareChange ? (
+            <CompareSelector compare={compare} onSelect={onCompareChange} options={compareOptions} />
           ) : null}
           {onIndicatorToggle ? (
             <IndicatorSelector active={indicators} onToggle={onIndicatorToggle} options={indicatorOptions} />
