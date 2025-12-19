@@ -62,6 +62,7 @@ type ReasoningAnchor = {
 export type ChartIndicator = "ema" | "vwap" | "rsi";
 export type ChartCandleType = "candles" | "heikin-ashi";
 export type ChartTool = "off" | "trendline" | "horizontal";
+export type ChartProjection = "off" | "forward" | "trendline";
 export type ChartSnapshot = {
   instrument: string;
   timeframe: string;
@@ -415,12 +416,14 @@ export type ChartCanvasHandle = {
   setInstrument: (value: string) => void;
   setCandleType: (value: ChartCandleType) => void;
   setTool: (value: ChartTool) => void;
+  setProjection: (value: ChartProjection) => void;
   saveSnapshot: () => ChartSnapshot | null;
   loadSnapshot: () => ChartSnapshot | null;
   currentTimeframe: string;
   currentInstrument: string;
   currentCandleType: ChartCandleType;
   currentTool: ChartTool;
+  currentProjection: ChartProjection;
   setIndicator: (indicator: ChartIndicator, enabled: boolean) => void;
   currentIndicators: ChartIndicator[];
 };
@@ -432,9 +435,11 @@ export const ChartCanvas = forwardRef<
     initialInstrument?: string;
     initialCandleType?: ChartCandleType;
     initialTool?: ChartTool;
+    initialProjection?: ChartProjection;
     initialIndicators?: ChartIndicator[];
     onCandleTypeChange?: (value: ChartCandleType) => void;
     onToolChange?: (value: ChartTool) => void;
+    onProjectionChange?: (value: ChartProjection) => void;
     onIndicatorsChange?: (active: ChartIndicator[]) => void;
   }
 >(
@@ -444,9 +449,11 @@ export const ChartCanvas = forwardRef<
       initialInstrument = DEFAULT_SYMBOL,
       initialCandleType = "candles",
       initialTool = "off",
+      initialProjection = "off",
       initialIndicators,
       onCandleTypeChange,
       onToolChange,
+      onProjectionChange,
       onIndicatorsChange,
     },
     ref
@@ -459,6 +466,7 @@ export const ChartCanvas = forwardRef<
     const overlaySeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());
     const lifecycleSeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());
     const drawingSeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());
+    const projectionSeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());
     const snapshotRef = useRef<ChartSnapshot | null>(null);
     const oscillatorChartRef = useRef<IChartApi | null>(null);
     const oscillatorSeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());
@@ -477,6 +485,7 @@ export const ChartCanvas = forwardRef<
     );
     const initialHistoryRef = useRef<Candle[]>(candles);
     const [activeTool, setActiveTool] = useState<ChartTool>(initialTool);
+    const [projectionMode, setProjectionMode] = useState<ChartProjection>(initialProjection);
     const [drawings, setDrawings] = useState<Drawing[]>([]);
     const [draftPoint, setDraftPoint] = useState<NormalizedPoint | null>(null);
     const drawingIdRef = useRef(0);
@@ -546,6 +555,10 @@ export const ChartCanvas = forwardRef<
       setDraftPoint(null);
     };
 
+    const setProjectionState = (mode: ChartProjection) => {
+      setProjectionMode(mode);
+    };
+
     const persistSnapshot = useCallback((snapshot: ChartSnapshot) => {
       snapshotRef.current = snapshot;
       if (typeof window !== "undefined") {
@@ -611,6 +624,7 @@ export const ChartCanvas = forwardRef<
         setInstrument: (value: string) => setInstrument(value),
         setCandleType: (value: ChartCandleType) => setCandleType(value),
         setTool: (value: ChartTool) => setToolState(value),
+        setProjection: (value: ChartProjection) => setProjectionState(value),
         saveSnapshot: () => saveSnapshot(),
         loadSnapshot: () => loadSnapshot(),
         setIndicator: (indicator, enabled) => setIndicatorState(indicator, enabled),
@@ -618,9 +632,10 @@ export const ChartCanvas = forwardRef<
         currentInstrument: instrument,
         currentCandleType: candleType,
         currentTool: activeTool,
+        currentProjection: projectionMode,
         currentIndicators: indicatorState,
       }),
-      [activeTool, candleType, indicatorState, instrument, loadSnapshot, saveSnapshot, timeframe]
+      [activeTool, candleType, indicatorState, instrument, loadSnapshot, projectionMode, saveSnapshot, timeframe]
     );
 
     useEffect(() => {
@@ -634,6 +649,10 @@ export const ChartCanvas = forwardRef<
     useEffect(() => {
       onToolChange?.(activeTool);
     }, [activeTool, onToolChange]);
+
+    useEffect(() => {
+      onProjectionChange?.(projectionMode);
+    }, [onProjectionChange, projectionMode]);
 
     useEffect(() => {
       const container = containerRef.current;
@@ -735,6 +754,7 @@ export const ChartCanvas = forwardRef<
     const overlayStore = overlaySeriesRef.current;
     const lifecycleStore = lifecycleSeriesRef.current;
     const drawingStore = drawingSeriesRef.current;
+    const projectionStore = projectionSeriesRef.current;
 
       return () => {
         document.removeEventListener("fullscreenchange", handleFullscreenChange);
@@ -747,6 +767,7 @@ export const ChartCanvas = forwardRef<
         overlayStore.clear();
         lifecycleStore.clear();
         drawingStore.clear();
+        projectionStore.clear();
       };
     }, [initialCandleType]);
 
@@ -1220,6 +1241,112 @@ export const ChartCanvas = forwardRef<
       }
     });
   }, [drawings, priceMin, priceSpan, visualCandles]);
+
+  useEffect(() => {
+    const priceChart = chartRef.current;
+    if (!priceChart || !visualCandles.length) return;
+
+    const spacing = TIMEFRAME_SECONDS[timeframe] ?? TIMEFRAME_SECONDS[DEFAULT_TIMEFRAME];
+    const last = visualCandles[visualCandles.length - 1];
+    const secondLast = visualCandles[visualCandles.length - 2] ?? last;
+    const projectionStore = projectionSeriesRef.current;
+
+    const forwardId = "projection-forward";
+    const trendId = "projection-trend";
+
+    const clearProjection = () => {
+      projectionStore.forEach((series, id) => {
+        priceChart.removeSeries(series);
+        projectionStore.delete(id);
+      });
+    };
+
+    if (projectionMode === "off") {
+      clearProjection();
+      return;
+    }
+
+    const ensureProjectionSeries = (id: string, color: string) =>
+      ensureSeries(projectionStore, id, () =>
+        priceChart.addLineSeries({
+          color,
+          lineWidth: 2,
+          lineStyle: LineStyle.LargeDashed,
+          priceLineVisible: false,
+          lastValueVisible: false,
+          crosshairMarkerVisible: false,
+        })
+      );
+
+    const horizonSteps = 16;
+    const horizon = spacing * horizonSteps;
+    const baseTime = last.time as Time;
+
+    if (projectionMode === "forward") {
+      const slope = last.close - secondLast.close;
+      const projected = last.close + slope * horizonSteps * 0.25;
+      const series = ensureProjectionSeries(forwardId, "rgba(59,130,246,0.65)");
+      series.setData([
+        { time: baseTime, value: last.close },
+        { time: (last.time + horizon) as Time, value: projected },
+      ]);
+      projectionStore.forEach((_, id) => {
+        if (id !== forwardId) {
+          const extra = projectionStore.get(id);
+          if (extra) {
+            priceChart.removeSeries(extra);
+            projectionStore.delete(id);
+          }
+        }
+      });
+      return;
+    }
+
+    if (projectionMode === "trendline") {
+      const trendDrawings = drawings.filter((d) => d.type === "trendline") as Extract<Drawing, { type: "trendline" }>[];
+      const latest = trendDrawings[trendDrawings.length - 1];
+      if (!latest) {
+        clearProjection();
+        return;
+      }
+
+      const len = visualCandles.length;
+      const startIdx = clamp(Math.round(latest.start.x * (len - 1)), 0, len - 1);
+      const endIdx = clamp(Math.round(latest.end.x * (len - 1)), 0, len - 1);
+      const startTime = visualCandles[startIdx]?.time as Time;
+      const endTime = visualCandles[endIdx]?.time as Time;
+      if (!startTime || !endTime) {
+        clearProjection();
+        return;
+      }
+
+      const startPrice = priceMin + latest.start.y * priceSpan;
+      const endPrice = priceMin + latest.end.y * priceSpan;
+      const timeDelta = Math.max(1, (endTime as number) - (startTime as number));
+      const slope = (endPrice - startPrice) / timeDelta;
+      const projectedTime = (last.time + horizon) as Time;
+      const projectedPrice = endPrice + slope * ((projectedTime as number) - (endTime as number));
+
+      const series = ensureProjectionSeries(trendId, "rgba(94,234,212,0.7)");
+      series.setData([
+        { time: endTime, value: endPrice },
+        { time: projectedTime, value: projectedPrice },
+      ]);
+
+      projectionStore.forEach((_, id) => {
+        if (id !== trendId) {
+          const extra = projectionStore.get(id);
+          if (extra) {
+            priceChart.removeSeries(extra);
+            projectionStore.delete(id);
+          }
+        }
+      });
+      return;
+    }
+
+    clearProjection();
+  }, [drawings, priceMin, priceSpan, projectionMode, timeframe, visualCandles]);
 
   const toggleFullscreen = () => {
     const host = containerRef.current?.closest("section");

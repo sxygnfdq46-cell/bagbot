@@ -18,6 +18,8 @@ import type { ChartCandleType } from "@/app/charts/chart-canvas";
 import ToolsSelector from "@/components/terminal/tools-selector";
 import type { ChartTool } from "@/app/charts/chart-canvas";
 import SnapshotControl from "@/components/terminal/snapshot-control";
+import ProjectionSelector from "@/components/terminal/projection-selector";
+import type { ChartProjection } from "@/app/charts/chart-canvas";
 
 type TerminalShellProps = {
   children: ReactNode;
@@ -33,6 +35,9 @@ type TerminalShellProps = {
   tool?: ChartTool;
   onToolChange?: (value: ChartTool) => void;
   toolOptions?: ChartTool[];
+  projection?: ChartProjection;
+  onProjectionChange?: (value: ChartProjection) => void;
+  projectionOptions?: ChartProjection[];
   onSnapshotSave?: () => void;
   onSnapshotRestore?: () => void;
   indicators?: ChartIndicator[];
@@ -54,6 +59,9 @@ export default function TerminalShell({
   tool = "off",
   onToolChange,
   toolOptions,
+  projection = "off",
+  onProjectionChange,
+  projectionOptions,
   onSnapshotSave,
   onSnapshotRestore,
   indicators = [],
@@ -93,6 +101,9 @@ export default function TerminalShell({
           ) : null}
           {onToolChange ? (
             <ToolsSelector tool={tool} onSelect={onToolChange} options={toolOptions} />
+          ) : null}
+          {onProjectionChange ? (
+            <ProjectionSelector projection={projection} onSelect={onProjectionChange} options={projectionOptions} />
           ) : null}
           {onIndicatorToggle ? (
             <IndicatorSelector active={indicators} onToggle={onIndicatorToggle} options={indicatorOptions} />

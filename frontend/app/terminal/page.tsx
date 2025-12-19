@@ -1,7 +1,14 @@
 "use client";
 
 import { useRef, useState } from "react";
-import ChartCanvas, { type ChartCanvasHandle, type ChartIndicator, type ChartCandleType, type ChartTool, type ChartSnapshot } from "@/app/charts/chart-canvas";
+import ChartCanvas, {
+  type ChartCanvasHandle,
+  type ChartIndicator,
+  type ChartCandleType,
+  type ChartTool,
+  type ChartSnapshot,
+  type ChartProjection,
+} from "@/app/charts/chart-canvas";
 import TerminalShell from "@/components/terminal/terminal-shell";
 
 const TIMEFRAME_OPTIONS = ["15m", "1h", "4h", "1d"];
@@ -9,12 +16,14 @@ const INSTRUMENT_OPTIONS = ["EURUSD", "GBPUSD", "XAUUSD", "NAS100", "BTCUSD"];
 const INDICATOR_OPTIONS: ChartIndicator[] = ["rsi", "ema", "vwap"];
 const CANDLE_TYPE_OPTIONS: ChartCandleType[] = ["candles", "heikin-ashi"];
 const TOOL_OPTIONS: ChartTool[] = ["off", "trendline", "horizontal"];
+const PROJECTION_OPTIONS: ChartProjection[] = ["off", "forward", "trendline"];
 
 export default function TerminalPage() {
   const [timeframe, setTimeframe] = useState<string>("1h");
   const [instrument, setInstrument] = useState<string>("EURUSD");
   const [candleType, setCandleType] = useState<ChartCandleType>("candles");
   const [tool, setTool] = useState<ChartTool>("off");
+  const [projection, setProjection] = useState<ChartProjection>("off");
   const [indicators, setIndicators] = useState<ChartIndicator[]>([]);
   const chartRef = useRef<ChartCanvasHandle | null>(null);
 
@@ -54,6 +63,14 @@ export default function TerminalPage() {
     setTool(value);
   };
 
+  const handleProjectionChange = (value: ChartProjection) => {
+    chartRef.current?.setProjection(value);
+  };
+
+  const syncProjection = (value: ChartProjection) => {
+    setProjection(value);
+  };
+
   const handleSnapshotSave = () => {
     chartRef.current?.saveSnapshot();
   };
@@ -81,6 +98,9 @@ export default function TerminalPage() {
       tool={tool}
       onToolChange={handleToolChange}
       toolOptions={TOOL_OPTIONS}
+      projection={projection}
+      onProjectionChange={handleProjectionChange}
+      projectionOptions={PROJECTION_OPTIONS}
       onSnapshotSave={handleSnapshotSave}
       onSnapshotRestore={handleSnapshotRestore}
       indicators={indicators}
@@ -92,9 +112,11 @@ export default function TerminalPage() {
         initialInstrument={instrument}
         initialCandleType={candleType}
         initialTool={tool}
+        initialProjection={projection}
         onIndicatorsChange={handleIndicatorsChange}
         onCandleTypeChange={syncCandleType}
         onToolChange={syncTool}
+        onProjectionChange={syncProjection}
       />
     </TerminalShell>
   );
