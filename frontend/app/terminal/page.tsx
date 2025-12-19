@@ -1,18 +1,20 @@
 "use client";
 
 import { useRef, useState } from "react";
-import ChartCanvas, { type ChartCanvasHandle, type ChartIndicator, type ChartCandleType } from "@/app/charts/chart-canvas";
+import ChartCanvas, { type ChartCanvasHandle, type ChartIndicator, type ChartCandleType, type ChartTool } from "@/app/charts/chart-canvas";
 import TerminalShell from "@/components/terminal/terminal-shell";
 
 const TIMEFRAME_OPTIONS = ["15m", "1h", "4h", "1d"];
 const INSTRUMENT_OPTIONS = ["EURUSD", "GBPUSD", "XAUUSD", "NAS100", "BTCUSD"];
 const INDICATOR_OPTIONS: ChartIndicator[] = ["rsi", "ema", "vwap"];
 const CANDLE_TYPE_OPTIONS: ChartCandleType[] = ["candles", "heikin-ashi"];
+const TOOL_OPTIONS: ChartTool[] = ["off", "trendline", "horizontal"];
 
 export default function TerminalPage() {
   const [timeframe, setTimeframe] = useState<string>("1h");
   const [instrument, setInstrument] = useState<string>("EURUSD");
   const [candleType, setCandleType] = useState<ChartCandleType>("candles");
+  const [tool, setTool] = useState<ChartTool>("off");
   const [indicators, setIndicators] = useState<ChartIndicator[]>([]);
   const chartRef = useRef<ChartCanvasHandle | null>(null);
 
@@ -44,6 +46,14 @@ export default function TerminalPage() {
     setCandleType(value);
   };
 
+  const handleToolChange = (value: ChartTool) => {
+    chartRef.current?.setTool(value);
+  };
+
+  const syncTool = (value: ChartTool) => {
+    setTool(value);
+  };
+
   return (
     <TerminalShell
       timeframe={timeframe}
@@ -55,6 +65,9 @@ export default function TerminalPage() {
       candleType={candleType}
       onCandleTypeChange={handleCandleTypeChange}
       candleTypeOptions={CANDLE_TYPE_OPTIONS}
+      tool={tool}
+      onToolChange={handleToolChange}
+      toolOptions={TOOL_OPTIONS}
       indicators={indicators}
       onIndicatorToggle={handleIndicatorToggle}
       indicatorOptions={INDICATOR_OPTIONS}
@@ -63,8 +76,10 @@ export default function TerminalPage() {
         ref={chartRef}
         initialInstrument={instrument}
         initialCandleType={candleType}
+        initialTool={tool}
         onIndicatorsChange={handleIndicatorsChange}
         onCandleTypeChange={syncCandleType}
+        onToolChange={syncTool}
       />
     </TerminalShell>
   );

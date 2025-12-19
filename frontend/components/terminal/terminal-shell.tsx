@@ -15,6 +15,8 @@ import IndicatorSelector from "@/components/terminal/indicator-selector";
 import type { ChartIndicator } from "@/app/charts/chart-canvas";
 import CandleTypeSelector from "@/components/terminal/candle-type-selector";
 import type { ChartCandleType } from "@/app/charts/chart-canvas";
+import ToolsSelector from "@/components/terminal/tools-selector";
+import type { ChartTool } from "@/app/charts/chart-canvas";
 
 type TerminalShellProps = {
   children: ReactNode;
@@ -27,6 +29,9 @@ type TerminalShellProps = {
   candleType?: ChartCandleType;
   onCandleTypeChange?: (value: ChartCandleType) => void;
   candleTypeOptions?: ChartCandleType[];
+  tool?: ChartTool;
+  onToolChange?: (value: ChartTool) => void;
+  toolOptions?: ChartTool[];
   indicators?: ChartIndicator[];
   onIndicatorToggle?: (indicator: ChartIndicator) => void;
   indicatorOptions?: ChartIndicator[];
@@ -43,6 +48,9 @@ export default function TerminalShell({
   candleType = "candles",
   onCandleTypeChange,
   candleTypeOptions,
+  tool = "off",
+  onToolChange,
+  toolOptions,
   indicators = [],
   onIndicatorToggle,
   indicatorOptions,
@@ -77,6 +85,9 @@ export default function TerminalShell({
           ) : null}
           {onCandleTypeChange ? (
             <CandleTypeSelector candleType={candleType} onSelect={onCandleTypeChange} options={candleTypeOptions} />
+          ) : null}
+          {onToolChange ? (
+            <ToolsSelector tool={tool} onSelect={onToolChange} options={toolOptions} />
           ) : null}
           {onIndicatorToggle ? (
             <IndicatorSelector active={indicators} onToggle={onIndicatorToggle} options={indicatorOptions} />

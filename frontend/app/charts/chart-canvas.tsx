@@ -61,6 +61,7 @@ type ReasoningAnchor = {
 
 export type ChartIndicator = "ema" | "vwap" | "rsi";
 export type ChartCandleType = "candles" | "heikin-ashi";
+export type ChartTool = "off" | "trendline" | "horizontal";
 
 const TIMEFRAME_SECONDS: Record<string, number> = {
   "1m": 60,
@@ -310,6 +311,12 @@ const buildHeikinAshi = (candles: Candle[]): Candle[] => {
   return series;
 };
 
+type NormalizedPoint = { x: number; y: number };
+
+type Drawing =
+  | { id: string; type: "horizontal"; y: number }
+  | { id: string; type: "trendline"; start: NormalizedPoint; end: NormalizedPoint };
+
 const derivePositions = (candles: Candle[]): PositionLifecycle[] => {
   if (candles.length < 60) return [];
   const first = Math.floor(candles.length * 0.22);
@@ -398,9 +405,11 @@ export type ChartCanvasHandle = {
   setTimeframe: (value: string) => void;
   setInstrument: (value: string) => void;
   setCandleType: (value: ChartCandleType) => void;
+  setTool: (value: ChartTool) => void;
   currentTimeframe: string;
   currentInstrument: string;
   currentCandleType: ChartCandleType;
+  currentTool: ChartTool;
   setIndicator: (indicator: ChartIndicator, enabled: boolean) => void;
   currentIndicators: ChartIndicator[];
 };
@@ -411,8 +420,10 @@ export const ChartCanvas = forwardRef<
     initialTimeframe?: string;
     initialInstrument?: string;
     initialCandleType?: ChartCandleType;
+    initialTool?: ChartTool;
     initialIndicators?: ChartIndicator[];
     onCandleTypeChange?: (value: ChartCandleType) => void;
+    onToolChange?: (value: ChartTool) => void;
     onIndicatorsChange?: (active: ChartIndicator[]) => void;
   }
 >(
@@ -421,8 +432,10 @@ export const ChartCanvas = forwardRef<
       initialTimeframe = DEFAULT_TIMEFRAME,
       initialInstrument = DEFAULT_SYMBOL,
       initialCandleType = "candles",
+      initialTool = "off",
       initialIndicators,
       onCandleTypeChange,
+      onToolChange,
       onIndicatorsChange,
     },
     ref
@@ -434,6 +447,7 @@ export const ChartCanvas = forwardRef<
     const volumeSeriesRef = useRef<ReturnType<IChartApi["addHistogramSeries"]> | null>(null);
     const overlaySeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());
     const lifecycleSeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());
+    const drawingSeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());
     const oscillatorChartRef = useRef<IChartApi | null>(null);
     const oscillatorSeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());
     const [focusedAnchorId, setFocusedAnchorId] = useState<string | null>(null);
@@ -450,6 +464,10 @@ export const ChartCanvas = forwardRef<
       [candleType, candles]
     );
     const initialHistoryRef = useRef<Candle[]>(candles);
+    const [activeTool, setActiveTool] = useState<ChartTool>(initialTool);
+    const [drawings, setDrawings] = useState<Drawing[]>([]);
+    const [draftPoint, setDraftPoint] = useState<NormalizedPoint | null>(null);
+    const drawingIdRef = useRef(0);
     const [toggleEMA, setToggleEMA] = useState<boolean>(() => initialIndicators?.includes("ema") ?? false);
     const [toggleSMA, setToggleSMA] = useState(false);
     const [toggleVWAP, setToggleVWAP] = useState<boolean>(() => initialIndicators?.includes("vwap") ?? false);
@@ -464,6 +482,30 @@ export const ChartCanvas = forwardRef<
       if (toggleRSI) active.push("rsi");
       return active;
     }, [toggleEMA, toggleRSI, toggleVWAP]);
+
+    const priceRange = useMemo(() => {
+      if (!visualCandles.length) return { min: 0, max: 1, span: 1 };
+      let min = Number.POSITIVE_INFINITY;
+      let max = Number.NEGATIVE_INFINITY;
+      visualCandles.forEach((candle) => {
+        min = Math.min(min, candle.low);
+        max = Math.max(max, candle.high);
+      });
+      const span = max - min || 1;
+      return { min, max, span };
+    }, [visualCandles]);
+
+    const priceMin = priceRange.min;
+    const priceSpan = priceRange.span;
+    const candleCount = visualCandles.length;
+
+    const timeIndexMap = useMemo(() => {
+      const map = new Map<number, number>();
+      visualCandles.forEach((candle, idx) => {
+        map.set(candle.time, idx);
+      });
+      return map;
+    }, [visualCandles]);
 
     useEffect(() => {
       const history = buildHistory(instrument, timeframe, WINDOW_SIZE, rng);
@@ -487,19 +529,26 @@ export const ChartCanvas = forwardRef<
       }
     };
 
+    const setToolState = (tool: ChartTool) => {
+      setActiveTool(tool);
+      setDraftPoint(null);
+    };
+
     useImperativeHandle(
       ref,
       () => ({
         setTimeframe: (value: string) => setTimeframe(value),
         setInstrument: (value: string) => setInstrument(value),
         setCandleType: (value: ChartCandleType) => setCandleType(value),
+        setTool: (value: ChartTool) => setToolState(value),
         setIndicator: (indicator, enabled) => setIndicatorState(indicator, enabled),
         currentTimeframe: timeframe,
         currentInstrument: instrument,
         currentCandleType: candleType,
+        currentTool: activeTool,
         currentIndicators: indicatorState,
       }),
-      [candleType, indicatorState, instrument, timeframe]
+      [activeTool, candleType, indicatorState, instrument, timeframe]
     );
 
     useEffect(() => {
@@ -509,6 +558,10 @@ export const ChartCanvas = forwardRef<
     useEffect(() => {
       onCandleTypeChange?.(candleType);
     }, [candleType, onCandleTypeChange]);
+
+    useEffect(() => {
+      onToolChange?.(activeTool);
+    }, [activeTool, onToolChange]);
 
     useEffect(() => {
       const container = containerRef.current;
@@ -609,6 +662,7 @@ export const ChartCanvas = forwardRef<
 
     const overlayStore = overlaySeriesRef.current;
     const lifecycleStore = lifecycleSeriesRef.current;
+    const drawingStore = drawingSeriesRef.current;
 
       return () => {
         document.removeEventListener("fullscreenchange", handleFullscreenChange);
@@ -620,6 +674,7 @@ export const ChartCanvas = forwardRef<
         volumeSeriesRef.current = null;
         overlayStore.clear();
         lifecycleStore.clear();
+        drawingStore.clear();
       };
     }, [initialCandleType]);
 
@@ -836,7 +891,7 @@ export const ChartCanvas = forwardRef<
     }));
 
     markerHost.setMarkers(markers);
-  }, [reasoningAnchors]);
+  }, [activeTool, candleCount, draftPoint, priceMin, priceSpan, reasoningAnchors, timeIndexMap]);
 
   useEffect(() => {
     if (!visualCandles.length) return;
@@ -970,6 +1025,34 @@ export const ChartCanvas = forwardRef<
 
     const handleClick = (param: any) => {
       if (!param?.time) return;
+
+      const priceChart = chartRef.current;
+      const candleSeries = candleSeriesRef.current;
+      if (activeTool !== "off" && priceChart && candleSeries) {
+        const idx = timeIndexMap.get(param.time as number);
+        if (idx !== undefined && candleCount) {
+          const price = candleSeries.coordinateToPrice(param.point?.y ?? 0);
+          if (price !== undefined && price !== null) {
+            const normX = candleCount > 1 ? clamp(idx / (candleCount - 1), 0, 1) : 0;
+            const normY = clamp((price - priceMin) / priceSpan, 0, 1);
+
+            if (activeTool === "horizontal") {
+              const id = `draw-${drawingIdRef.current += 1}`;
+              setDrawings((current) => [...current, { id, type: "horizontal", y: normY }]);
+            } else if (activeTool === "trendline") {
+              if (!draftPoint) {
+                setDraftPoint({ x: normX, y: normY });
+              } else {
+                const id = `draw-${drawingIdRef.current += 1}`;
+                setDrawings((current) => [...current, { id, type: "trendline", start: draftPoint, end: { x: normX, y: normY } }]);
+                setDraftPoint(null);
+              }
+            }
+            return; // do not toggle anchors when drawing
+          }
+        }
+      }
+
       const anchor = anchorByTime.get(param.time as number);
       if (anchor) {
         setFocusedAnchorId(anchor.id);
@@ -985,7 +1068,7 @@ export const ChartCanvas = forwardRef<
       priceChart.unsubscribeCrosshairMove(handleMove);
       priceChart.unsubscribeClick(handleClick);
     };
-  }, [reasoningAnchors]);
+  }, [activeTool, candleCount, draftPoint, priceMin, priceSpan, reasoningAnchors, timeIndexMap]);
 
   useEffect(() => {
     let mounted = true;
@@ -1005,6 +1088,66 @@ export const ChartCanvas = forwardRef<
       clearInterval(interval);
     };
   }, [rng, timeframe]);
+
+  useEffect(() => {
+    const priceChart = chartRef.current;
+    if (!priceChart || !visualCandles.length) return;
+
+    const activeIds = new Set<string>();
+    const len = visualCandles.length;
+    const firstTime = visualCandles[0].time as Time;
+    const lastTime = visualCandles[len - 1].time as Time;
+
+    drawings.forEach((drawing) => {
+      if (drawing.type === "horizontal") {
+        const price = priceMin + drawing.y * priceSpan;
+        const series = ensureSeries(drawingSeriesRef.current, drawing.id, () =>
+          priceChart.addLineSeries({
+            color: "rgba(94,234,212,0.75)",
+            lineWidth: 2,
+            priceLineVisible: false,
+            lastValueVisible: false,
+            crosshairMarkerVisible: false,
+          })
+        );
+        series.setData([
+          { time: firstTime, value: price },
+          { time: lastTime, value: price },
+        ]);
+        activeIds.add(drawing.id);
+      } else if (drawing.type === "trendline") {
+        const startIdx = clamp(Math.round(drawing.start.x * (len - 1)), 0, len - 1);
+        const endIdx = clamp(Math.round(drawing.end.x * (len - 1)), 0, len - 1);
+        const startTime = visualCandles[startIdx]?.time as Time;
+        const endTime = visualCandles[endIdx]?.time as Time;
+        if (!startTime || !endTime) return;
+        const startPrice = priceMin + drawing.start.y * priceSpan;
+        const endPrice = priceMin + drawing.end.y * priceSpan;
+
+        const series = ensureSeries(drawingSeriesRef.current, drawing.id, () =>
+          priceChart.addLineSeries({
+            color: "rgba(94,234,212,0.85)",
+            lineWidth: 2,
+            priceLineVisible: false,
+            lastValueVisible: false,
+            crosshairMarkerVisible: false,
+          })
+        );
+        series.setData([
+          { time: startTime, value: startPrice },
+          { time: endTime, value: endPrice },
+        ]);
+        activeIds.add(drawing.id);
+      }
+    });
+
+    drawingSeriesRef.current.forEach((series, id) => {
+      if (!activeIds.has(id)) {
+        priceChart.removeSeries(series);
+        drawingSeriesRef.current.delete(id);
+      }
+    });
+  }, [drawings, priceMin, priceSpan, visualCandles]);
 
   const toggleFullscreen = () => {
     const host = containerRef.current?.closest("section");
