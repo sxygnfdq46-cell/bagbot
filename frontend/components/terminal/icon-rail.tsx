@@ -5,24 +5,27 @@ type IconRailProps = {
   signalsActive: boolean;
   onOpenBrain: () => void;
   brainActive: boolean;
+  onOpenTrades: () => void;
+  tradesActive: boolean;
 };
 
 const glyphs = [IconSpark, IconWave, IconStack, IconPulse, IconGrid, IconCode];
 
-export default function IconRail({ onOpenSignals, signalsActive, onOpenBrain, brainActive }: IconRailProps) {
+export default function IconRail({ onOpenSignals, signalsActive, onOpenBrain, brainActive, onOpenTrades, tradesActive }: IconRailProps) {
   return (
     <aside
       className="flex w-14 flex-col items-center gap-3 border-r border-white/5 bg-slate-900/40 px-2 py-4 text-slate-200/70"
       aria-label="Terminal tool rail"
     >
       {glyphs.map((Glyph, idx) => {
-        const interactive = idx === 0 || idx === 1;
+        const interactive = idx === 0 || idx === 1 || idx === 2;
         if (interactive) {
           const isSignals = idx === 0;
           const isBrain = idx === 1;
-          const active = isSignals ? signalsActive : brainActive;
-          const handleClick = isSignals ? onOpenSignals : onOpenBrain;
-          const label = isSignals ? "Open Signals panel" : "Open Brain panel";
+          const isTrades = idx === 2;
+          const active = isSignals ? signalsActive : isBrain ? brainActive : tradesActive;
+          const handleClick = isSignals ? onOpenSignals : isBrain ? onOpenBrain : onOpenTrades;
+          const label = isSignals ? "Open Signals panel" : isBrain ? "Open Brain panel" : "Open Trades panel";
           return (
             <button
               key={idx}

@@ -6,15 +6,19 @@ import IconRail from "@/components/terminal/icon-rail";
 import SignalsPanel from "@/components/terminal/signals-panel";
 import BotStatusBar from "@/components/terminal/bot-status-bar";
 import BrainPanel from "@/components/terminal/brain-panel";
+import TradesPanel from "@/components/terminal/trades-panel";
 
 export default function TerminalShell({ children }: { children: ReactNode }) {
   const [showSignals, setShowSignals] = useState(false);
   const [showBrain, setShowBrain] = useState(false);
+  const [showTrades, setShowTrades] = useState(false);
 
   const openSignals = () => setShowSignals(true);
   const closeSignals = () => setShowSignals(false);
   const openBrain = () => setShowBrain(true);
   const closeBrain = () => setShowBrain(false);
+  const openTrades = () => setShowTrades(true);
+  const closeTrades = () => setShowTrades(false);
 
   return (
     <div className="flex min-h-[calc(100vh-80px)] flex-col gap-4 p-4">
@@ -30,10 +34,13 @@ export default function TerminalShell({ children }: { children: ReactNode }) {
             signalsActive={showSignals}
             onOpenBrain={openBrain}
             brainActive={showBrain}
+            onOpenTrades={openTrades}
+            tradesActive={showTrades}
           />
           <div className="relative flex-1 overflow-hidden">{children}</div>
           <SignalsPanel open={showSignals} onClose={closeSignals} />
           <BrainPanel open={showBrain} onClose={closeBrain} />
+          <TradesPanel open={showTrades} onClose={closeTrades} />
         </div>
       </div>
 
