@@ -181,30 +181,28 @@ export default function TerminalPage() {
       className={`relative flex-1 min-h-0 overflow-hidden ${layoutMode === "single" && pane !== activePane ? "hidden" : "block"}`}
       onClick={() => setActivePane(pane)}
     >
-      <div className={`absolute inset-0 ring-inset ${activePane === pane ? "ring-1 ring-sky-200/50" : "ring-1 ring-white/6"}`}>
-        <ChartCanvas
-          ref={(node) => {
-            chartRefs.current[pane] = node;
-          }}
-          initialInstrument={instruments[pane]}
-          initialCandleType={candleTypes[pane]}
-          initialTool={tools[pane]}
-          initialProjection={projections[pane]}
-          initialCompare={compares[pane]}
-          initialReasoningVisibility={reasoningVisibility[pane]}
-          initialReplayMode={replayModes[pane]}
-          initialReplayCursor={replayCursors[pane]}
-          onIndicatorsChange={(active) => handleIndicatorsChange(pane, active)}
-          onCandleTypeChange={(value) => syncCandleType(pane, value)}
-          onToolChange={(value) => syncTool(pane, value)}
-          onProjectionChange={(value) => syncProjection(pane, value)}
-          onReasoningVisibilityChange={(value) => syncReasoningVisibility(pane, value)}
-          onCompareChange={(value) => syncCompare(pane, value)}
-          onReplayUpdate={(info) => syncReplayUpdate(pane, info)}
-          onDecisionTimelineUpdate={(events) => syncDecisionTimeline(pane, events)}
-          onDecisionActiveChange={(id) => syncDecisionActive(pane, id)}
-        />
-      </div>
+      <ChartCanvas
+        ref={(node) => {
+          chartRefs.current[pane] = node;
+        }}
+        initialInstrument={instruments[pane]}
+        initialCandleType={candleTypes[pane]}
+        initialTool={tools[pane]}
+        initialProjection={projections[pane]}
+        initialCompare={compares[pane]}
+        initialReasoningVisibility={reasoningVisibility[pane]}
+        initialReplayMode={replayModes[pane]}
+        initialReplayCursor={replayCursors[pane]}
+        onIndicatorsChange={(active) => handleIndicatorsChange(pane, active)}
+        onCandleTypeChange={(value) => syncCandleType(pane, value)}
+        onToolChange={(value) => syncTool(pane, value)}
+        onProjectionChange={(value) => syncProjection(pane, value)}
+        onReasoningVisibilityChange={(value) => syncReasoningVisibility(pane, value)}
+        onCompareChange={(value) => syncCompare(pane, value)}
+        onReplayUpdate={(info) => syncReplayUpdate(pane, info)}
+        onDecisionTimelineUpdate={(events) => syncDecisionTimeline(pane, events)}
+        onDecisionActiveChange={(id) => syncDecisionActive(pane, id)}
+      />
     </div>
   );
 
@@ -254,7 +252,7 @@ export default function TerminalPage() {
       activePaneLabel={`Pane ${activePane + 1}${layoutMode === "split" ? " • bot controls" : ""}`}
       activeInstrument={instruments[activePane]}
     >
-      <div className="chart-workspace flex h-full min-h-0 gap-3">
+      <div className="chart-workspace flex h-full min-h-0 w-full">
         {Array.from({ length: PANE_COUNT }).map((_, pane) => renderPane(pane))}
       </div>
       <style jsx global>{`
@@ -267,14 +265,20 @@ export default function TerminalPage() {
         .chart-workspace [data-card],
         .chart-workspace .rounded-2xl,
         .chart-workspace .border,
-        .chart-workspace .shadow-xl {
+        .chart-workspace .shadow-xl,
+        .chart-workspace .bg-gradient-to-b {
           border: none !important;
           background: transparent !important;
           box-shadow: none !important;
         }
 
-        .chart-workspace section {
+        .chart-workspace section,
+        .chart-workspace .space-y-3,
+        .chart-workspace .stack-gap-lg,
+        .chart-workspace .px-0,
+        .chart-workspace .py-0 {
           margin: 0 !important;
+          padding: 0 !important;
         }
       `}</style>
     </TerminalShell>

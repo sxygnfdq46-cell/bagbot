@@ -156,9 +156,9 @@ export default function TerminalShell({
   }, [onSearchClose, onSearchOpen, searchOpen]);
 
   return (
-    <div className="flex min-h-[calc(100vh-80px)] max-h-[calc(100vh-80px)] flex-col gap-2 p-4">
+    <div className="flex h-screen w-screen flex-col overflow-hidden">
       <div
-        className="flex h-12 shrink-0 items-center rounded-lg border border-slate-800/60 bg-slate-950/75 px-3"
+        className="flex h-12 shrink-0 items-center border-b border-slate-800/70 bg-slate-950/85 px-3"
         aria-label="Terminal top bar"
       >
         <div className="flex items-center gap-1.5">
@@ -251,7 +251,7 @@ export default function TerminalShell({
       </div>
 
       {replayMode === "replay" ? (
-        <div className="flex shrink-0 items-center gap-3 rounded-xl border border-amber-200/20 bg-amber-500/5 px-4 py-2 text-xs text-amber-100">
+        <div className="flex shrink-0 items-center gap-3 border-b border-amber-200/20 bg-amber-500/5 px-4 py-2 text-xs text-amber-100">
           <Tag className="text-[10px] uppercase tracking-[0.2em]" variant="default">Replay</Tag>
           <input
             type="range"
@@ -266,8 +266,8 @@ export default function TerminalShell({
         </div>
       ) : null}
 
-      <div className="flex-1 min-h-0 overflow-hidden">
-        <div className="relative flex h-full">
+      <div className="relative flex-1 overflow-hidden" aria-label="Terminal workspace">
+        <div className="pointer-events-auto absolute inset-y-0 left-0 z-10">
           <IconRail
             onOpenSignals={openSignals}
             signalsActive={showSignals}
@@ -280,27 +280,27 @@ export default function TerminalShell({
             onOpenTimeline={openDecisionTimeline}
             timelineActive={showDecisionTimeline}
           />
-          <div className="relative flex-1 overflow-hidden">{children}</div>
-          <SignalsPanel open={showSignals} onClose={closeSignals} />
-          <BrainPanel open={showBrain} onClose={closeBrain} />
-          <TradesPanel open={showTrades} onClose={closeTrades} />
-          <OrderbookPanel open={showOrderbook} onClose={closeOrderbook} />
-          <DecisionTimelinePanel
-            open={showDecisionTimeline}
-            onClose={closeDecisionTimeline}
-            events={decisionEvents}
-            activeId={activeDecisionId}
-            selectedId={selectedDecisionId}
-            onSelect={(id) => {
-              onDecisionSelect?.(id);
-              setShowDecisionTimeline(true);
-            }}
-          />
         </div>
+        {children}
+        <SignalsPanel open={showSignals} onClose={closeSignals} />
+        <BrainPanel open={showBrain} onClose={closeBrain} />
+        <TradesPanel open={showTrades} onClose={closeTrades} />
+        <OrderbookPanel open={showOrderbook} onClose={closeOrderbook} />
+        <DecisionTimelinePanel
+          open={showDecisionTimeline}
+          onClose={closeDecisionTimeline}
+          events={decisionEvents}
+          activeId={activeDecisionId}
+          selectedId={selectedDecisionId}
+          onSelect={(id) => {
+            onDecisionSelect?.(id);
+            setShowDecisionTimeline(true);
+          }}
+        />
       </div>
 
       <div
-        className="h-14 shrink-0 rounded-xl border border-slate-800/70 bg-slate-950/75"
+        className="h-14 shrink-0 border-t border-slate-800/70 bg-slate-950/85"
         aria-label="Terminal bottom bar"
       >
         <BotStatusBar
