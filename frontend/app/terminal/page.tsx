@@ -178,7 +178,7 @@ export default function TerminalPage() {
   const renderPane = (pane: number) => (
     <div
       key={`pane-${pane}`}
-      className={`relative flex-1 overflow-hidden rounded-xl border border-slate-800/80 bg-slate-950/50 ${layoutMode === "single" && pane !== activePane ? "hidden" : "block"}`}
+      className={`relative flex-1 min-h-0 overflow-hidden ${layoutMode === "single" && pane !== activePane ? "hidden" : "block"}`}
       onClick={() => setActivePane(pane)}
     >
       <div className={`absolute inset-0 ring-inset ${activePane === pane ? "ring-1 ring-sky-200/50" : "ring-1 ring-white/6"}`}>
@@ -204,9 +204,6 @@ export default function TerminalPage() {
           onDecisionTimelineUpdate={(events) => syncDecisionTimeline(pane, events)}
           onDecisionActiveChange={(id) => syncDecisionActive(pane, id)}
         />
-      </div>
-      <div className="pointer-events-none absolute left-3 top-3 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white/80">
-        Pane {pane + 1}
       </div>
     </div>
   );
@@ -257,7 +254,7 @@ export default function TerminalPage() {
       activePaneLabel={`Pane ${activePane + 1}${layoutMode === "split" ? " • bot controls" : ""}`}
       activeInstrument={instruments[activePane]}
     >
-      <div className="flex h-full gap-3">
+      <div className="flex h-full min-h-0 gap-3">
         {Array.from({ length: PANE_COUNT }).map((_, pane) => renderPane(pane))}
       </div>
     </TerminalShell>
