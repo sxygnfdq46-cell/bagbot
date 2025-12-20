@@ -181,7 +181,7 @@ export default function TerminalPage() {
       className={`relative flex-1 overflow-hidden rounded-2xl border border-white/5 bg-slate-900/30 ${layoutMode === "single" && pane !== activePane ? "hidden" : "block"}`}
       onClick={() => setActivePane(pane)}
     >
-      <div className={`absolute inset-0 ${activePane === pane ? "ring-2 ring-sky-300/70" : "ring-1 ring-white/5"}`}>
+      <div className={`absolute inset-0 ${activePane === pane ? "ring-1 ring-sky-200/60" : "ring-1 ring-white/8"}`}>
         <ChartCanvas
           ref={(node) => {
             chartRefs.current[pane] = node;

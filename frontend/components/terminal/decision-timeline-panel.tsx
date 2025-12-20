@@ -7,7 +7,7 @@ import Tag from "@/components/ui/tag";
 
 const PanelContainer = ({ open, children }: { open: boolean; children: ReactNode }) => (
   <div
-    className={`pointer-events-auto relative h-full w-[380px] max-w-[90vw] ${open ? "translate-x-0" : "translate-x-full"} overflow-hidden rounded-l-2xl border border-white/10 bg-slate-950/80 shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-transform duration-300 ease-out`}
+    className={`pointer-events-auto relative h-full w-[380px] max-w-[90vw] ${open ? "translate-x-0" : "translate-x-full"} overflow-hidden rounded-l-2xl border border-white/12 bg-slate-950/80 shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-transform duration-300 ease-out`}
   >
     {children}
   </div>
@@ -44,11 +44,11 @@ export default function DecisionTimelinePanel({
       <PanelContainer open={open}>
         {open ? (
           <div className="flex h-full flex-col overflow-hidden">
-            <header className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3">
+            <header className="flex items-start justify-between gap-3 border-b border-white/12 px-4 py-2.5">
               <div className="space-y-1">
-                <MetricLabel className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Decision Timeline</MetricLabel>
-                <p className="text-lg font-semibold text-white/90">Chronological bot intents</p>
-                <p className="text-sm text-slate-300/80">Read-only review; selections sync replay cursor only.</p>
+                <MetricLabel className="text-[10px] uppercase tracking-[0.24em] text-slate-400">Decision Timeline</MetricLabel>
+                <p className="text-base font-semibold text-white/90">Chronological bot intents</p>
+                <p className="text-sm text-slate-300/70">Read-only review; selections sync replay cursor only.</p>
               </div>
               <div className="flex items-center gap-2">
                 <Tag variant="default">View</Tag>
@@ -67,7 +67,7 @@ export default function DecisionTimelinePanel({
               {ordered.length === 0 ? (
                 <p className="text-sm text-slate-300/70">Waiting for chart-aligned decisions…</p>
               ) : (
-                <ul className="space-y-3" aria-label="Decision timeline entries">
+                <ul className="space-y-2.5" aria-label="Decision timeline entries">
                   {ordered.map((event) => {
                     const isActive = activeId === event.id;
                     const isSelected = selectedId === event.id;
@@ -78,10 +78,10 @@ export default function DecisionTimelinePanel({
                           onClick={() => onSelect?.(event.id)}
                           className={`group w-full rounded-xl border px-3 py-2 text-left transition ${
                             isSelected
-                              ? "border-emerald-300/30 bg-emerald-500/10"
+                              ? "border-emerald-200/30 bg-emerald-500/8"
                               : isActive
-                              ? "border-cyan-300/30 bg-cyan-500/10"
-                              : "border-white/10 bg-white/5 hover:border-white/20"
+                              ? "border-cyan-200/30 bg-cyan-500/8"
+                              : "border-white/12 bg-white/5 hover:border-white/15"
                           }`}
                           aria-pressed={isSelected}
                         >
@@ -89,7 +89,7 @@ export default function DecisionTimelinePanel({
                             <span>{formatTimestamp(event.time)}</span>
                             <span className="text-slate-200/90">{event.phase}</span>
                           </div>
-                          <p className="mt-1 text-base font-semibold text-white/90">{event.label}</p>
+                          <p className="mt-1 text-[15px] font-semibold text-white/90">{event.label}</p>
                           <p className="text-[11px] text-slate-400">Review-only — no execution</p>
                         </button>
                       </li>

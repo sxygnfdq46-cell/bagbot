@@ -73,7 +73,7 @@ export default function BotStatusBar({ replayMode = "live", layoutMode = "single
   };
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-slate-100/90 backdrop-blur">
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-white/12 bg-slate-900/50 px-4 py-3 text-sm text-slate-100/90 backdrop-blur">
       <div className="flex items-center gap-3">
         <Tag variant={tone}>{loading ? "SYNCING" : (status ?? "unknown").toUpperCase()}</Tag>
         <div className="min-w-0">
@@ -85,7 +85,7 @@ export default function BotStatusBar({ replayMode = "live", layoutMode = "single
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-4 text-xs text-slate-300/80">
+      <div className="flex items-center gap-3 text-xs text-slate-300/80">
         <div className="flex items-center gap-2">
           <span className={`h-2.5 w-2.5 rounded-full ${status === "running" ? "bg-emerald-400" : status === "error" ? "bg-red-400" : "bg-amber-300"}`} aria-hidden />
           <span>{heartbeat}</span>
@@ -97,7 +97,7 @@ export default function BotStatusBar({ replayMode = "live", layoutMode = "single
         <div className="flex items-center gap-2">
           <Button
             variant="secondary"
-            className="px-3 py-2 text-[11px]"
+            className="px-3 py-1.5 text-[11px]"
             onClick={() => handleCommand("running")}
             disabled={pending !== null || isRunning || inReplay}
             isLoading={pending === "running"}
@@ -106,7 +106,7 @@ export default function BotStatusBar({ replayMode = "live", layoutMode = "single
           </Button>
           <Button
             variant="ghost"
-            className="px-3 py-2 text-[11px]"
+            className="px-3 py-1.5 text-[11px]"
             onClick={() => handleCommand("stopped")}
             disabled={pending !== null || isStopped}
             isLoading={pending === "stopped"}
@@ -115,7 +115,7 @@ export default function BotStatusBar({ replayMode = "live", layoutMode = "single
           </Button>
           <Button
             variant="ghost"
-            className="px-3 py-2 text-[11px]"
+            className="px-3 py-1.5 text-[11px]"
             onClick={() => handleCommand("stopped")}
             disabled={pending !== null || isStopped}
             isLoading={pending === "stopped"}

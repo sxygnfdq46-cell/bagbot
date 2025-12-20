@@ -156,12 +156,12 @@ export default function TerminalShell({
   }, [onSearchClose, onSearchOpen, searchOpen]);
 
   return (
-    <div className="flex min-h-[calc(100vh-80px)] flex-col gap-4 p-4">
+    <div className="flex min-h-[calc(100vh-80px)] flex-col gap-3 p-4">
       <div
-        className="flex h-12 items-center rounded-xl border border-white/5 bg-slate-900/50 px-3 backdrop-blur"
+        className="flex h-11 items-center rounded-xl border border-white/5 bg-slate-900/50 px-3 backdrop-blur"
         aria-label="Terminal top bar"
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <InstrumentDisplay timeframe={timeframe} instrument={instrument} />
           {onInstrumentChange ? (
             <InstrumentSelector instrument={instrument} onSelect={onInstrumentChange} options={instrumentOptions} />
@@ -170,11 +170,11 @@ export default function TerminalShell({
             <button
               type="button"
               onClick={onSearchOpen}
-              className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-semibold text-white/90 transition hover:border-white/25"
+              className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs font-semibold text-white/80 transition hover:border-white/20"
               aria-label="Open search"
             >
-              <Tag className="text-[11px] uppercase tracking-[0.22em]" variant="default">Search</Tag>
-              <span className="text-xs uppercase tracking-[0.08em] text-slate-200/90">⌘K</span>
+              <Tag className="text-[10px] uppercase tracking-[0.18em]" variant="default">Search</Tag>
+              <span className="text-[11px] uppercase tracking-[0.06em] text-slate-200/80">⌘K</span>
             </button>
           ) : null}
           {onTimeframeChange ? (
@@ -236,7 +236,7 @@ export default function TerminalShell({
             </button>
           ) : null}
           {layoutMode === "split" ? (
-            <div className="flex items-center gap-2 rounded-lg border border-sky-300/25 bg-sky-500/5 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-sky-100">
+            <div className="flex items-center gap-2 rounded-lg border border-sky-200/25 bg-sky-500/5 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-sky-50/90">
               <span className="h-2 w-2 rounded-full bg-sky-300" aria-hidden />
               <span>{`Active Pane: ${activePaneLabel ?? "1"}`}</span>
             </div>
@@ -266,7 +266,7 @@ export default function TerminalShell({
         </div>
       ) : null}
 
-      <div className="flex-1 overflow-hidden rounded-2xl border border-white/5 bg-slate-900/30">
+      <div className="flex-1 overflow-hidden rounded-2xl border border-white/8 bg-slate-900/30">
         <div className="relative flex h-full">
           <IconRail
             onOpenSignals={openSignals}
@@ -300,7 +300,7 @@ export default function TerminalShell({
       </div>
 
       <div
-        className="rounded-xl border border-white/5 bg-slate-900/60 backdrop-blur"
+        className="rounded-xl border border-white/8 bg-slate-900/60 backdrop-blur"
         aria-label="Terminal bottom bar"
       >
         <BotStatusBar
