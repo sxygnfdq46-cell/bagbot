@@ -1,11 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+type PaneLayout = "single" | "double" | "quad";
+
+const layoutPaneIds: Record<PaneLayout, string[]> = {
+  single: ["pane-1"],
+  double: ["pane-1", "pane-2"],
+  quad: ["pane-1", "pane-2", "pane-3", "pane-4"],
+};
 
 export default function TerminalV2Page() {
+  const [paneLayout, setPaneLayout] = useState<PaneLayout>("single");
+  const [activePaneId, setActivePaneId] = useState<string>(layoutPaneIds.single[0]);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  const paneIds = useMemo(() => layoutPaneIds[paneLayout], [paneLayout]);
+
   const toggleFullscreen = () => setIsFullscreen((prev) => !prev);
+
+  const selectLayout = (nextLayout: PaneLayout) => {
+    setPaneLayout(nextLayout);
+  };
+
+  const setActivePane = (paneId: string) => {
+    setActivePaneId(paneId);
+  };
+
+  useEffect(() => {
+    if (!paneIds.includes(activePaneId)) {
+      setActivePaneId(paneIds[0]);
+    }
+  }, [activePaneId, paneIds]);
+
+  const gridTemplate = useMemo(() => {
+    if (paneLayout === "double") {
+      return { gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr" };
+    }
+
+    if (paneLayout === "quad") {
+      return { gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr" };
+    }
+
+    return { gridTemplateColumns: "1fr", gridTemplateRows: "1fr" };
+  }, [paneLayout]);
 
   return (
     <div
@@ -57,10 +95,36 @@ export default function TerminalV2Page() {
           style={{
             position: "absolute",
             inset: 0,
-            display: "block",
+            display: "grid",
+            gap: 0,
+            ...gridTemplate,
           }}
         >
-          <div aria-label="Chart workspace surface" />
+          {paneIds.map((paneId) => (
+            <div
+              key={paneId}
+              aria-label={`Chart pane ${paneId}`}
+              data-pane-id={paneId}
+              data-active={paneId === activePaneId}
+              role="button"
+              tabIndex={0}
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+              }}
+              onClick={() => setActivePane(paneId)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  setActivePane(paneId);
+                }
+              }}
+            >
+              <div aria-label={`Chart pane placeholder for ${paneId}`} />
+            </div>
+          ))}
         </main>
 
         <aside
@@ -90,7 +154,17 @@ export default function TerminalV2Page() {
           padding: 0,
         }}
       >
-        <div aria-label="Bottom control strip content" />
+        <div aria-label="Bottom control strip content" style={{ display: "flex", gap: "8px" }}>
+          <button type="button" onClick={() => selectLayout("single")} aria-label="Switch to single pane layout">
+            Single Pane
+          </button>
+          <button type="button" onClick={() => selectLayout("double")} aria-label="Switch to two pane layout">
+            Two Panes
+          </button>
+          <button type="button" onClick={() => selectLayout("quad")} aria-label="Switch to four pane layout">
+            Four Panes
+          </button>
+        </div>
         <button type="button" onClick={toggleFullscreen} aria-label="Toggle fullscreen">
           {isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
         </button>
