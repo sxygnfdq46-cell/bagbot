@@ -15,12 +15,10 @@ export default function TerminalV2Page() {
           flex: "0 0 56px",
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
           padding: 0,
         }}
       >
-        <span>Top Command Strip (instrument, timeframe, candle, indicators, snapshot, compare, search, theme)</span>
-        <span>Fixed height</span>
+        <div aria-label="Top command strip content" />
       </header>
 
       <div
@@ -37,11 +35,9 @@ export default function TerminalV2Page() {
             width: "64px",
             display: "flex",
             flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "flex-start",
           }}
         >
-          <span>Tool Dock (icons)</span>
+          <div aria-label="Tool dock content" />
         </nav>
 
         <main
@@ -49,12 +45,10 @@ export default function TerminalV2Page() {
           style={{
             position: "absolute",
             inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            display: "block",
           }}
         >
-          <div>ChartWorkspace placeholder (dominant, edge-to-edge)</div>
+          <div aria-label="Chart workspace surface" />
         </main>
 
         <aside
@@ -65,12 +59,10 @@ export default function TerminalV2Page() {
             bottom: 0,
             right: 0,
             width: "320px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            display: "block",
           }}
         >
-          <span>Right context panel (overlays, one at a time)</span>
+          <div aria-label="Right context panel content" />
         </aside>
       </div>
 
@@ -80,12 +72,10 @@ export default function TerminalV2Page() {
           flex: "0 0 48px",
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
           padding: 0,
         }}
       >
-        <span>Bottom Control Strip (bot status, start/pause/stop, broker, execution, replay)</span>
-        <span>Fixed height</span>
+        <div aria-label="Bottom control strip content" />
       </footer>
     </div>
   );
