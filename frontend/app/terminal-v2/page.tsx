@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 type PaneLayout = "single" | "double" | "quad";
 type ThemeMode = "noir" | "light";
+type ToolDockItem = { id: string; label: string };
 
 const layoutPaneIds: Record<PaneLayout, string[]> = {
   single: ["pane-1"],
@@ -29,6 +30,13 @@ const themeTokens: Record<ThemeMode, Record<string, string>> = {
     "--terminal-accent": "#3366cc",
   },
 };
+
+const toolDockItems: ToolDockItem[] = [
+  { id: "tool-cursor", label: "Cursor" },
+  { id: "tool-draw", label: "Draw" },
+  { id: "tool-alerts", label: "Alerts" },
+  { id: "tool-config", label: "Config" },
+];
 
 export default function TerminalV2Page() {
   const [paneLayout, setPaneLayout] = useState<PaneLayout>("single");
@@ -92,11 +100,24 @@ export default function TerminalV2Page() {
           alignItems: "center",
           padding: 0,
           backgroundColor: "var(--terminal-chrome)",
+          color: "var(--terminal-text-muted)",
+          fontSize: "13px",
+          fontWeight: 600,
           visibility: isFullscreen ? "hidden" : "visible",
           pointerEvents: isFullscreen ? "none" : "auto",
         }}
       >
-        <div aria-label="Top command strip content" />
+        <div
+          aria-label="Top command strip content"
+          style={{ display: "flex", alignItems: "center", width: "100%" }}
+        >
+          <span aria-label="Session status" style={{ opacity: 0.9 }}>
+            Session: Connected · Latency nominal
+          </span>
+          <span style={{ marginLeft: "auto", opacity: 0.7 }} aria-label="Theme indicator">
+            Theme: {themeMode === "noir" ? "Noir" : "Light Luxe"}
+          </span>
+        </div>
       </header>
 
       <div
@@ -119,11 +140,38 @@ export default function TerminalV2Page() {
             display: "flex",
             flexDirection: "column",
             backgroundColor: "var(--terminal-chrome)",
+            color: "var(--terminal-text-muted)",
+            fontSize: "12px",
             visibility: isFullscreen ? "hidden" : "visible",
             pointerEvents: isFullscreen ? "none" : "auto",
           }}
         >
-          <div aria-label="Tool dock content" />
+          <div
+            aria-label="Tool dock content"
+            style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+          >
+            {toolDockItems.map((item, index) => {
+              const isPrimary = index === 0;
+              return (
+                <div
+                  key={item.id}
+                  aria-label={`Tool ${item.label}`}
+                  data-selected={isPrimary}
+                  style={{
+                    width: "100%",
+                    height: "44px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: isPrimary ? "var(--terminal-text)" : "var(--terminal-text-muted)",
+                    backgroundColor: isPrimary ? "var(--terminal-surface)" : "transparent",
+                  }}
+                >
+                  <span style={{ fontWeight: isPrimary ? 700 : 600 }}>{item.label}</span>
+                </div>
+              );
+            })}
+          </div>
         </nav>
 
         <main
@@ -174,12 +222,18 @@ export default function TerminalV2Page() {
             right: 0,
             width: "320px",
             display: "block",
-            backgroundColor: "var(--terminal-chrome)",
+            backgroundColor: "var(--terminal-surface)",
+            color: "var(--terminal-text-muted)",
             visibility: isFullscreen ? "hidden" : "visible",
             pointerEvents: isFullscreen ? "none" : "auto",
           }}
         >
-          <div aria-label="Right context panel content" />
+          <div
+            aria-label="Right context panel content"
+            style={{ padding: "12px", fontSize: "13px", fontWeight: 600 }}
+          >
+            Context panel reserved for inspection modules.
+          </div>
         </aside>
       </div>
 
@@ -192,25 +246,58 @@ export default function TerminalV2Page() {
           justifyContent: "space-between",
           padding: 0,
           backgroundColor: "var(--terminal-chrome)",
+          color: "var(--terminal-text)",
+          fontSize: "13px",
+          fontWeight: 600,
         }}
       >
         <div aria-label="Bottom control strip content" style={{ display: "flex", gap: "8px" }}>
-          <button type="button" onClick={() => selectLayout("single")} aria-label="Switch to single pane layout">
+          <button
+            type="button"
+            onClick={() => selectLayout("single")}
+            aria-label="Switch to single pane layout"
+            style={{ background: "transparent", color: "inherit", border: "none", fontWeight: 700, cursor: "pointer" }}
+          >
             Single Pane
           </button>
-          <button type="button" onClick={() => selectLayout("double")} aria-label="Switch to two pane layout">
+          <button
+            type="button"
+            onClick={() => selectLayout("double")}
+            aria-label="Switch to two pane layout"
+            style={{ background: "transparent", color: "inherit", border: "none", fontWeight: 700, cursor: "pointer" }}
+          >
             Two Panes
           </button>
-          <button type="button" onClick={() => selectLayout("quad")} aria-label="Switch to four pane layout">
+          <button
+            type="button"
+            onClick={() => selectLayout("quad")}
+            aria-label="Switch to four pane layout"
+            style={{ background: "transparent", color: "inherit", border: "none", fontWeight: 700, cursor: "pointer" }}
+          >
             Four Panes
           </button>
         </div>
-        <button type="button" onClick={toggleFullscreen} aria-label="Toggle fullscreen">
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <span aria-label="Active pane indicator" style={{ opacity: 0.8 }}>
+            Active pane: {activePaneId}
+          </span>
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            aria-label="Toggle fullscreen"
+            style={{ background: "transparent", color: "inherit", border: "none", fontWeight: 700, cursor: "pointer" }}
+          >
           {isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-        </button>
-        <button type="button" onClick={toggleTheme} aria-label="Toggle theme">
-          {themeMode === "noir" ? "Switch to Light" : "Switch to Noir"}
-        </button>
+          </button>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+            style={{ background: "transparent", color: "inherit", border: "none", fontWeight: 700, cursor: "pointer" }}
+          >
+            {themeMode === "noir" ? "Switch to Light" : "Switch to Noir"}
+          </button>
+        </div>
       </footer>
     </div>
   );

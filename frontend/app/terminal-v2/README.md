@@ -18,6 +18,14 @@ Status: Phase 4 is frozen. Do not change layout, state wiring, or structural rul
 - Light: off-white base `#f4f2ed`, chrome `#dfdbd2`, surface `#ebe7df`, text `#1f262f`, muted text `rgba(31,38,47,0.70)`, accent `#3366cc` (not yet used).
 - Tokens are mirrors in hierarchy; no gradients, shadows, or spacing changes; chart area stays unstyled/blank.
 
+## Chrome Styling (Phase 5.2)
+- Applied tone-only styling to top strip, left dock, right panel shell, and bottom control plane using theme tokens; chart workspace remains visually untouched.
+- Top strip reads as status bar (muted text, chrome background), with theme indicator only.
+- Left dock is neutral with subtle primary selection tone; icon placeholders only; no glow/borders.
+- Right panel uses lifted surface tone with muted copy for inspection context; no borders/shadows.
+- Bottom plane uses console-like text weight; controls are text-forward (borderless, transparent backgrounds).
+- No gradients, shadows, animations, or layout/spacing shifts; fullscreen behavior unchanged.
+
 ## Must Never Change Without Explicit Approval
 - No chart canvas, syncing, bot logic, or visuals in this file.
 - No max-widths, centering, padding creep, or resizing of the overall workspace.
