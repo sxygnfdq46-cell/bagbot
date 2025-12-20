@@ -16,7 +16,7 @@ export default function TerminalV2Page() {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "0 12px",
+          padding: 0,
         }}
       >
         <span>Top Command Strip (instrument, timeframe, candle, indicators, snapshot, compare, search, theme)</span>
@@ -49,8 +49,9 @@ export default function TerminalV2Page() {
           style={{
             position: "absolute",
             inset: 0,
-            display: "grid",
-            placeItems: "center",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
           <div>ChartWorkspace placeholder (dominant, edge-to-edge)</div>
@@ -80,7 +81,7 @@ export default function TerminalV2Page() {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "0 12px",
+          padding: 0,
         }}
       >
         <span>Bottom Control Strip (bot status, start/pause/stop, broker, execution, replay)</span>
