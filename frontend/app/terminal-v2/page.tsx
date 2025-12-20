@@ -1,4 +1,12 @@
+"use client";
+
+import { useState } from "react";
+
 export default function TerminalV2Page() {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const toggleFullscreen = () => setIsFullscreen((prev) => !prev);
+
   return (
     <div
       style={{
@@ -16,6 +24,8 @@ export default function TerminalV2Page() {
           display: "flex",
           alignItems: "center",
           padding: 0,
+          visibility: isFullscreen ? "hidden" : "visible",
+          pointerEvents: isFullscreen ? "none" : "auto",
         }}
       >
         <div aria-label="Top command strip content" />
@@ -35,6 +45,8 @@ export default function TerminalV2Page() {
             width: "64px",
             display: "flex",
             flexDirection: "column",
+            visibility: isFullscreen ? "hidden" : "visible",
+            pointerEvents: isFullscreen ? "none" : "auto",
           }}
         >
           <div aria-label="Tool dock content" />
@@ -60,6 +72,8 @@ export default function TerminalV2Page() {
             right: 0,
             width: "320px",
             display: "block",
+            visibility: isFullscreen ? "hidden" : "visible",
+            pointerEvents: isFullscreen ? "none" : "auto",
           }}
         >
           <div aria-label="Right context panel content" />
@@ -72,10 +86,14 @@ export default function TerminalV2Page() {
           flex: "0 0 48px",
           display: "flex",
           alignItems: "center",
+          justifyContent: "space-between",
           padding: 0,
         }}
       >
         <div aria-label="Bottom control strip content" />
+        <button type="button" onClick={toggleFullscreen} aria-label="Toggle fullscreen">
+          {isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+        </button>
       </footer>
     </div>
   );
