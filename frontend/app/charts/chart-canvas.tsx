@@ -16,6 +16,7 @@ import {
 import Card from "@/components/ui/card";
 import MetricLabel from "@/components/ui/metric-label";
 import TerminalShell from "@/components/ui/terminal-shell";
+import { useRuntimeSnapshot } from "@/lib/runtime/use-runtime-snapshot";
 
 type Candle = {
   time: number; // unix seconds
@@ -496,6 +497,8 @@ export const ChartCanvas = forwardRef<
     },
     ref
   ) {
+      const { snapshot } = useRuntimeSnapshot();
+      const botStatus = snapshot.bot.status ?? "unknown";
     const containerRef = useRef<HTMLDivElement | null>(null);
     const indicatorPaneRef = useRef<HTMLDivElement | null>(null);
     const chartRef = useRef<IChartApi | null>(null);
@@ -1663,8 +1666,14 @@ export const ChartCanvas = forwardRef<
               </div>
             </div>
 
-            <div className="absolute inset-x-0 top-0" style={{ height: "65%" }}>
+            <div className="pointer-events-none absolute inset-x-0 top-0" style={{ height: "65%" }}>
               <div ref={containerRef} className="absolute inset-0" />
+              <div className="absolute left-4 top-4 z-30 flex flex-wrap items-center gap-2 rounded-full border border-white/15 bg-black/30 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white/80 backdrop-blur">
+                <span className={`h-2 w-2 rounded-full ${botStatus === "running" ? "bg-emerald-300" : botStatus === "stopped" ? "bg-amber-300" : "bg-slate-300"}`} aria-hidden />
+                <span>{`Bot ${botStatus}`}</span>
+                <span className={`h-2 w-2 rounded-full ${replayMode === "replay" ? "bg-amber-300" : "bg-emerald-300"}`} aria-hidden />
+                <span>{replayMode === "replay" ? "Replay — execution disabled" : "Live"}</span>
+              </div>
             </div>
             <div className="absolute inset-x-0" style={{ bottom: "20%", height: "15%" }}>
               {/* Volume is rendered inside the main chart via scale margins */}

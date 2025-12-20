@@ -48,7 +48,7 @@ export default function DecisionTimelinePanel({
               <div className="space-y-1">
                 <MetricLabel className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Decision Timeline</MetricLabel>
                 <p className="text-lg font-semibold text-white/90">Chronological bot intents</p>
-                <p className="text-sm text-slate-300/80">Read-only view of decisions aligned to the chart.</p>
+                <p className="text-sm text-slate-300/80">Read-only review; selections sync replay cursor only.</p>
               </div>
               <div className="flex items-center gap-2">
                 <Tag variant="default">View</Tag>
@@ -90,6 +90,7 @@ export default function DecisionTimelinePanel({
                             <span className="text-slate-200/90">{event.phase}</span>
                           </div>
                           <p className="mt-1 text-base font-semibold text-white/90">{event.label}</p>
+                          <p className="text-[11px] text-slate-400">Review-only — no execution</p>
                         </button>
                       </li>
                     );

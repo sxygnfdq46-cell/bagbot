@@ -72,6 +72,8 @@ type TerminalShellProps = {
   onDecisionSelect?: (id: string) => void;
   layoutMode?: "single" | "split";
   onLayoutModeChange?: (mode: "single" | "split") => void;
+  activePaneLabel?: string;
+  activeInstrument?: string;
 };
 
 export default function TerminalShell({
@@ -117,6 +119,8 @@ export default function TerminalShell({
   onDecisionSelect,
   layoutMode = "single",
   onLayoutModeChange,
+  activePaneLabel,
+  activeInstrument,
 }: TerminalShellProps) {
   const [showSignals, setShowSignals] = useState(false);
   const [showBrain, setShowBrain] = useState(false);
@@ -231,6 +235,12 @@ export default function TerminalShell({
               <span className="text-xs uppercase tracking-[0.08em] text-slate-200/90">{layoutMode === "split" ? "Split" : "Single"}</span>
             </button>
           ) : null}
+          {layoutMode === "split" ? (
+            <div className="flex items-center gap-2 rounded-lg border border-sky-300/25 bg-sky-500/5 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-sky-100">
+              <span className="h-2 w-2 rounded-full bg-sky-300" aria-hidden />
+              <span>{`Active Pane: ${activePaneLabel ?? "1"}`}</span>
+            </div>
+          ) : null}
           {onIndicatorToggle ? (
             <IndicatorSelector active={indicators} onToggle={onIndicatorToggle} options={indicatorOptions} />
           ) : null}
@@ -293,7 +303,12 @@ export default function TerminalShell({
         className="rounded-xl border border-white/5 bg-slate-900/60 backdrop-blur"
         aria-label="Terminal bottom bar"
       >
-        <BotStatusBar />
+        <BotStatusBar
+          replayMode={replayMode}
+          layoutMode={layoutMode}
+          activePaneLabel={activePaneLabel}
+          activeInstrument={activeInstrument}
+        />
       </div>
 
       <SearchOverlay

@@ -9,7 +9,14 @@ import { botApi, type BotStatus } from "@/lib/api/bot";
 import { applyRuntimeIntent } from "@/lib/runtime/runtime-intents";
 import { updateRuntimeSnapshot } from "@/lib/runtime/runtime-store";
 
-export default function BotStatusBar() {
+type BotStatusBarProps = {
+  replayMode?: "live" | "replay";
+  layoutMode?: "single" | "split";
+  activePaneLabel?: string;
+  activeInstrument?: string;
+};
+
+export default function BotStatusBar({ replayMode = "live", layoutMode = "single", activePaneLabel, activeInstrument }: BotStatusBarProps) {
   const { snapshot, loading } = useRuntimeSnapshot();
   const [pending, setPending] = useState<BotStatus | null>(null);
   const status = snapshot.bot.status ?? null;
@@ -19,6 +26,7 @@ export default function BotStatusBar() {
 
   const isRunning = status === "running" || state === "RUNNING";
   const isStopped = status === "stopped" || state === "STOPPED";
+  const inReplay = replayMode === "replay";
 
   const tone = useMemo(() => {
     if (status === "running") return "success";
@@ -71,6 +79,10 @@ export default function BotStatusBar() {
         <div className="min-w-0">
           <MetricLabel className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Bot</MetricLabel>
           <p className="truncate text-sm font-semibold text-white/90">{lastAction ?? "Observing fabric"}</p>
+          <p className="text-[11px] text-slate-400">
+            {layoutMode === "split" ? `Active pane: ${activePaneLabel ?? "1"}` : "Single pane"}
+            {activeInstrument ? ` • Instrument: ${activeInstrument}` : null}
+          </p>
         </div>
       </div>
       <div className="flex items-center gap-4 text-xs text-slate-300/80">
@@ -87,10 +99,10 @@ export default function BotStatusBar() {
             variant="secondary"
             className="px-3 py-2 text-[11px]"
             onClick={() => handleCommand("running")}
-            disabled={pending !== null || isRunning}
+            disabled={pending !== null || isRunning || inReplay}
             isLoading={pending === "running"}
           >
-            Start
+            {inReplay ? "Start (locked)" : "Start"}
           </Button>
           <Button
             variant="ghost"
@@ -111,6 +123,12 @@ export default function BotStatusBar() {
             Stop
           </Button>
         </div>
+        {inReplay ? (
+          <div className="flex items-center gap-2 rounded-lg border border-amber-300/40 bg-amber-500/10 px-3 py-1 text-[11px] font-semibold text-amber-100/90">
+            <span className="h-2 w-2 rounded-full bg-amber-300" aria-hidden />
+            <span>Replay mode — execution disabled</span>
+          </div>
+        ) : null}
       </div>
     </div>
   );

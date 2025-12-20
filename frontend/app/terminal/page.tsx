@@ -254,6 +254,8 @@ export default function TerminalPage() {
       onDecisionSelect={handleDecisionSelect}
       layoutMode={layoutMode}
       onLayoutModeChange={setLayoutMode}
+      activePaneLabel={`Pane ${activePane + 1}${layoutMode === "split" ? " • bot controls" : ""}`}
+      activeInstrument={instruments[activePane]}
     >
       <div className="flex h-full gap-3">
         {Array.from({ length: PANE_COUNT }).map((_, pane) => renderPane(pane))}
