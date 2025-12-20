@@ -158,7 +158,7 @@ export default function TerminalShell({
   return (
     <div className="flex min-h-[calc(100vh-80px)] flex-col gap-3 p-4">
       <div
-        className="flex h-10 items-center rounded-lg border border-slate-800/80 bg-slate-950/70 px-3"
+        className="flex h-10 items-center rounded-lg border border-slate-800/60 bg-slate-950/75 px-3"
         aria-label="Terminal top bar"
       >
         <div className="flex items-center gap-1.5">
@@ -266,7 +266,7 @@ export default function TerminalShell({
         </div>
       ) : null}
 
-      <div className="flex-1 overflow-hidden rounded-xl border border-slate-800/90 bg-slate-950/70 shadow-inner">
+      <div className="flex-1 overflow-hidden rounded-xl border border-slate-800/70 bg-slate-950/75">
         <div className="relative flex h-full">
           <IconRail
             onOpenSignals={openSignals}
@@ -300,7 +300,7 @@ export default function TerminalShell({
       </div>
 
       <div
-        className="rounded-xl border border-white/8 bg-slate-900/60 backdrop-blur"
+        className="rounded-xl border border-slate-800/70 bg-slate-950/75"
         aria-label="Terminal bottom bar"
       >
         <BotStatusBar

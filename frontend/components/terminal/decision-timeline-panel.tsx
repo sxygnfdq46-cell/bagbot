@@ -7,7 +7,7 @@ import Tag from "@/components/ui/tag";
 
 const PanelContainer = ({ open, children }: { open: boolean; children: ReactNode }) => (
   <div
-    className={`pointer-events-auto relative h-full w-[380px] max-w-[90vw] ${open ? "translate-x-0" : "translate-x-full"} overflow-hidden rounded-l-2xl border border-white/12 bg-slate-950/80 shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-transform duration-300 ease-out`}
+    className={`pointer-events-auto relative h-full w-[380px] max-w-[90vw] ${open ? "translate-x-0" : "translate-x-full"} overflow-hidden rounded-l-2xl border border-slate-800/70 bg-slate-950/78 shadow-[0_14px_36px_rgba(0,0,0,0.28)] transition-transform duration-300 ease-out`}
   >
     {children}
   </div>
@@ -44,7 +44,7 @@ export default function DecisionTimelinePanel({
       <PanelContainer open={open}>
         {open ? (
           <div className="flex h-full flex-col overflow-hidden">
-            <header className="flex items-start justify-between gap-3 border-b border-white/12 px-4 py-2.5">
+            <header className="flex items-start justify-between gap-3 border-b border-slate-800/70 px-4 py-2.5">
               <div className="space-y-1">
                 <MetricLabel className="text-[10px] uppercase tracking-[0.24em] text-slate-400">Decision Timeline</MetricLabel>
                 <p className="text-base font-semibold text-white/90">Chronological bot intents</p>
