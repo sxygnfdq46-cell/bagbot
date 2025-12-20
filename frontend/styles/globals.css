@@ -944,12 +944,6 @@ section,
   }
 }
 
-@media (min-width: 1024px) {
-  .layout-main {
-    margin-left: var(--layout-sidebar-width);
-  }
-}
-
 .layout-content {
   position: relative;
   height: 100%;
