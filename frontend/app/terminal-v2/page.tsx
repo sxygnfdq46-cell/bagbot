@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 type PaneLayout = "single" | "double" | "quad";
+type ThemeMode = "noir" | "light";
 
 const layoutPaneIds: Record<PaneLayout, string[]> = {
   single: ["pane-1"],
@@ -10,14 +11,39 @@ const layoutPaneIds: Record<PaneLayout, string[]> = {
   quad: ["pane-1", "pane-2", "pane-3", "pane-4"],
 };
 
+const themeTokens: Record<ThemeMode, Record<string, string>> = {
+  noir: {
+    "--terminal-bg": "#0b0d10",
+    "--terminal-surface": "#14171c",
+    "--terminal-chrome": "#1b1f26",
+    "--terminal-text": "#e9ecf2",
+    "--terminal-text-muted": "rgba(233, 236, 242, 0.72)",
+    "--terminal-accent": "#7ac4ff",
+  },
+  light: {
+    "--terminal-bg": "#f4f2ed",
+    "--terminal-surface": "#ebe7df",
+    "--terminal-chrome": "#dfdbd2",
+    "--terminal-text": "#1f262f",
+    "--terminal-text-muted": "rgba(31, 38, 47, 0.70)",
+    "--terminal-accent": "#3366cc",
+  },
+};
+
 export default function TerminalV2Page() {
   const [paneLayout, setPaneLayout] = useState<PaneLayout>("single");
   const [activePaneId, setActivePaneId] = useState<string>(layoutPaneIds.single[0]);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [themeMode, setThemeMode] = useState<ThemeMode>("noir");
 
   const paneIds = useMemo(() => layoutPaneIds[paneLayout], [paneLayout]);
+  const themeVars = useMemo(() => themeTokens[themeMode], [themeMode]);
 
   const toggleFullscreen = () => setIsFullscreen((prev) => !prev);
+
+  const toggleTheme = () => {
+    setThemeMode((prev) => (prev === "noir" ? "light" : "noir"));
+  };
 
   const selectLayout = (nextLayout: PaneLayout) => {
     setPaneLayout(nextLayout);
@@ -53,6 +79,9 @@ export default function TerminalV2Page() {
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
+        backgroundColor: "var(--terminal-bg)",
+        color: "var(--terminal-text)",
+        ...themeVars,
       }}
     >
       <header
@@ -62,6 +91,7 @@ export default function TerminalV2Page() {
           display: "flex",
           alignItems: "center",
           padding: 0,
+          backgroundColor: "var(--terminal-chrome)",
           visibility: isFullscreen ? "hidden" : "visible",
           pointerEvents: isFullscreen ? "none" : "auto",
         }}
@@ -71,7 +101,12 @@ export default function TerminalV2Page() {
 
       <div
         aria-label="Workspace"
-        style={{ position: "relative", flex: "1 1 auto", overflow: "hidden" }}
+        style={{
+          position: "relative",
+          flex: "1 1 auto",
+          overflow: "hidden",
+          backgroundColor: "var(--terminal-surface)",
+        }}
       >
         <nav
           aria-label="Left tool dock"
@@ -83,6 +118,7 @@ export default function TerminalV2Page() {
             width: "64px",
             display: "flex",
             flexDirection: "column",
+            backgroundColor: "var(--terminal-chrome)",
             visibility: isFullscreen ? "hidden" : "visible",
             pointerEvents: isFullscreen ? "none" : "auto",
           }}
@@ -98,6 +134,7 @@ export default function TerminalV2Page() {
             display: "grid",
             gap: 0,
             ...gridTemplate,
+            backgroundColor: "transparent",
           }}
         >
           {paneIds.map((paneId) => (
@@ -113,6 +150,7 @@ export default function TerminalV2Page() {
                 height: "100%",
                 display: "flex",
                 flexDirection: "column",
+                color: "var(--terminal-text-muted)",
               }}
               onClick={() => setActivePane(paneId)}
               onKeyDown={(event) => {
@@ -136,6 +174,7 @@ export default function TerminalV2Page() {
             right: 0,
             width: "320px",
             display: "block",
+            backgroundColor: "var(--terminal-chrome)",
             visibility: isFullscreen ? "hidden" : "visible",
             pointerEvents: isFullscreen ? "none" : "auto",
           }}
@@ -152,6 +191,7 @@ export default function TerminalV2Page() {
           alignItems: "center",
           justifyContent: "space-between",
           padding: 0,
+          backgroundColor: "var(--terminal-chrome)",
         }}
       >
         <div aria-label="Bottom control strip content" style={{ display: "flex", gap: "8px" }}>
@@ -167,6 +207,9 @@ export default function TerminalV2Page() {
         </div>
         <button type="button" onClick={toggleFullscreen} aria-label="Toggle fullscreen">
           {isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+        </button>
+        <button type="button" onClick={toggleTheme} aria-label="Toggle theme">
+          {themeMode === "noir" ? "Switch to Light" : "Switch to Noir"}
         </button>
       </footer>
     </div>

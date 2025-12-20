@@ -12,6 +12,12 @@ Status: Phase 4 is frozen. Do not change layout, state wiring, or structural rul
 - Pane layouts: `single` → 1 pane, `double` → 2 panes (1 row, 2 columns), `quad` → 4 panes (2x2). Pane IDs are stable (`pane-1..4`).
 - One pane is always active; layout changes must not remount the workspace. Active pane falls back to the first valid pane if the current active pane is removed by a layout change.
 
+## Theme Tokens (Phase 5.1)
+- Themes apply only to `/terminal-v2`; defaults to `noir`, toggle to `light`.
+- Noir: near-black base `#0b0d10`, chrome `#1b1f26`, surface `#14171c`, text `#e9ecf2`, muted text `rgba(233,236,242,0.72)`, accent `#7ac4ff` (not yet used).
+- Light: off-white base `#f4f2ed`, chrome `#dfdbd2`, surface `#ebe7df`, text `#1f262f`, muted text `rgba(31,38,47,0.70)`, accent `#3366cc` (not yet used).
+- Tokens are mirrors in hierarchy; no gradients, shadows, or spacing changes; chart area stays unstyled/blank.
+
 ## Must Never Change Without Explicit Approval
 - No chart canvas, syncing, bot logic, or visuals in this file.
 - No max-widths, centering, padding creep, or resizing of the overall workspace.
