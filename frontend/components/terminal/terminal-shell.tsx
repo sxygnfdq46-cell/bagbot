@@ -158,10 +158,10 @@ export default function TerminalShell({
   return (
     <div className="flex min-h-[calc(100vh-80px)] flex-col gap-3 p-4">
       <div
-        className="flex h-11 items-center rounded-xl border border-white/5 bg-slate-900/50 px-3 backdrop-blur"
+        className="flex h-10 items-center rounded-lg border border-slate-800/80 bg-slate-950/70 px-3"
         aria-label="Terminal top bar"
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <InstrumentDisplay timeframe={timeframe} instrument={instrument} />
           {onInstrumentChange ? (
             <InstrumentSelector instrument={instrument} onSelect={onInstrumentChange} options={instrumentOptions} />
@@ -170,11 +170,11 @@ export default function TerminalShell({
             <button
               type="button"
               onClick={onSearchOpen}
-              className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs font-semibold text-white/80 transition hover:border-white/20"
+              className="flex items-center gap-1.5 rounded-md border border-slate-800/70 bg-slate-950/50 px-2.5 py-1.25 text-[11px] font-semibold text-slate-100/80 transition hover:border-slate-200/30"
               aria-label="Open search"
             >
-              <Tag className="text-[10px] uppercase tracking-[0.18em]" variant="default">Search</Tag>
-              <span className="text-[11px] uppercase tracking-[0.06em] text-slate-200/80">⌘K</span>
+              <Tag className="text-[9px] uppercase tracking-[0.16em]" variant="default">Search</Tag>
+              <span className="text-[10px] uppercase tracking-[0.06em] text-slate-200/70">⌘K</span>
             </button>
           ) : null}
           {onTimeframeChange ? (
@@ -196,48 +196,48 @@ export default function TerminalShell({
             <button
               type="button"
               onClick={() => onReasoningVisibilityChange(reasoningVisibility === "on" ? "off" : "on")}
-              className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${
+              className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1.25 text-xs font-semibold transition ${
                 reasoningVisibility === "on"
-                  ? "border-emerald-300/30 bg-emerald-500/10 text-white"
-                  : "border-white/10 bg-white/5 text-white/90 hover:border-white/25"
+                  ? "border-emerald-300/25 bg-emerald-500/10 text-white"
+                  : "border-white/12 bg-white/5 text-white/80 hover:border-white/20"
               }`}
             >
-              <Tag className="text-[11px] uppercase tracking-[0.22em]" variant="default">Reasoning</Tag>
-              <span className="text-xs uppercase tracking-[0.08em] text-slate-200/90">{reasoningVisibility === "on" ? "On" : "Off"}</span>
+              <Tag className="text-[10px] uppercase tracking-[0.18em]" variant="default">Reasoning</Tag>
+              <span className="text-[11px] uppercase tracking-[0.08em] text-slate-200/80">{reasoningVisibility === "on" ? "On" : "Off"}</span>
             </button>
           ) : null}
           {onReplayModeChange ? (
             <button
               type="button"
               onClick={() => onReplayModeChange(replayMode === "replay" ? "live" : "replay")}
-              className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${
+              className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1.25 text-xs font-semibold transition ${
                 replayMode === "replay"
-                  ? "border-amber-300/30 bg-amber-500/10 text-white"
-                  : "border-white/10 bg-white/5 text-white/90 hover:border-white/25"
+                  ? "border-amber-300/25 bg-amber-500/10 text-white"
+                  : "border-white/12 bg-white/5 text-white/80 hover:border-white/20"
               }`}
             >
-              <Tag className="text-[11px] uppercase tracking-[0.22em]" variant="default">Replay</Tag>
-              <span className="text-xs uppercase tracking-[0.08em] text-slate-200/90">{replayMode === "replay" ? "On" : "Off"}</span>
+              <Tag className="text-[10px] uppercase tracking-[0.18em]" variant="default">Replay</Tag>
+              <span className="text-[11px] uppercase tracking-[0.08em] text-slate-200/80">{replayMode === "replay" ? "On" : "Off"}</span>
             </button>
           ) : null}
           {onLayoutModeChange ? (
             <button
               type="button"
               onClick={() => onLayoutModeChange(layoutMode === "split" ? "single" : "split")}
-              className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${
+              className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1.25 text-xs font-semibold transition ${
                 layoutMode === "split"
-                  ? "border-sky-300/30 bg-sky-500/10 text-white"
-                  : "border-white/10 bg-white/5 text-white/90 hover:border-white/25"
+                  ? "border-sky-300/25 bg-sky-500/10 text-white"
+                  : "border-white/12 bg-white/5 text-white/80 hover:border-white/20"
               }`}
               aria-label="Toggle layout"
             >
-              <Tag className="text-[11px] uppercase tracking-[0.22em]" variant="default">Layout</Tag>
-              <span className="text-xs uppercase tracking-[0.08em] text-slate-200/90">{layoutMode === "split" ? "Split" : "Single"}</span>
+              <Tag className="text-[10px] uppercase tracking-[0.18em]" variant="default">Layout</Tag>
+              <span className="text-[11px] uppercase tracking-[0.08em] text-slate-200/80">{layoutMode === "split" ? "Split" : "Single"}</span>
             </button>
           ) : null}
           {layoutMode === "split" ? (
-            <div className="flex items-center gap-2 rounded-lg border border-sky-200/25 bg-sky-500/5 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-sky-50/90">
-              <span className="h-2 w-2 rounded-full bg-sky-300" aria-hidden />
+            <div className="flex items-center gap-1.5 rounded-md border border-sky-200/20 bg-sky-500/5 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-sky-50/80">
+              <span className="h-1.5 w-1.5 rounded-full bg-sky-300" aria-hidden />
               <span>{`Active Pane: ${activePaneLabel ?? "1"}`}</span>
             </div>
           ) : null}
