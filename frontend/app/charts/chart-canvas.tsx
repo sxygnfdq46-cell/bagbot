@@ -47,7 +47,7 @@ type PositionLifecycle = {
   exitIndex?: number;
 };
 
-type ReasoningPhase = "ENTRY" | "HOLD" | "EXIT";
+export type ReasoningPhase = "ENTRY" | "HOLD" | "EXIT";
 
 type ReasoningAnchor = {
   id: string;
@@ -66,6 +66,12 @@ export type ChartProjection = "off" | "forward" | "trendline";
 export type ChartCompare = "off" | "EURUSD" | "GBPUSD" | "XAUUSD" | "NAS100" | "BTCUSD";
 export type ChartReasoningVisibility = "on" | "off";
 export type ChartReplayMode = "live" | "replay";
+export type ChartDecisionEvent = {
+  id: string;
+  time: number;
+  phase: ReasoningPhase;
+  label: string;
+};
 export type ChartSnapshot = {
   instrument: string;
   timeframe: string;
@@ -439,6 +445,7 @@ export type ChartCanvasHandle = {
   currentReplayMax: number;
   setIndicator: (indicator: ChartIndicator, enabled: boolean) => void;
   currentIndicators: ChartIndicator[];
+  focusDecision: (id: string | null, options?: { syncReplay?: boolean }) => void;
 };
 
 export const ChartCanvas = forwardRef<
@@ -461,6 +468,8 @@ export const ChartCanvas = forwardRef<
     onReasoningVisibilityChange?: (value: ChartReasoningVisibility) => void;
     onReplayUpdate?: (info: { mode: ChartReplayMode; cursor: number; max: number }) => void;
     onIndicatorsChange?: (active: ChartIndicator[]) => void;
+    onDecisionTimelineUpdate?: (events: ChartDecisionEvent[]) => void;
+    onDecisionActiveChange?: (id: string | null) => void;
   }
 >(
   function ChartCanvas(
@@ -482,6 +491,8 @@ export const ChartCanvas = forwardRef<
       onReasoningVisibilityChange,
       onReplayUpdate,
       onIndicatorsChange,
+      onDecisionTimelineUpdate,
+      onDecisionActiveChange,
     },
     ref
   ) {
@@ -548,6 +559,22 @@ export const ChartCanvas = forwardRef<
       return active;
     }, [toggleEMA, toggleRSI, toggleVWAP]);
 
+    const decisionEvents = useMemo<ChartDecisionEvent[]>(
+      () =>
+        reasoningAnchors.map((anchor) => ({
+          id: anchor.id,
+          time: anchor.time as number,
+          phase: anchor.phase,
+          label: anchor.reasons[0] ?? anchor.phase,
+        })),
+      [reasoningAnchors]
+    );
+
+    const cursorDecisionId = useMemo(() => {
+      if (!reasoningAnchors.length) return null;
+      return reasoningAnchors[reasoningAnchors.length - 1]?.id ?? null;
+    }, [reasoningAnchors]);
+
     useEffect(() => {
       if (replayMode !== "replay") return;
       if (replayCursor === null && candles.length) {
@@ -566,6 +593,14 @@ export const ChartCanvas = forwardRef<
       const cursor = replayMode === "replay" ? clamp(replayCursor ?? max, 1, Math.max(1, max)) : max;
       onReplayUpdate?.({ mode: replayMode, cursor, max });
     }, [candles.length, onReplayUpdate, replayCursor, replayMode]);
+
+    useEffect(() => {
+      onDecisionTimelineUpdate?.(decisionEvents);
+    }, [decisionEvents, onDecisionTimelineUpdate]);
+
+    useEffect(() => {
+      onDecisionActiveChange?.(cursorDecisionId);
+    }, [cursorDecisionId, onDecisionActiveChange]);
 
     const priceRange = useMemo(() => {
       if (!visualCandles.length) return { min: 0, max: 1, span: 1 };
@@ -665,6 +700,23 @@ export const ChartCanvas = forwardRef<
       }
     }, []);
 
+    const focusDecision = useCallback(
+      (id: string | null, options?: { syncReplay?: boolean }) => {
+        setFocusedAnchorId(id);
+        if (!id) return;
+        if (options?.syncReplay && replayMode === "replay") {
+          const anchor = reasoningAnchors.find((candidate) => candidate.id === id);
+          if (!anchor) return;
+          const idx = timeIndexMap.get(anchor.time as number);
+          if (idx !== undefined) {
+            const cursor = clamp(idx + 1, 1, candles.length || 1);
+            setReplayCursor(cursor);
+          }
+        }
+      },
+      [candles.length, reasoningAnchors, replayMode, timeIndexMap]
+    );
+
     const persistSnapshot = useCallback((snapshot: ChartSnapshot) => {
       snapshotRef.current = snapshot;
       if (typeof window !== "undefined") {
@@ -749,8 +801,9 @@ export const ChartCanvas = forwardRef<
         currentReplayCursor: replayCursor,
         currentReplayMax: candles.length,
         currentIndicators: indicatorState,
+        focusDecision: (id, options) => focusDecision(id, options),
       }),
-      [activeTool, candles.length, candleType, compareInstrument, indicatorState, instrument, loadSnapshot, projectionMode, reasoningVisibility, replayCursor, replayMode, saveSnapshot, setReplayCursorState, setReplayModeState, timeframe]
+      [activeTool, candles.length, candleType, compareInstrument, focusDecision, indicatorState, instrument, loadSnapshot, projectionMode, reasoningVisibility, replayCursor, replayMode, saveSnapshot, setReplayCursorState, setReplayModeState, timeframe]
     );
 
     useEffect(() => {
@@ -1103,13 +1156,13 @@ export const ChartCanvas = forwardRef<
     const markers = reasoningAnchors.map<SeriesMarker<Time>>((anchor) => ({
       time: anchor.time as Time,
       position: anchor.phase === "ENTRY" ? "belowBar" : anchor.phase === "EXIT" ? "aboveBar" : "aboveBar",
-      color: palette.markerReason,
+      color: focusedAnchorId === anchor.id ? palette.markerExit : palette.markerReason,
       shape: "circle",
       text: anchor.phase === "ENTRY" ? "EN" : anchor.phase === "EXIT" ? "EX" : "HD",
     }));
 
     markerHost.setMarkers(markers);
-  }, [activeTool, candleCount, draftPoint, priceMin, priceSpan, reasoningAnchors, reasoningVisibility, timeIndexMap]);
+  }, [activeTool, candleCount, draftPoint, focusedAnchorId, priceMin, priceSpan, reasoningAnchors, reasoningVisibility, timeIndexMap]);
 
   useEffect(() => {
     if (!visualCandles.length) return;

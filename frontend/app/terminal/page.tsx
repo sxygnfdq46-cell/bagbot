@@ -11,6 +11,7 @@ import ChartCanvas, {
   type ChartCompare,
   type ChartReasoningVisibility,
   type ChartReplayMode,
+  type ChartDecisionEvent,
 } from "@/app/charts/chart-canvas";
 import TerminalShell from "@/components/terminal/terminal-shell";
 
@@ -34,12 +35,16 @@ export default function TerminalPage() {
   const [replayCursor, setReplayCursor] = useState<number | null>(null);
   const [replayMax, setReplayMax] = useState<number>(1);
   const [indicators, setIndicators] = useState<ChartIndicator[]>([]);
+  const [decisionEvents, setDecisionEvents] = useState<ChartDecisionEvent[]>([]);
+  const [activeDecisionId, setActiveDecisionId] = useState<string | null>(null);
+  const [selectedDecisionId, setSelectedDecisionId] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState<boolean>(false);
   const chartRef = useRef<ChartCanvasHandle | null>(null);
 
   const handleTimeframeChange = (value: string) => {
     setTimeframe(value);
     chartRef.current?.setTimeframe(value);
+    setSelectedDecisionId(null);
   };
 
   const handleInstrumentChange = (value: string) => {
@@ -47,6 +52,7 @@ export default function TerminalPage() {
     chartRef.current?.setInstrument(value);
     setCompare("off");
     chartRef.current?.setCompare("off");
+    setSelectedDecisionId(null);
   };
 
   const handleCandleTypeChange = (value: ChartCandleType) => {
@@ -117,6 +123,27 @@ export default function TerminalPage() {
     setReplayCursor(mode === "replay" ? cursor : null);
   };
 
+  const syncDecisionTimeline = (events: ChartDecisionEvent[]) => {
+    setDecisionEvents(events);
+    if (events.length === 0) {
+      setActiveDecisionId(null);
+      setSelectedDecisionId(null);
+    }
+  };
+
+  const syncDecisionActive = (id: string | null) => {
+    setActiveDecisionId(id);
+    if (replayMode === "replay") {
+      setSelectedDecisionId((current) => (current && current === id ? current : null));
+    }
+  };
+
+  const handleDecisionSelect = (id: string) => {
+    setSelectedDecisionId(id);
+    const syncReplay = replayMode === "replay";
+    chartRef.current?.focusDecision(id, { syncReplay });
+  };
+
   const openSearch = () => setSearchOpen(true);
   const closeSearch = () => setSearchOpen(false);
 
@@ -175,6 +202,10 @@ export default function TerminalPage() {
       indicators={indicators}
       onIndicatorToggle={handleIndicatorToggle}
       indicatorOptions={INDICATOR_OPTIONS}
+      decisionEvents={decisionEvents}
+      activeDecisionId={activeDecisionId}
+      selectedDecisionId={selectedDecisionId}
+      onDecisionSelect={handleDecisionSelect}
     >
       <ChartCanvas
         ref={chartRef}
@@ -193,6 +224,8 @@ export default function TerminalPage() {
         onReasoningVisibilityChange={syncReasoningVisibility}
         onCompareChange={syncCompare}
         onReplayUpdate={syncReplayUpdate}
+        onDecisionTimelineUpdate={syncDecisionTimeline}
+        onDecisionActiveChange={syncDecisionActive}
       />
     </TerminalShell>
   );

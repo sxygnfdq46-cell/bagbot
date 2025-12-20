@@ -26,6 +26,8 @@ import SearchOverlay from "@/components/terminal/search-overlay";
 import Tag from "@/components/ui/tag";
 import type { ChartReasoningVisibility } from "@/app/charts/chart-canvas";
 import type { ChartReplayMode } from "@/app/charts/chart-canvas";
+import type { ChartDecisionEvent } from "@/app/charts/chart-canvas";
+import DecisionTimelinePanel from "@/components/terminal/decision-timeline-panel";
 
 type TerminalShellProps = {
   children: ReactNode;
@@ -64,6 +66,10 @@ type TerminalShellProps = {
   indicators?: ChartIndicator[];
   onIndicatorToggle?: (indicator: ChartIndicator) => void;
   indicatorOptions?: ChartIndicator[];
+  decisionEvents?: ChartDecisionEvent[];
+  activeDecisionId?: string | null;
+  selectedDecisionId?: string | null;
+  onDecisionSelect?: (id: string) => void;
 };
 
 export default function TerminalShell({
@@ -103,11 +109,16 @@ export default function TerminalShell({
   indicators = [],
   onIndicatorToggle,
   indicatorOptions,
+  decisionEvents = [],
+  activeDecisionId,
+  selectedDecisionId,
+  onDecisionSelect,
 }: TerminalShellProps) {
   const [showSignals, setShowSignals] = useState(false);
   const [showBrain, setShowBrain] = useState(false);
   const [showTrades, setShowTrades] = useState(false);
   const [showOrderbook, setShowOrderbook] = useState(false);
+  const [showDecisionTimeline, setShowDecisionTimeline] = useState(false);
 
   const openSignals = () => setShowSignals(true);
   const closeSignals = () => setShowSignals(false);
@@ -117,6 +128,8 @@ export default function TerminalShell({
   const closeTrades = () => setShowTrades(false);
   const openOrderbook = () => setShowOrderbook(true);
   const closeOrderbook = () => setShowOrderbook(false);
+  const openDecisionTimeline = () => setShowDecisionTimeline(true);
+  const closeDecisionTimeline = () => setShowDecisionTimeline(false);
 
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {
@@ -235,12 +248,25 @@ export default function TerminalShell({
             tradesActive={showTrades}
             onOpenOrderbook={openOrderbook}
             orderbookActive={showOrderbook}
+            onOpenTimeline={openDecisionTimeline}
+            timelineActive={showDecisionTimeline}
           />
           <div className="relative flex-1 overflow-hidden">{children}</div>
           <SignalsPanel open={showSignals} onClose={closeSignals} />
           <BrainPanel open={showBrain} onClose={closeBrain} />
           <TradesPanel open={showTrades} onClose={closeTrades} />
           <OrderbookPanel open={showOrderbook} onClose={closeOrderbook} />
+          <DecisionTimelinePanel
+            open={showDecisionTimeline}
+            onClose={closeDecisionTimeline}
+            events={decisionEvents}
+            activeId={activeDecisionId}
+            selectedId={selectedDecisionId}
+            onSelect={(id) => {
+              onDecisionSelect?.(id);
+              setShowDecisionTimeline(true);
+            }}
+          />
         </div>
       </div>
 

@@ -9,68 +9,44 @@ type IconRailProps = {
   tradesActive: boolean;
   onOpenOrderbook: () => void;
   orderbookActive: boolean;
+  onOpenTimeline: () => void;
+  timelineActive: boolean;
 };
-
 const glyphs = [IconSpark, IconWave, IconStack, IconPulse, IconGrid, IconCode];
 
-export default function IconRail({ onOpenSignals, signalsActive, onOpenBrain, brainActive, onOpenTrades, tradesActive, onOpenOrderbook, orderbookActive }: IconRailProps) {
+export default function IconRail({ onOpenSignals, signalsActive, onOpenBrain, brainActive, onOpenTrades, tradesActive, onOpenOrderbook, orderbookActive, onOpenTimeline, timelineActive }: IconRailProps) {
+  const items = [
+    { Glyph: glyphs[0], onClick: onOpenSignals, active: signalsActive, label: "Open Signals panel" },
+    { Glyph: glyphs[1], onClick: onOpenBrain, active: brainActive, label: "Open Brain panel" },
+    { Glyph: glyphs[2], onClick: onOpenTrades, active: tradesActive, label: "Open Trades panel" },
+    { Glyph: glyphs[3], onClick: onOpenOrderbook, active: orderbookActive, label: "Open Order Book panel" },
+    { Glyph: glyphs[4], onClick: onOpenTimeline, active: timelineActive, label: "Open Decision Timeline" },
+  ];
+
   return (
     <aside
       className="flex w-14 flex-col items-center gap-3 border-r border-white/5 bg-slate-900/40 px-2 py-4 text-slate-200/70"
       aria-label="Terminal tool rail"
     >
-      {glyphs.map((Glyph, idx) => {
-        const interactive = idx === 0 || idx === 1 || idx === 2 || idx === 3;
-        if (interactive) {
-          const isSignals = idx === 0;
-          const isBrain = idx === 1;
-          const isTrades = idx === 2;
-          const isOrderbook = idx === 3;
-          const active = isSignals
-            ? signalsActive
-            : isBrain
-            ? brainActive
-            : isTrades
-            ? tradesActive
-            : orderbookActive;
-          const handleClick = isSignals
-            ? onOpenSignals
-            : isBrain
-            ? onOpenBrain
-            : isTrades
-            ? onOpenTrades
-            : onOpenOrderbook;
-          const label = isSignals
-            ? "Open Signals panel"
-            : isBrain
-            ? "Open Brain panel"
-            : isTrades
-            ? "Open Trades panel"
-            : "Open Order Book panel";
-          return (
-            <button
-              key={idx}
-              type="button"
-              onClick={handleClick}
-              aria-pressed={active}
-              aria-label={label}
-              className={`flex h-10 w-10 items-center justify-center rounded-xl border border-white/5 bg-white/10 shadow-inner shadow-black/20 transition ${active ? "ring-2 ring-[color:var(--accent-cyan)]" : "hover:border-white/15"}`}
-            >
-              <Glyph className="h-5 w-5 opacity-90" />
-            </button>
-          );
-        }
+      {items.map(({ Glyph, onClick, active, label }, idx) => (
+        <button
+          key={label}
+          type="button"
+          onClick={onClick}
+          aria-pressed={active}
+          aria-label={label}
+          className={`flex h-10 w-10 items-center justify-center rounded-xl border border-white/5 bg-white/10 shadow-inner shadow-black/20 transition ${active ? "ring-2 ring-[color:var(--accent-cyan)]" : "hover:border-white/15"}`}
+        >
+          <Glyph className="h-5 w-5 opacity-90" />
+        </button>
+      ))}
 
-        return (
-          <span
-            key={idx}
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 shadow-inner shadow-black/20"
-            aria-hidden
-          >
-            <Glyph className="h-5 w-5 opacity-80" />
-          </span>
-        );
-      })}
+      <span
+        className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 shadow-inner shadow-black/20"
+        aria-hidden
+      >
+        <IconCode className="h-5 w-5 opacity-80" />
+      </span>
     </aside>
   );
 }
