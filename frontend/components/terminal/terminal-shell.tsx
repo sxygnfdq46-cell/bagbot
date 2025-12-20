@@ -70,6 +70,8 @@ type TerminalShellProps = {
   activeDecisionId?: string | null;
   selectedDecisionId?: string | null;
   onDecisionSelect?: (id: string) => void;
+  layoutMode?: "single" | "split";
+  onLayoutModeChange?: (mode: "single" | "split") => void;
 };
 
 export default function TerminalShell({
@@ -113,6 +115,8 @@ export default function TerminalShell({
   activeDecisionId,
   selectedDecisionId,
   onDecisionSelect,
+  layoutMode = "single",
+  onLayoutModeChange,
 }: TerminalShellProps) {
   const [showSignals, setShowSignals] = useState(false);
   const [showBrain, setShowBrain] = useState(false);
@@ -210,6 +214,21 @@ export default function TerminalShell({
             >
               <Tag className="text-[11px] uppercase tracking-[0.22em]" variant="default">Replay</Tag>
               <span className="text-xs uppercase tracking-[0.08em] text-slate-200/90">{replayMode === "replay" ? "On" : "Off"}</span>
+            </button>
+          ) : null}
+          {onLayoutModeChange ? (
+            <button
+              type="button"
+              onClick={() => onLayoutModeChange(layoutMode === "split" ? "single" : "split")}
+              className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${
+                layoutMode === "split"
+                  ? "border-sky-300/30 bg-sky-500/10 text-white"
+                  : "border-white/10 bg-white/5 text-white/90 hover:border-white/25"
+              }`}
+              aria-label="Toggle layout"
+            >
+              <Tag className="text-[11px] uppercase tracking-[0.22em]" variant="default">Layout</Tag>
+              <span className="text-xs uppercase tracking-[0.08em] text-slate-200/90">{layoutMode === "split" ? "Split" : "Single"}</span>
             </button>
           ) : null}
           {onIndicatorToggle ? (

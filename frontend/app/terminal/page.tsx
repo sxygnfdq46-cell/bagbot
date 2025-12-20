@@ -24,124 +24,134 @@ const PROJECTION_OPTIONS: ChartProjection[] = ["off", "forward", "trendline"];
 const COMPARE_OPTIONS: ChartCompare[] = ["off", "EURUSD", "GBPUSD", "XAUUSD", "NAS100", "BTCUSD"];
 
 export default function TerminalPage() {
-  const [timeframe, setTimeframe] = useState<string>("1h");
-  const [instrument, setInstrument] = useState<string>("EURUSD");
-  const [candleType, setCandleType] = useState<ChartCandleType>("candles");
-  const [tool, setTool] = useState<ChartTool>("off");
-  const [projection, setProjection] = useState<ChartProjection>("off");
-  const [compare, setCompare] = useState<ChartCompare>("off");
-  const [reasoningVisibility, setReasoningVisibility] = useState<ChartReasoningVisibility>("on");
-  const [replayMode, setReplayMode] = useState<ChartReplayMode>("live");
-  const [replayCursor, setReplayCursor] = useState<number | null>(null);
-  const [replayMax, setReplayMax] = useState<number>(1);
-  const [indicators, setIndicators] = useState<ChartIndicator[]>([]);
-  const [decisionEvents, setDecisionEvents] = useState<ChartDecisionEvent[]>([]);
-  const [activeDecisionId, setActiveDecisionId] = useState<string | null>(null);
-  const [selectedDecisionId, setSelectedDecisionId] = useState<string | null>(null);
+  const PANE_COUNT = 2;
+  const updateAt = <T,>(list: T[], idx: number, value: T): T[] => list.map((item, i) => (i === idx ? value : item));
+
+  const [layoutMode, setLayoutMode] = useState<"single" | "split">("single");
+  const [activePane, setActivePane] = useState<number>(0);
+  const [timeframes, setTimeframes] = useState<string[]>(["1h", "1h"]);
+  const [instruments, setInstruments] = useState<string[]>(["EURUSD", "GBPUSD"]);
+  const [candleTypes, setCandleTypes] = useState<ChartCandleType[]>(["candles", "candles"]);
+  const [tools, setTools] = useState<ChartTool[]>(["off", "off"]);
+  const [projections, setProjections] = useState<ChartProjection[]>(["off", "off"]);
+  const [compares, setCompares] = useState<ChartCompare[]>(["off", "off"]);
+  const [reasoningVisibility, setReasoningVisibility] = useState<ChartReasoningVisibility[]>(["on", "on"]);
+  const [replayModes, setReplayModes] = useState<ChartReplayMode[]>(["live", "live"]);
+  const [replayCursors, setReplayCursors] = useState<(number | null)[]>([null, null]);
+  const [replayMaxes, setReplayMaxes] = useState<number[]>([1, 1]);
+  const [indicators, setIndicators] = useState<ChartIndicator[][]>([[], []]);
+  const [decisionEvents, setDecisionEvents] = useState<ChartDecisionEvent[][]>([[], []]);
+  const [activeDecisionIds, setActiveDecisionIds] = useState<(string | null)[]>([null, null]);
+  const [selectedDecisionIds, setSelectedDecisionIds] = useState<(string | null)[]>([null, null]);
   const [searchOpen, setSearchOpen] = useState<boolean>(false);
-  const chartRef = useRef<ChartCanvasHandle | null>(null);
+  const chartRefs = useRef<Array<ChartCanvasHandle | null>>(Array(PANE_COUNT).fill(null));
 
   const handleTimeframeChange = (value: string) => {
-    setTimeframe(value);
-    chartRef.current?.setTimeframe(value);
-    setSelectedDecisionId(null);
+    setTimeframes((current) => updateAt(current, activePane, value));
+    chartRefs.current[activePane]?.setTimeframe(value);
+    setSelectedDecisionIds((current) => updateAt(current, activePane, null));
   };
 
   const handleInstrumentChange = (value: string) => {
-    setInstrument(value);
-    chartRef.current?.setInstrument(value);
-    setCompare("off");
-    chartRef.current?.setCompare("off");
-    setSelectedDecisionId(null);
+    setInstruments((current) => updateAt(current, activePane, value));
+    chartRefs.current[activePane]?.setInstrument(value);
+    setCompares((current) => updateAt(current, activePane, "off"));
+    chartRefs.current[activePane]?.setCompare("off");
+    setSelectedDecisionIds((current) => updateAt(current, activePane, null));
   };
 
   const handleCandleTypeChange = (value: ChartCandleType) => {
-    setCandleType(value);
-    chartRef.current?.setCandleType(value);
+    setCandleTypes((current) => updateAt(current, activePane, value));
+    chartRefs.current[activePane]?.setCandleType(value);
   };
 
   const handleIndicatorToggle = (indicator: ChartIndicator) => {
-    const nextEnabled = !indicators.includes(indicator);
-    chartRef.current?.setIndicator(indicator, nextEnabled);
+    const nextEnabled = !indicators[activePane]?.includes(indicator);
+    chartRefs.current[activePane]?.setIndicator(indicator, nextEnabled);
   };
 
-  const handleIndicatorsChange = (active: ChartIndicator[]) => {
-    setIndicators(active);
+  const handleIndicatorsChange = (pane: number, active: ChartIndicator[]) => {
+    setIndicators((current) => updateAt(current, pane, active));
   };
 
-  const syncCandleType = (value: ChartCandleType) => {
-    setCandleType(value);
+  const syncCandleType = (pane: number, value: ChartCandleType) => {
+    setCandleTypes((current) => updateAt(current, pane, value));
   };
 
   const handleToolChange = (value: ChartTool) => {
-    chartRef.current?.setTool(value);
+    setTools((current) => updateAt(current, activePane, value));
+    chartRefs.current[activePane]?.setTool(value);
   };
 
-  const syncTool = (value: ChartTool) => {
-    setTool(value);
+  const syncTool = (pane: number, value: ChartTool) => {
+    setTools((current) => updateAt(current, pane, value));
   };
 
   const handleProjectionChange = (value: ChartProjection) => {
-    chartRef.current?.setProjection(value);
+    setProjections((current) => updateAt(current, activePane, value));
+    chartRefs.current[activePane]?.setProjection(value);
   };
 
-  const syncProjection = (value: ChartProjection) => {
-    setProjection(value);
+  const syncProjection = (pane: number, value: ChartProjection) => {
+    setProjections((current) => updateAt(current, pane, value));
   };
 
   const handleCompareChange = (value: ChartCompare) => {
-    setCompare(value);
-    chartRef.current?.setCompare(value);
+    setCompares((current) => updateAt(current, activePane, value));
+    chartRefs.current[activePane]?.setCompare(value);
   };
 
-  const syncCompare = (value: ChartCompare) => {
-    setCompare(value);
+  const syncCompare = (pane: number, value: ChartCompare) => {
+    setCompares((current) => updateAt(current, pane, value));
   };
 
   const handleReasoningVisibilityChange = (value: ChartReasoningVisibility) => {
-    setReasoningVisibility(value);
-    chartRef.current?.setReasoningVisibility(value);
+    setReasoningVisibility((current) => updateAt(current, activePane, value));
+    chartRefs.current[activePane]?.setReasoningVisibility(value);
   };
 
-  const syncReasoningVisibility = (value: ChartReasoningVisibility) => {
-    setReasoningVisibility(value);
+  const syncReasoningVisibility = (pane: number, value: ChartReasoningVisibility) => {
+    setReasoningVisibility((current) => updateAt(current, pane, value));
   };
 
   const handleReplayModeChange = (value: ChartReplayMode) => {
-    setReplayMode(value);
-    chartRef.current?.setReplayMode(value);
+    setReplayModes((current) => updateAt(current, activePane, value));
+    chartRefs.current[activePane]?.setReplayMode(value);
   };
 
   const handleReplayScrub = (value: number) => {
-    setReplayCursor(value);
-    chartRef.current?.setReplayCursor(value);
+    setReplayCursors((current) => updateAt(current, activePane, value));
+    chartRefs.current[activePane]?.setReplayCursor(value);
   };
 
-  const syncReplayUpdate = ({ mode, cursor, max }: { mode: ChartReplayMode; cursor: number; max: number }) => {
-    setReplayMode(mode);
-    setReplayMax(max || 1);
-    setReplayCursor(mode === "replay" ? cursor : null);
+  const syncReplayUpdate = (
+    pane: number,
+    { mode, cursor, max }: { mode: ChartReplayMode; cursor: number; max: number }
+  ) => {
+    setReplayModes((current) => updateAt(current, pane, mode));
+    setReplayMaxes((current) => updateAt(current, pane, max || 1));
+    setReplayCursors((current) => updateAt(current, pane, mode === "replay" ? cursor : null));
   };
 
-  const syncDecisionTimeline = (events: ChartDecisionEvent[]) => {
-    setDecisionEvents(events);
+  const syncDecisionTimeline = (pane: number, events: ChartDecisionEvent[]) => {
+    setDecisionEvents((current) => updateAt(current, pane, events));
     if (events.length === 0) {
-      setActiveDecisionId(null);
-      setSelectedDecisionId(null);
+      setActiveDecisionIds((current) => updateAt(current, pane, null));
+      setSelectedDecisionIds((current) => updateAt(current, pane, null));
     }
   };
 
-  const syncDecisionActive = (id: string | null) => {
-    setActiveDecisionId(id);
-    if (replayMode === "replay") {
-      setSelectedDecisionId((current) => (current && current === id ? current : null));
+  const syncDecisionActive = (pane: number, id: string | null) => {
+    setActiveDecisionIds((current) => updateAt(current, pane, id));
+    if (replayModes[pane] === "replay") {
+      setSelectedDecisionIds((current) => updateAt(current, pane, current[pane] && current[pane] === id ? current[pane] : null));
     }
   };
 
   const handleDecisionSelect = (id: string) => {
-    setSelectedDecisionId(id);
-    const syncReplay = replayMode === "replay";
-    chartRef.current?.focusDecision(id, { syncReplay });
+    setSelectedDecisionIds((current) => updateAt(current, activePane, id));
+    const syncReplay = replayModes[activePane] === "replay";
+    chartRefs.current[activePane]?.focusDecision(id, { syncReplay });
   };
 
   const openSearch = () => setSearchOpen(true);
@@ -153,36 +163,72 @@ export default function TerminalPage() {
   };
 
   const handleSnapshotSave = () => {
-    chartRef.current?.saveSnapshot();
+    chartRefs.current[activePane]?.saveSnapshot();
   };
 
   const handleSnapshotRestore = () => {
-    const snapshot: ChartSnapshot | null | undefined = chartRef.current?.loadSnapshot();
+    const snapshot: ChartSnapshot | null | undefined = chartRefs.current[activePane]?.loadSnapshot();
     if (!snapshot) return;
-    setInstrument(snapshot.instrument);
-    setTimeframe(snapshot.timeframe);
-    setCandleType(snapshot.candleType);
-    setIndicators(snapshot.indicators);
+    setInstruments((current) => updateAt(current, activePane, snapshot.instrument));
+    setTimeframes((current) => updateAt(current, activePane, snapshot.timeframe));
+    setCandleTypes((current) => updateAt(current, activePane, snapshot.candleType));
+    setIndicators((current) => updateAt(current, activePane, snapshot.indicators ?? []));
   };
+
+  const renderPane = (pane: number) => (
+    <div
+      key={`pane-${pane}`}
+      className={`relative flex-1 overflow-hidden rounded-2xl border border-white/5 bg-slate-900/30 ${layoutMode === "single" && pane !== activePane ? "hidden" : "block"}`}
+      onClick={() => setActivePane(pane)}
+    >
+      <div className={`absolute inset-0 ${activePane === pane ? "ring-2 ring-sky-300/70" : "ring-1 ring-white/5"}`}>
+        <ChartCanvas
+          ref={(node) => {
+            chartRefs.current[pane] = node;
+          }}
+          initialInstrument={instruments[pane]}
+          initialCandleType={candleTypes[pane]}
+          initialTool={tools[pane]}
+          initialProjection={projections[pane]}
+          initialCompare={compares[pane]}
+          initialReasoningVisibility={reasoningVisibility[pane]}
+          initialReplayMode={replayModes[pane]}
+          initialReplayCursor={replayCursors[pane]}
+          onIndicatorsChange={(active) => handleIndicatorsChange(pane, active)}
+          onCandleTypeChange={(value) => syncCandleType(pane, value)}
+          onToolChange={(value) => syncTool(pane, value)}
+          onProjectionChange={(value) => syncProjection(pane, value)}
+          onReasoningVisibilityChange={(value) => syncReasoningVisibility(pane, value)}
+          onCompareChange={(value) => syncCompare(pane, value)}
+          onReplayUpdate={(info) => syncReplayUpdate(pane, info)}
+          onDecisionTimelineUpdate={(events) => syncDecisionTimeline(pane, events)}
+          onDecisionActiveChange={(id) => syncDecisionActive(pane, id)}
+        />
+      </div>
+      <div className="pointer-events-none absolute left-3 top-3 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white/80">
+        Pane {pane + 1}
+      </div>
+    </div>
+  );
 
   return (
     <TerminalShell
-      timeframe={timeframe}
+      timeframe={timeframes[activePane]}
       onTimeframeChange={handleTimeframeChange}
       timeframeOptions={TIMEFRAME_OPTIONS}
-      instrument={instrument}
+      instrument={instruments[activePane]}
       onInstrumentChange={handleInstrumentChange}
       instrumentOptions={INSTRUMENT_OPTIONS}
-      candleType={candleType}
+      candleType={candleTypes[activePane]}
       onCandleTypeChange={handleCandleTypeChange}
       candleTypeOptions={CANDLE_TYPE_OPTIONS}
-      tool={tool}
+      tool={tools[activePane]}
       onToolChange={handleToolChange}
       toolOptions={TOOL_OPTIONS}
-      projection={projection}
+      projection={projections[activePane]}
       onProjectionChange={handleProjectionChange}
       projectionOptions={PROJECTION_OPTIONS}
-      compare={compare}
+      compare={compares[activePane]}
       onCompareChange={handleCompareChange}
       compareOptions={COMPARE_OPTIONS}
       searchOpen={searchOpen}
@@ -190,43 +236,28 @@ export default function TerminalPage() {
       onSearchClose={closeSearch}
       onSearchSelect={handleSearchSelect}
       searchOptions={INSTRUMENT_OPTIONS}
-      reasoningVisibility={reasoningVisibility}
+      reasoningVisibility={reasoningVisibility[activePane]}
       onReasoningVisibilityChange={handleReasoningVisibilityChange}
-      replayMode={replayMode}
+      replayMode={replayModes[activePane]}
       onReplayModeChange={handleReplayModeChange}
-      replayCursor={replayCursor ?? replayMax}
-      replayMax={replayMax}
+      replayCursor={replayCursors[activePane] ?? replayMaxes[activePane]}
+      replayMax={replayMaxes[activePane]}
       onReplayScrub={handleReplayScrub}
       onSnapshotSave={handleSnapshotSave}
       onSnapshotRestore={handleSnapshotRestore}
-      indicators={indicators}
+      indicators={indicators[activePane]}
       onIndicatorToggle={handleIndicatorToggle}
       indicatorOptions={INDICATOR_OPTIONS}
-      decisionEvents={decisionEvents}
-      activeDecisionId={activeDecisionId}
-      selectedDecisionId={selectedDecisionId}
+      decisionEvents={decisionEvents[activePane]}
+      activeDecisionId={activeDecisionIds[activePane]}
+      selectedDecisionId={selectedDecisionIds[activePane]}
       onDecisionSelect={handleDecisionSelect}
+      layoutMode={layoutMode}
+      onLayoutModeChange={setLayoutMode}
     >
-      <ChartCanvas
-        ref={chartRef}
-        initialInstrument={instrument}
-        initialCandleType={candleType}
-        initialTool={tool}
-        initialProjection={projection}
-        initialCompare={compare}
-        initialReasoningVisibility={reasoningVisibility}
-        initialReplayMode={replayMode}
-        initialReplayCursor={replayCursor}
-        onIndicatorsChange={handleIndicatorsChange}
-        onCandleTypeChange={syncCandleType}
-        onToolChange={syncTool}
-        onProjectionChange={syncProjection}
-        onReasoningVisibilityChange={syncReasoningVisibility}
-        onCompareChange={syncCompare}
-        onReplayUpdate={syncReplayUpdate}
-        onDecisionTimelineUpdate={syncDecisionTimeline}
-        onDecisionActiveChange={syncDecisionActive}
-      />
+      <div className="flex h-full gap-3">
+        {Array.from({ length: PANE_COUNT }).map((_, pane) => renderPane(pane))}
+      </div>
     </TerminalShell>
   );
 }
