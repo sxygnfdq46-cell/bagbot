@@ -266,7 +266,7 @@ export default function TerminalShell({
         </div>
       ) : null}
 
-      <div className="flex-1 overflow-hidden rounded-2xl border border-white/8 bg-slate-900/30">
+      <div className="flex-1 overflow-hidden rounded-xl border border-slate-800/90 bg-slate-950/70 shadow-inner">
         <div className="relative flex h-full">
           <IconRail
             onOpenSignals={openSignals}

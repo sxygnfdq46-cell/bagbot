@@ -178,10 +178,10 @@ export default function TerminalPage() {
   const renderPane = (pane: number) => (
     <div
       key={`pane-${pane}`}
-      className={`relative flex-1 overflow-hidden rounded-2xl border border-white/5 bg-slate-900/30 ${layoutMode === "single" && pane !== activePane ? "hidden" : "block"}`}
+      className={`relative flex-1 overflow-hidden rounded-xl border border-slate-800/80 bg-slate-950/50 ${layoutMode === "single" && pane !== activePane ? "hidden" : "block"}`}
       onClick={() => setActivePane(pane)}
     >
-      <div className={`absolute inset-0 ${activePane === pane ? "ring-1 ring-sky-200/60" : "ring-1 ring-white/8"}`}>
+      <div className={`absolute inset-0 ring-inset ${activePane === pane ? "ring-1 ring-sky-200/50" : "ring-1 ring-white/6"}`}>
         <ChartCanvas
           ref={(node) => {
             chartRefs.current[pane] = node;
