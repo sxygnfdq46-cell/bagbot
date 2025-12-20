@@ -25,7 +25,7 @@ export default function IconRail({ onOpenSignals, signalsActive, onOpenBrain, br
 
   return (
     <aside
-      className="flex w-14 flex-col items-center gap-3 border-r border-white/5 bg-slate-900/40 px-2 py-4 text-slate-200/70"
+      className="flex w-14 flex-col items-center gap-2.5 border-r border-slate-800/80 bg-slate-950/70 px-2 py-3 text-slate-200/70"
       aria-label="Terminal tool rail"
     >
       {items.map(({ Glyph, onClick, active, label }, idx) => (
@@ -35,14 +35,14 @@ export default function IconRail({ onOpenSignals, signalsActive, onOpenBrain, br
           onClick={onClick}
           aria-pressed={active}
           aria-label={label}
-          className={`flex h-10 w-10 items-center justify-center rounded-xl border border-white/5 bg-white/10 shadow-inner shadow-black/20 transition ${active ? "ring-2 ring-[color:var(--accent-cyan)]" : "hover:border-white/15"}`}
+          className={`flex h-10 w-10 items-center justify-center rounded-lg border border-slate-800/70 bg-slate-900/60 shadow-inner shadow-black/15 transition ${active ? "border-cyan-200/50 bg-slate-900/80" : "hover:border-slate-200/30"}`}
         >
           <Glyph className="h-5 w-5 opacity-90" />
         </button>
       ))}
 
       <span
-        className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 shadow-inner shadow-black/20"
+        className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900/60 shadow-inner shadow-black/15"
         aria-hidden
       >
         <IconCode className="h-5 w-5 opacity-80" />
