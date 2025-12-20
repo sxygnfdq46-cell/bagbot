@@ -1,5 +1,7 @@
 "use client";
 
+// LEGACY TERMINAL (V1): frozen for reference only. Do not modify or reuse. See components/terminal/LEGACY.md.
+
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import IconRail from "@/components/terminal/icon-rail";

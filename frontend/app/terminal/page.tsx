@@ -1,5 +1,7 @@
 "use client";
 
+// LEGACY TERMINAL (V1): frozen for reference only. Do not modify or reuse. See app/terminal/LEGACY.md.
+
 import { useRef, useState } from "react";
 import ChartCanvas, {
   type ChartCanvasHandle,
