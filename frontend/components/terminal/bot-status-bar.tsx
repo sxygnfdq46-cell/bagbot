@@ -73,19 +73,19 @@ export default function BotStatusBar({ replayMode = "live", layoutMode = "single
   };
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-white/12 bg-slate-900/50 px-4 py-3 text-sm text-slate-100/90 backdrop-blur">
+    <div className="flex items-center justify-between gap-2.5 rounded-lg border border-slate-800/80 bg-slate-950/70 px-3.5 py-2.5 text-sm text-slate-100/90">
       <div className="flex items-center gap-3">
         <Tag variant={tone}>{loading ? "SYNCING" : (status ?? "unknown").toUpperCase()}</Tag>
         <div className="min-w-0">
-          <MetricLabel className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Bot</MetricLabel>
-          <p className="truncate text-sm font-semibold text-white/90">{lastAction ?? "Observing fabric"}</p>
-          <p className="text-[11px] text-slate-400">
+          <MetricLabel className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Bot</MetricLabel>
+          <p className="truncate text-[13px] font-semibold text-white/90">{lastAction ?? "Observing fabric"}</p>
+          <p className="text-[11px] text-slate-500">
             {layoutMode === "split" ? `Active pane: ${activePaneLabel ?? "1"}` : "Single pane"}
             {activeInstrument ? ` • Instrument: ${activeInstrument}` : null}
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-3 text-xs text-slate-300/80">
+      <div className="flex items-center gap-3 text-[12px] text-slate-300/85">
         <div className="flex items-center gap-2">
           <span className={`h-2.5 w-2.5 rounded-full ${status === "running" ? "bg-emerald-400" : status === "error" ? "bg-red-400" : "bg-amber-300"}`} aria-hidden />
           <span>{heartbeat}</span>
@@ -97,7 +97,7 @@ export default function BotStatusBar({ replayMode = "live", layoutMode = "single
         <div className="flex items-center gap-2">
           <Button
             variant="secondary"
-            className="px-3 py-1.5 text-[11px]"
+            className="px-3 py-1.25 text-[11px]"
             onClick={() => handleCommand("running")}
             disabled={pending !== null || isRunning || inReplay}
             isLoading={pending === "running"}
@@ -106,7 +106,7 @@ export default function BotStatusBar({ replayMode = "live", layoutMode = "single
           </Button>
           <Button
             variant="ghost"
-            className="px-3 py-1.5 text-[11px]"
+            className="px-3 py-1.25 text-[11px]"
             onClick={() => handleCommand("stopped")}
             disabled={pending !== null || isStopped}
             isLoading={pending === "stopped"}
@@ -115,7 +115,7 @@ export default function BotStatusBar({ replayMode = "live", layoutMode = "single
           </Button>
           <Button
             variant="ghost"
-            className="px-3 py-1.5 text-[11px]"
+            className="px-3 py-1.25 text-[11px]"
             onClick={() => handleCommand("stopped")}
             disabled={pending !== null || isStopped}
             isLoading={pending === "stopped"}
@@ -124,7 +124,7 @@ export default function BotStatusBar({ replayMode = "live", layoutMode = "single
           </Button>
         </div>
         {inReplay ? (
-          <div className="flex items-center gap-2 rounded-lg border border-amber-300/40 bg-amber-500/10 px-3 py-1 text-[11px] font-semibold text-amber-100/90">
+          <div className="flex items-center gap-1.5 rounded-md border border-amber-300/35 bg-amber-500/10 px-3 py-1 text-[11px] font-semibold text-amber-100/90">
             <span className="h-2 w-2 rounded-full bg-amber-300" aria-hidden />
             <span>Replay mode — execution disabled</span>
           </div>
