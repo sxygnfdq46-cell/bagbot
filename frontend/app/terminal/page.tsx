@@ -254,9 +254,29 @@ export default function TerminalPage() {
       activePaneLabel={`Pane ${activePane + 1}${layoutMode === "split" ? " • bot controls" : ""}`}
       activeInstrument={instruments[activePane]}
     >
-      <div className="flex h-full min-h-0 gap-3">
+      <div className="chart-workspace flex h-full min-h-0 gap-3">
         {Array.from({ length: PANE_COUNT }).map((_, pane) => renderPane(pane))}
       </div>
+      <style jsx global>{`
+        .chart-workspace header.stack-gap-xxs,
+        .chart-workspace h2,
+        .chart-workspace .muted-premium {
+          display: none !important;
+        }
+
+        .chart-workspace [data-card],
+        .chart-workspace .rounded-2xl,
+        .chart-workspace .border,
+        .chart-workspace .shadow-xl {
+          border: none !important;
+          background: transparent !important;
+          box-shadow: none !important;
+        }
+
+        .chart-workspace section {
+          margin: 0 !important;
+        }
+      `}</style>
     </TerminalShell>
   );
 }
