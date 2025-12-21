@@ -41,6 +41,13 @@ Status: Phase 4 is frozen. Do not change layout, state wiring, or structural rul
 - No bot decisions, overlays, indicators, replay cursor, or compare; DOM labels limited to axes text rendered on canvas.
 - Fullscreen and multi-pane continue to work; each pane redraws on resize without layout drift.
 
+## Execution & Event Layer (Phase 6.2)
+- Added an overlay canvas per pane for execution events (entry/exit/stop/target/trade) above price/volume; markers anchored to time/price only.
+- Deterministic mock event set derived from visible bars; no backend wiring or mutation; pane-local only.
+- Interaction rules: hover takes precedence over candles; shows small DOM tooltip (type/time/price); click selects marker (visual emphasis only); no drag/edit/delete.
+- Styling: token-based muted markers with subtle highlight on hover/selection; no glow, animation, or TradingView-style flags.
+- No bot reasoning/confidence overlays, no replay coupling, no indicators; fullscreen/multi-pane behavior unchanged.
+
 ## Must Never Change Without Explicit Approval
 - No chart canvas, syncing, bot logic, or visuals in this file.
 - No max-widths, centering, padding creep, or resizing of the overall workspace.

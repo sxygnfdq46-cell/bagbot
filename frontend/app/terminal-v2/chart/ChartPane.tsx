@@ -12,8 +12,32 @@ export type Bar = {
   volume: number;
 };
 
+type EventType = "entry" | "exit" | "stop" | "target" | "trade";
+type EventSide = "buy" | "sell";
+
+type ChartEvent = {
+  id: string;
+  type: EventType;
+  side: EventSide;
+  time: number;
+  price: number;
+};
+
+type EventRenderPosition = {
+  id: string;
+  x: number;
+  y: number;
+  type: EventType;
+  side: EventSide;
+  time: number;
+  price: number;
+};
+
 const BASE_BAR_INTERVAL = 60 * 1000; // 1m bars
 const DEFAULT_BAR_COUNT = 120;
+const MAX_HISTORY = 240;
+const EVENT_COUNT = 6;
+const HOVER_RADIUS = 12;
 
 function generateSeedBars(): Bar[] {
   const seed: Bar[] = [];
@@ -44,6 +68,27 @@ function nextBarFrom(last: Bar): Bar {
   const low = Math.min(open, close) - 0.35;
   const volume = 950 + (Math.sin(time / (BASE_BAR_INTERVAL * 5)) + 1) * 280 + Math.abs(noise) * 380;
   return { time, open, high, low, close, volume };
+}
+
+function deriveMockEvents(bars: Bar[]): ChartEvent[] {
+  if (bars.length === 0) return [];
+  const picks = [10, 25, 45, 65, 85, 105]
+    .map((offset) => bars[Math.max(0, bars.length - 1 - offset)])
+    .filter(Boolean) as Bar[];
+
+  const types: EventType[] = ["entry", "stop", "target", "exit", "trade", "entry"];
+  return picks.map((bar, idx) => {
+    const type = types[idx % types.length];
+    const side: EventSide = idx % 2 === 0 ? "buy" : "sell";
+    const price = type === "target" ? bar.close + 0.8 : type === "stop" ? bar.close - 0.8 : bar.close;
+    return {
+      id: `${bar.time}-${type}-${idx}`,
+      type,
+      side,
+      time: bar.time,
+      price,
+    };
+  });
 }
 
 function getDevicePixelRatioSafe() {
@@ -83,6 +128,12 @@ function usePaneColors(containerRef: React.RefObject<HTMLElement>, themeKey: str
       down: "#e47272",
       grid: "rgba(233,236,242,0.08)",
       volume: "#9fb3c8",
+      eventEntryBuy: "#7ac4ff",
+      eventEntrySell: "#e47272",
+      eventStop: "#f59f9f",
+      eventTarget: "#8fd19e",
+      eventExit: "#c7cfdc",
+      eventHighlight: "rgba(233,236,242,0.22)",
     };
     if (typeof window === "undefined") return fallback;
     const node = containerRef.current ?? document.documentElement;
@@ -97,37 +148,38 @@ function usePaneColors(containerRef: React.RefObject<HTMLElement>, themeKey: str
       down: get("--terminal-text", fallback.down),
       grid: get("--terminal-grid", fallback.grid) || get("--terminal-text-muted", fallback.grid),
       volume: get("--terminal-volume", fallback.volume) || get("--terminal-text-muted", fallback.volume),
+      eventEntryBuy: get("--terminal-event-entry-buy", fallback.eventEntryBuy) || fallback.eventEntryBuy,
+      eventEntrySell: get("--terminal-event-entry-sell", fallback.eventEntrySell) || fallback.eventEntrySell,
+      eventStop: get("--terminal-event-stop", fallback.eventStop) || fallback.eventStop,
+      eventTarget: get("--terminal-event-target", fallback.eventTarget) || fallback.eventTarget,
+      eventExit: get("--terminal-event-exit", fallback.eventExit) || fallback.eventExit,
+      eventHighlight: get("--terminal-event-highlight", fallback.eventHighlight) || fallback.eventHighlight,
     };
   }, [containerRef, themeKey]);
 }
 
-function drawChart({
-  canvas,
-  bars,
-  colors,
-  width,
-  height,
-}: {
-  canvas: HTMLCanvasElement;
-  bars: Bar[];
-  colors: ReturnType<typeof usePaneColors>;
-  width: number;
-  height: number;
-}) {
-  if (!canvas || width === 0 || height === 0 || bars.length === 0) return;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
-  const dpr = getDevicePixelRatioSafe();
-  canvas.width = width * dpr;
-  canvas.height = height * dpr;
-  canvas.style.width = `${width}px`;
-  canvas.style.height = `${height}px`;
-  ctx.scale(dpr, dpr);
-  ctx.clearRect(0, 0, width, height);
+type ChartGeometry = {
+  padding: { top: number; right: number; bottom: number; left: number };
+  plotWidth: number;
+  plotHeight: number;
+  priceHeight: number;
+  volumeHeight: number;
+  volumeTop: number;
+  minPrice: number;
+  maxPrice: number;
+  minTime: number;
+  maxTime: number;
+  maxVolume: number;
+  timeToX: (time: number) => number;
+  priceToY: (price: number) => number;
+};
 
+function computeGeometry(bars: Bar[], width: number, height: number): ChartGeometry | null {
+  if (bars.length === 0 || width === 0 || height === 0) return null;
   const padding = { top: 8, right: 64, bottom: 28, left: 12 };
   const plotWidth = width - padding.left - padding.right;
   const plotHeight = height - padding.top - padding.bottom;
+  if (plotWidth <= 0 || plotHeight <= 0) return null;
   const volumeHeight = Math.max(32, Math.min(120, Math.round(plotHeight * 0.22)));
   const priceHeight = plotHeight - volumeHeight - 6;
   const volumeTop = padding.top + priceHeight + 6;
@@ -140,7 +192,51 @@ function drawChart({
 
   const timeToX = (time: number) => padding.left + ((time - minTime) / (maxTime - minTime || 1)) * plotWidth;
   const priceToY = (price: number) => padding.top + (1 - (price - minPrice) / (maxPrice - minPrice || 1)) * priceHeight;
-  const volumeToY = (volume: number) => volumeTop + volumeHeight - (volume / (maxVolume || 1)) * volumeHeight;
+
+  return {
+    padding,
+    plotWidth,
+    plotHeight,
+    priceHeight,
+    volumeHeight,
+    volumeTop,
+    minPrice,
+    maxPrice,
+    minTime,
+    maxTime,
+    maxVolume,
+    timeToX,
+    priceToY,
+  };
+}
+
+function drawChart({
+  canvas,
+  bars,
+  colors,
+  width,
+  height,
+  geometry,
+}: {
+  canvas: HTMLCanvasElement;
+  bars: Bar[];
+  colors: ReturnType<typeof usePaneColors>;
+  width: number;
+  height: number;
+  geometry: ChartGeometry;
+}) {
+  if (!canvas || width === 0 || height === 0 || bars.length === 0) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  const dpr = getDevicePixelRatioSafe();
+  canvas.width = width * dpr;
+  canvas.height = height * dpr;
+  canvas.style.width = `${width}px`;
+  canvas.style.height = `${height}px`;
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, width, height);
+
+  const { padding, plotWidth, priceHeight, volumeHeight, volumeTop, minPrice, maxPrice, minTime, maxTime, maxVolume, timeToX, priceToY } = geometry;
 
   // background
   ctx.fillStyle = colors.bg;
@@ -185,7 +281,7 @@ function drawChart({
   bars.forEach((bar) => {
     const x = timeToX(bar.time);
     const barWidth = Math.max(2, candleWidth * 0.8);
-    const y = volumeToY(bar.volume);
+    const y = volumeTop + volumeHeight - (bar.volume / (maxVolume || 1)) * volumeHeight;
     ctx.fillStyle = colors.volume;
     ctx.fillRect(x - barWidth / 2, y, barWidth, volumeTop + volumeHeight - y);
   });
@@ -220,13 +316,89 @@ function drawChart({
 export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const overlayRef = useRef<HTMLCanvasElement>(null);
   const [bars, setBars] = useState<Bar[]>(() => generateSeedBars());
   const colors = usePaneColors(containerRef, themeMode);
   const { width, height } = useResize(containerRef);
+  const [events, setEvents] = useState<ChartEvent[]>(() => deriveMockEvents(generateSeedBars()));
+  const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [tooltip, setTooltip] = useState<{ x: number; y: number; label: string } | null>(null);
+
+  const geometry = useMemo(() => computeGeometry(bars, width, height), [bars, width, height]);
 
   useEffect(() => {
-    drawChart({ canvas: canvasRef.current as HTMLCanvasElement, bars, colors, width, height });
-  }, [bars, colors, width, height]);
+    if (!geometry) return;
+    drawChart({ canvas: canvasRef.current as HTMLCanvasElement, bars, colors, width, height, geometry });
+  }, [bars, colors, geometry, height, width]);
+
+  const eventPositions = useMemo<EventRenderPosition[]>(() => {
+    if (!geometry) return [];
+    const { timeToX, priceToY } = geometry;
+    return events.map((event) => ({
+      id: event.id,
+      x: timeToX(event.time),
+      y: priceToY(event.price),
+      type: event.type,
+      side: event.side,
+      time: event.time,
+      price: event.price,
+    }));
+  }, [events, geometry]);
+
+  useEffect(() => {
+    if (!geometry) return;
+    const overlay = overlayRef.current;
+    if (!overlay) return;
+    const ctx = overlay.getContext("2d");
+    if (!ctx) return;
+    const dpr = getDevicePixelRatioSafe();
+    overlay.width = width * dpr;
+    overlay.height = height * dpr;
+    overlay.style.width = `${width}px`;
+    overlay.style.height = `${height}px`;
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, width, height);
+
+    ctx.lineWidth = 1.5;
+    eventPositions.forEach((event) => {
+      const isHovered = hoveredEventId === event.id;
+      const isSelected = selectedEventId === event.id;
+      const baseColor =
+        event.type === "entry"
+          ? event.side === "buy"
+            ? colors.eventEntryBuy
+            : colors.eventEntrySell
+          : event.type === "stop"
+          ? colors.eventStop
+          : event.type === "target"
+          ? colors.eventTarget
+          : colors.eventExit;
+      const radius = 6;
+
+      if (isSelected || isHovered) {
+        ctx.fillStyle = colors.eventHighlight;
+        ctx.beginPath();
+        ctx.arc(event.x, event.y, radius + 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.strokeStyle = baseColor;
+      ctx.fillStyle = baseColor;
+      ctx.beginPath();
+      ctx.arc(event.x, event.y, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      if (event.type === "stop" || event.type === "target") {
+        ctx.strokeStyle = colors.muted;
+        ctx.beginPath();
+        ctx.moveTo(event.x + radius + 2, event.y);
+        ctx.lineTo(event.x + radius + 28, event.y);
+        ctx.stroke();
+      }
+    });
+  }, [colors, eventPositions, geometry, height, hoveredEventId, selectedEventId, width]);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -236,11 +408,15 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
         }
         const latest = prev[prev.length - 1];
         const next = nextBarFrom(latest);
-        return [...prev.slice(-DEFAULT_BAR_COUNT + 1), next];
+        return [...prev.slice(-Math.max(DEFAULT_BAR_COUNT, MAX_HISTORY) + 1), next];
       });
     }, 8000);
     return () => clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    setEvents(deriveMockEvents(bars));
+  }, [bars]);
 
   return (
     <div
@@ -249,6 +425,79 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
       style={{ position: "relative", width: "100%", height: "100%", backgroundColor: "transparent" }}
     >
       <canvas ref={canvasRef} style={{ display: "block", width: "100%", height: "100%" }} />
+      <canvas
+        ref={overlayRef}
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "block",
+          width: "100%",
+          height: "100%",
+          pointerEvents: "auto",
+        }}
+        onMouseMove={(event) => {
+          if (!geometry) return;
+          const rect = (event.currentTarget as HTMLCanvasElement).getBoundingClientRect();
+          const x = event.clientX - rect.left;
+          const y = event.clientY - rect.top;
+          let nearest: EventRenderPosition | null = null;
+          let minDist = Number.MAX_VALUE;
+          eventPositions.forEach((pos) => {
+            const dx = pos.x - x;
+            const dy = pos.y - y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < HOVER_RADIUS && dist < minDist) {
+              nearest = pos;
+              minDist = dist;
+            }
+          });
+
+          if (nearest) {
+            const hit: EventRenderPosition = nearest;
+            setHoveredEventId(hit.id);
+            const date = new Date(hit.time);
+            const label = `${hit.type.toUpperCase()} @ ${hit.price.toFixed(2)} · ${date.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}`;
+            setTooltip({ x: hit.x, y: hit.y, label });
+          } else {
+            setHoveredEventId(null);
+            setTooltip(null);
+          }
+        }}
+        onMouseLeave={() => {
+          setHoveredEventId(null);
+          setTooltip(null);
+        }}
+        onClick={() => {
+          if (hoveredEventId) {
+            setSelectedEventId(hoveredEventId);
+          }
+        }}
+      />
+      {tooltip ? (
+        <div
+          role="tooltip"
+          style={{
+            position: "absolute",
+            left: tooltip.x + 10,
+            top: tooltip.y - 10,
+            transform: "translate(-50%, -100%)",
+            backgroundColor: colors.chrome,
+            color: colors.text,
+            padding: "4px 8px",
+            borderRadius: 4,
+            fontSize: "11px",
+            fontWeight: 600,
+            pointerEvents: "none",
+            boxShadow: "none",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {tooltip.label}
+        </div>
+      ) : null}
     </div>
   );
 }
