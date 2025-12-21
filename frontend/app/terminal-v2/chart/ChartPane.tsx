@@ -152,7 +152,7 @@ function deriveMockEvents(bars: Bar[]): ChartEvent[] {
 }
 
 function normalizeBars(bars: Bar[] | null | undefined): Bar[] {
-  const candidate: Bar[] = Array.isArray(bars) ? bars : [];
+  const candidate: Bar[] = Array.isArray(bars) ? bars : ([] as Bar[]);
   if (isValidBars(candidate)) return candidate;
   const valid = candidate.filter(isValidBar);
   return valid.length === 0 ? generateSeedBars() : valid;
