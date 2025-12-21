@@ -76,12 +76,20 @@ type ProjectionScenario = {
 
 const DEFAULT_SCENARIO_ORDER: ProjectionScenario["id"][] = ["continuation", "reversion", "range"];
 
+type ConfidencePoint = {
+  time: number;
+  upper: number;
+  lower: number;
+  confidencePct: number;
+};
+
 type ProjectionEnvelope = {
   base: { time: number; price: number }[];
   upper: { time: number; price: number }[];
   lower: { time: number; price: number }[];
   riskBand: { time: number; upper: number; lower: number }[];
   scenarios: ProjectionScenario[];
+  scenarioConfidence: Record<ProjectionScenario["id"], ConfidencePoint[]>;
 };
 
 const BASE_BAR_INTERVAL = 60 * 1000; // 1m bars
@@ -508,6 +516,12 @@ function computeProjections(bars: Bar[], indicators: ReturnType<typeof computeIn
     { id: "range", path: [] },
   ];
 
+  const scenarioConfidence: Record<ProjectionScenario["id"], ConfidencePoint[]> = {
+    continuation: [],
+    reversion: [],
+    range: [],
+  };
+
   for (let i = 1; i <= horizonBars; i += 1) {
     const t = lastBar.time + i * BASE_BAR_INTERVAL;
     const drift = slopePerBar * i;
@@ -521,9 +535,22 @@ function computeProjections(bars: Bar[], indicators: ReturnType<typeof computeIn
     const contSlope = drift;
     const revSlope = -Math.abs(drift) * 0.8;
     const rangeSlope = 0;
-    scenarios[0].path.push({ time: t, price: startPrice + contSlope });
-    scenarios[1].path.push({ time: t, price: startPrice + revSlope });
-    scenarios[2].path.push({ time: t, price: startPrice + rangeSlope });
+    const contPrice = startPrice + contSlope;
+    const revPrice = startPrice + revSlope;
+    const rangePrice = startPrice + rangeSlope;
+
+    scenarios[0].path.push({ time: t, price: contPrice });
+    scenarios[1].path.push({ time: t, price: revPrice });
+    scenarios[2].path.push({ time: t, price: rangePrice });
+
+    const decay = Math.max(0.2, 1 - i / horizonBars);
+    const width = Math.max(volatility * 0.2, spread * 0.55 * decay);
+    const baseConfidence = 92 - Math.sqrt(i) * 4 - (1 - decay) * 32;
+    const confidencePct = Math.max(28, Math.min(90, baseConfidence));
+
+    scenarioConfidence.continuation.push({ time: t, upper: contPrice + width, lower: contPrice - width, confidencePct });
+    scenarioConfidence.reversion.push({ time: t, upper: revPrice + width, lower: revPrice - width, confidencePct });
+    scenarioConfidence.range.push({ time: t, upper: rangePrice + width, lower: rangePrice - width, confidencePct });
   }
 
   // Regime slight adjustments
@@ -531,7 +558,7 @@ function computeProjections(bars: Bar[], indicators: ReturnType<typeof computeIn
     scenarios[0].path = scenarios[2].path.map((p) => ({ ...p }));
   }
 
-  return { base, upper, lower, riskBand, scenarios };
+  return { base, upper, lower, riskBand, scenarios, scenarioConfidence };
 }
 
 function drawIndicators({
@@ -911,6 +938,7 @@ function drawProjections({
   geometry,
   projections,
   activeScenarioIndex,
+  activeScenarioId,
 }: {
   canvas: HTMLCanvasElement;
   bars: Bar[];
@@ -920,6 +948,7 @@ function drawProjections({
   geometry: ChartGeometry;
   projections: ProjectionEnvelope | null;
   activeScenarioIndex: number;
+  activeScenarioId: ProjectionScenario["id"];
 }) {
   if (!canvas || !geometry || !projections || bars.length === 0) return;
   const ctx = canvas.getContext("2d");
@@ -993,6 +1022,25 @@ function drawProjections({
   drawPath(projections.base, "rgba(200, 210, 230, 0.8)", 1.2, [6, 5], 0.9);
   drawPath(projections.upper, "rgba(200, 210, 230, 0.6)", 1, [4, 4], 0.7);
   drawPath(projections.lower, "rgba(200, 210, 230, 0.6)", 1, [4, 4], 0.7);
+
+  // active scenario confidence envelope
+  const confidencePoints = projections.scenarioConfidence[activeScenarioId];
+  if (confidencePoints && confidencePoints.length > 1) {
+    drawPath(
+      confidencePoints.map((p) => ({ time: p.time, price: p.upper })),
+      "rgba(200, 210, 230, 0.55)",
+      1,
+      [2, 3],
+      0.5
+    );
+    drawPath(
+      confidencePoints.map((p) => ({ time: p.time, price: p.lower })),
+      "rgba(200, 210, 230, 0.55)",
+      1,
+      [2, 3],
+      0.5
+    );
+  }
 
   // scenario forks
   projections.scenarios.forEach((scenario, idx) => {
@@ -1104,8 +1152,9 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
       geometry,
       projections,
       activeScenarioIndex,
+      activeScenarioId,
     });
-  }, [activeScenarioIndex, colors, geometry, height, projections, showProjections, visibleBars, width]);
+  }, [activeScenarioId, activeScenarioIndex, colors, geometry, height, projections, showProjections, visibleBars, width]);
 
   const eventPositions = useMemo<EventRenderPosition[]>(() => {
     if (!geometry) return [];
@@ -1447,16 +1496,21 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
           }
 
           // 3) projections (cone + scenarios)
-          const distToPolyline = (points: { time: number; price: number }[]) => {
+          const distToPolyline = <T extends { time: number }>(
+            points: T[],
+            getY: (point: T) => number,
+            getMeta?: (p1: T, p2: T, tProj: number) => { time: number; confidencePct?: number }
+          ) => {
             let best = Number.MAX_VALUE;
             let bestPoint: { x: number; y: number } | null = null;
+            let bestMeta: { time: number; confidencePct?: number } | null = null;
             for (let i = 0; i < points.length - 1; i += 1) {
               const p1 = points[i];
               const p2 = points[i + 1];
               const x1 = geometry.timeToX(p1.time);
-              const y1 = geometry.priceToY(p1.price);
+              const y1 = geometry.priceToY(getY(p1));
               const x2 = geometry.timeToX(p2.time);
-              const y2 = geometry.priceToY(p2.price);
+              const y2 = geometry.priceToY(getY(p2));
               const dx = x2 - x1;
               const dy = y2 - y1;
               const lenSq = dx * dx + dy * dy || 1;
@@ -1467,15 +1521,18 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
               if (dist < best) {
                 best = dist;
                 bestPoint = { x: projX, y: projY };
+                bestMeta = getMeta ? getMeta(p1, p2, tProj) : { time: p1.time + tProj * (p2.time - p1.time) };
               }
             }
-            return { dist: best, point: bestPoint };
+            return { dist: best, point: bestPoint, meta: bestMeta };
           };
 
           if (showProjections && projections) {
             const activeScenario = projections.scenarios[activeScenarioIndex] ?? projections.scenarios[0];
+            const originTime = visibleBars[visibleBars.length - 1]?.time ?? geometry.maxTime;
+
             if (activeScenario) {
-              const scenarioHit = distToPolyline(activeScenario.path);
+              const scenarioHit = distToPolyline(activeScenario.path, (p) => p.price);
               if (scenarioHit.dist < 10 && scenarioHit.point) {
                 setTooltip({
                   x: scenarioHit.point.x,
@@ -1485,9 +1542,43 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
                 setHoveredEventId(null);
                 return;
               }
+
+              const confBand = projections.scenarioConfidence[activeScenario.id];
+              if (confBand && confBand.length > 1) {
+                const upperHit = distToPolyline(
+                  confBand,
+                  (p) => p.upper,
+                  (p1, p2, tProj) => {
+                    const time = p1.time + tProj * (p2.time - p1.time);
+                    const conf = p1.confidencePct + tProj * (p2.confidencePct - p1.confidencePct);
+                    return { time, confidencePct: conf };
+                  }
+                );
+                const lowerHit = distToPolyline(
+                  confBand,
+                  (p) => p.lower,
+                  (p1, p2, tProj) => {
+                    const time = p1.time + tProj * (p2.time - p1.time);
+                    const conf = p1.confidencePct + tProj * (p2.confidencePct - p1.confidencePct);
+                    return { time, confidencePct: conf };
+                  }
+                );
+                const chosen = upperHit.dist <= lowerHit.dist ? upperHit : lowerHit;
+                if (chosen.point && chosen.meta && chosen.dist < 8) {
+                  const offsetMin = Math.max(0, (chosen.meta.time - originTime) / 60000);
+                  const confLabel = Math.round(chosen.meta.confidencePct ?? 0);
+                  setTooltip({
+                    x: chosen.point.x,
+                    y: chosen.point.y,
+                    label: `Confidence ${confLabel}% · +${offsetMin.toFixed(1)}m`,
+                  });
+                  setHoveredEventId(null);
+                  return;
+                }
+              }
             }
 
-            const baseHit = distToPolyline(projections.base);
+            const baseHit = distToPolyline(projections.base, (p) => p.price);
             if (baseHit.point && baseHit.dist < 8) {
               setTooltip({ x: baseHit.point.x, y: baseHit.point.y, label: "Volatility-weighted forward envelope" });
               setHoveredEventId(null);
