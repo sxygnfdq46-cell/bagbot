@@ -156,7 +156,8 @@ function normalizeBars(bars: Bar[] | null | undefined): Bar[] {
   if (candidate.length === 0) return generateSeedBars();
   if (isValidBars(candidate)) return candidate;
   const valid: Bar[] = [];
-  for (const bar of candidate) {
+  for (let i = 0; i < candidate.length; i += 1) {
+    const bar = candidate[i];
     if (isValidBar(bar)) {
       valid.push(bar);
     }
