@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ChartPane } from "./chart/ChartPane";
+import { PositionsPanel, type PositionsState } from "./PositionsPanel";
 
 type PaneLayout = "single" | "double" | "quad";
 type ThemeMode = "noir" | "light";
@@ -48,6 +49,8 @@ export default function TerminalV2Page() {
   const [themeMode, setThemeMode] = useState<ThemeMode>("noir");
   const [activeToolId, setActiveToolId] = useState<string>(toolDockItems[0]?.id ?? "tool-cursor");
   const [isSessionActive, setIsSessionActive] = useState(true);
+  const [isPositionsOpen, setIsPositionsOpen] = useState(false);
+  const [positionsState, setPositionsState] = useState<PositionsState>("disconnected");
 
   const paneIds = useMemo(() => layoutPaneIds[paneLayout], [paneLayout]);
   const themeVars = useMemo(() => themeTokens[themeMode], [themeMode]);
@@ -71,6 +74,12 @@ export default function TerminalV2Page() {
       setActivePaneId(paneIds[0]);
     }
   }, [activePaneId, paneIds]);
+
+  useEffect(() => {
+    if (isFullscreen) {
+      setIsPositionsOpen(false);
+    }
+  }, [isFullscreen]);
 
   const gridTemplate = useMemo(() => {
     if (paneLayout === "double") {
@@ -138,6 +147,15 @@ export default function TerminalV2Page() {
             </button>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "12px", marginLeft: "auto" }}>
+            <button
+              type="button"
+              onClick={() => setIsPositionsOpen((prev) => !prev)}
+              aria-label="Toggle positions panel"
+              data-kind="command"
+              data-state={isPositionsOpen ? "active" : "default"}
+            >
+              Positions (Read-only)
+            </button>
             <span style={{ opacity: 0.7 }} aria-label="Theme indicator">
               Theme: {themeMode === "noir" ? "Noir" : "Light Luxe"}
             </span>
@@ -265,6 +283,15 @@ export default function TerminalV2Page() {
           ))}
         </main>
 
+        <PositionsPanel
+          isOpen={isPositionsOpen && !isFullscreen}
+          onClose={() => setIsPositionsOpen(false)}
+          state={positionsState}
+          onStateChange={setPositionsState}
+          activePaneId={activePaneId}
+          themeMode={themeMode}
+        />
+
         <aside
           aria-label="Right context panel"
           style={{
@@ -273,7 +300,7 @@ export default function TerminalV2Page() {
             bottom: 0,
             right: 0,
             width: "320px",
-            display: "block",
+            display: isFullscreen || isPositionsOpen ? "none" : "block",
             backgroundColor: "var(--terminal-surface)",
             color: "var(--terminal-text-muted)",
             visibility: isFullscreen ? "hidden" : "visible",
@@ -427,6 +454,32 @@ export default function TerminalV2Page() {
 
         [data-terminal-v2] [data-kind="dock-item"][data-state="disabled"] {
           background-color: transparent;
+        }
+
+        [data-terminal-v2] [data-kind="positions-chip"] {
+          padding: 6px 10px;
+          border-radius: 999px;
+          border: 1px solid var(--terminal-chrome);
+          background: rgba(255, 255, 255, 0.04);
+          color: var(--terminal-text-muted);
+          font-size: 12px;
+        }
+
+        [data-terminal-v2] [data-kind="positions-chip"][data-state="active"] {
+          background: var(--terminal-chrome);
+          color: var(--terminal-text);
+          font-weight: 700;
+          border-color: var(--terminal-surface);
+        }
+
+        [data-terminal-v2] [data-kind="positions-close"] {
+          padding: 6px 10px;
+          border-radius: 8px;
+          border: 1px solid var(--terminal-chrome);
+          background: rgba(255, 255, 255, 0.04);
+          color: var(--terminal-text);
+          font-size: 12px;
+          font-weight: 700;
         }
       `}</style>
     </div>
