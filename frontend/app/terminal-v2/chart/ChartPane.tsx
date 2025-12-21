@@ -3,6 +3,8 @@
 import type React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { computeIndicators } from "./indicators";
+
 export type Bar = {
   time: number; // epoch millis
   open: number;
@@ -58,6 +60,13 @@ type ReasoningRenderPosition = {
   confidence: Confidence;
   summary: string;
   eventId: string;
+};
+
+type SectionKey = "price" | "volume" | "rsi" | "macd" | "stoch" | "mfi" | "flow";
+
+type SectionGeometry = {
+  top: number;
+  height: number;
 };
 
 const BASE_BAR_INTERVAL = 60 * 1000; // 1m bars
@@ -246,9 +255,8 @@ type ChartGeometry = {
   padding: { top: number; right: number; bottom: number; left: number };
   plotWidth: number;
   plotHeight: number;
-  priceHeight: number;
-  volumeHeight: number;
-  volumeTop: number;
+  sections: Record<SectionKey, SectionGeometry>;
+  xAxisY: number;
   minPrice: number;
   maxPrice: number;
   minTime: number;
@@ -261,13 +269,44 @@ type ChartGeometry = {
 
 function computeGeometry(bars: Bar[], width: number, height: number): ChartGeometry | null {
   if (bars.length === 0 || width === 0 || height === 0) return null;
-  const padding = { top: 8, right: 64, bottom: 28, left: 12 };
+  const padding = { top: 8, right: 64, bottom: 36, left: 12 };
   const plotWidth = width - padding.left - padding.right;
   const plotHeight = height - padding.top - padding.bottom;
   if (plotWidth <= 0 || plotHeight <= 0) return null;
-  const volumeHeight = Math.max(32, Math.min(120, Math.round(plotHeight * 0.22)));
-  const priceHeight = plotHeight - volumeHeight - 6;
-  const volumeTop = padding.top + priceHeight + 6;
+
+  const gap = 8;
+  const sectionOrder: SectionKey[] = ["price", "volume", "rsi", "macd", "stoch", "mfi", "flow"];
+
+  const volumeBase = Math.max(32, Math.min(96, Math.round(plotHeight * 0.12)));
+  const panelBase = Math.max(52, Math.min(96, Math.round(plotHeight * 0.14)));
+  let priceHeight = Math.max(180, Math.round(plotHeight * 0.42));
+
+  const panelTotal = volumeBase + panelBase * 5;
+  let remaining = plotHeight - priceHeight - gap * (sectionOrder.length - 1);
+  if (remaining < 0) {
+    priceHeight = Math.max(140, Math.round(plotHeight * 0.36));
+    remaining = plotHeight - priceHeight - gap * (sectionOrder.length - 1);
+  }
+  const scale = remaining > 0 ? Math.min(1, remaining / panelTotal) : Math.max(0.5, remaining / panelTotal);
+  const volumeHeight = Math.max(24, Math.round(volumeBase * (scale || 0.6)));
+  const panelHeight = Math.max(48, Math.round(panelBase * (scale || 0.6)));
+
+  const sections: Record<SectionKey, SectionGeometry> = {
+    price: { top: padding.top, height: priceHeight },
+    volume: { top: 0, height: volumeHeight },
+    rsi: { top: 0, height: panelHeight },
+    macd: { top: 0, height: panelHeight },
+    stoch: { top: 0, height: panelHeight },
+    mfi: { top: 0, height: panelHeight },
+    flow: { top: 0, height: panelHeight },
+  };
+
+  for (let i = 1; i < sectionOrder.length; i += 1) {
+    const prevKey = sectionOrder[i - 1];
+    const currentKey = sectionOrder[i];
+    const prev = sections[prevKey];
+    sections[currentKey].top = prev.top + prev.height + gap;
+  }
 
   const minPrice = Math.min(...bars.map((b) => b.low));
   const maxPrice = Math.max(...bars.map((b) => b.high));
@@ -275,20 +314,23 @@ function computeGeometry(bars: Bar[], width: number, height: number): ChartGeome
   const maxTime = bars[bars.length - 1].time;
   const maxVolume = Math.max(...bars.map((b) => b.volume));
 
+  const priceSection = sections.price;
   const timeToX = (time: number) => padding.left + ((time - minTime) / (maxTime - minTime || 1)) * plotWidth;
-  const priceToY = (price: number) => padding.top + (1 - (price - minPrice) / (maxPrice - minPrice || 1)) * priceHeight;
+  const priceToY = (price: number) =>
+    priceSection.top + (1 - (price - minPrice) / (maxPrice - minPrice || 1)) * priceSection.height;
   const xToTime = (x: number) => {
     const clampedX = Math.min(Math.max(x, padding.left), padding.left + plotWidth);
     return minTime + ((clampedX - padding.left) / (plotWidth || 1)) * (maxTime - minTime);
   };
 
+  const xAxisY = padding.top + plotHeight + 6;
+
   return {
     padding,
     plotWidth,
     plotHeight,
-    priceHeight,
-    volumeHeight,
-    volumeTop,
+    sections,
+    xAxisY,
     minPrice,
     maxPrice,
     minTime,
@@ -326,7 +368,9 @@ function drawChart({
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, width, height);
 
-  const { padding, plotWidth, priceHeight, volumeHeight, volumeTop, minPrice, maxPrice, minTime, maxTime, maxVolume, timeToX, priceToY } = geometry;
+  const { padding, plotWidth, sections, minPrice, maxPrice, minTime, maxTime, maxVolume, timeToX, priceToY, xAxisY } = geometry;
+  const priceSection = sections.price;
+  const volumeSection = sections.volume;
 
   // background
   ctx.fillStyle = colors.bg;
@@ -338,7 +382,7 @@ function drawChart({
   ctx.setLineDash([2, 4]);
   const gridLines = 4;
   for (let i = 0; i <= gridLines; i += 1) {
-    const y = padding.top + (priceHeight / gridLines) * i;
+    const y = priceSection.top + (priceSection.height / gridLines) * i;
     ctx.beginPath();
     ctx.moveTo(padding.left, y);
     ctx.lineTo(width - padding.right, y);
@@ -371,9 +415,9 @@ function drawChart({
   bars.forEach((bar) => {
     const x = timeToX(bar.time);
     const barWidth = Math.max(2, candleWidth * 0.8);
-    const y = volumeTop + volumeHeight - (bar.volume / (maxVolume || 1)) * volumeHeight;
+    const y = volumeSection.top + volumeSection.height - (bar.volume / (maxVolume || 1)) * volumeSection.height;
     ctx.fillStyle = colors.volume;
-    ctx.fillRect(x - barWidth / 2, y, barWidth, volumeTop + volumeHeight - y);
+    ctx.fillRect(x - barWidth / 2, y, barWidth, volumeSection.top + volumeSection.height - y);
   });
 
   // axes text
@@ -399,13 +443,382 @@ function drawChart({
       .toString()
       .padStart(2, "0")}`;
     const x = timeToX(t);
-    ctx.fillText(label, x, volumeTop + volumeHeight + 6);
+    ctx.fillText(label, x, xAxisY);
   }
+}
+
+function drawIndicators({
+  canvas,
+  bars,
+  colors,
+  width,
+  height,
+  geometry,
+  indicators,
+}: {
+  canvas: HTMLCanvasElement;
+  bars: Bar[];
+  colors: ReturnType<typeof usePaneColors>;
+  width: number;
+  height: number;
+  geometry: ChartGeometry;
+  indicators: ReturnType<typeof computeIndicators>;
+}) {
+  if (!canvas || !geometry || bars.length === 0) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  const dpr = getDevicePixelRatioSafe();
+  canvas.width = width * dpr;
+  canvas.height = height * dpr;
+  canvas.style.width = `${width}px`;
+  canvas.style.height = `${height}px`;
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, width, height);
+
+  const { trend, volatility, momentum, volume, structure, fibonacci } = indicators;
+  const { sections, timeToX, priceToY, padding, plotWidth } = geometry;
+
+  const overlayColors = {
+    sma: colors.muted,
+    ema: colors.text,
+    wma: colors.eventTarget,
+    hma: colors.eventEntryBuy,
+    vwap: colors.eventEntrySell,
+    ichimoku: colors.reasoningAnchor,
+    bollinger: "rgba(124,136,155,0.35)",
+    keltner: "rgba(95,105,128,0.35)",
+    donchian: "rgba(180,180,180,0.32)",
+    atr: "rgba(255,255,255,0.35)",
+    std: "rgba(200,200,200,0.35)",
+    pivots: "rgba(255,255,255,0.25)",
+    fib: "rgba(255,255,255,0.32)",
+  } as const;
+
+  const panelColor = {
+    rsi: "#7c8cfc",
+    macd: "#1ca672",
+    macdSignal: "#f5a524",
+    stochK: "#35d49a",
+    stochD: "#f45b69",
+    mfi: "#2c3bd9",
+    obv: "#94a3b8",
+    accDist: "#8b5cf6",
+    volumeOsc: "#f59e0b",
+    cci: "#38bdf8",
+    roc: "#e0f2fe",
+    williams: "#f97316",
+  };
+
+  const finite = (vals: number[]) => vals.filter((v) => Number.isFinite(v));
+  const mapPanelY = (panel: SectionKey, value: number, min: number, max: number) => {
+    const s = sections[panel];
+    return s.top + (1 - (value - min) / (max - min || 1)) * s.height;
+  };
+
+  const drawLine = (values: number[], color: string, widthPx = 1, dash: number[] = []) => {
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = widthPx;
+    ctx.setLineDash(dash);
+    ctx.beginPath();
+    let started = false;
+    values.forEach((v, i) => {
+      if (!Number.isFinite(v)) return;
+      const x = timeToX(bars[i].time);
+      const y = priceToY(v);
+      if (!started) {
+        ctx.moveTo(x, y);
+        started = true;
+      } else {
+        ctx.lineTo(x, y);
+      }
+    });
+    ctx.stroke();
+    ctx.restore();
+  };
+
+  // trend overlays
+  drawLine(trend.sma20, overlayColors.sma, 1.1);
+  drawLine(trend.sma50, overlayColors.sma, 1);
+  drawLine(trend.ema20, overlayColors.ema, 1.2);
+  drawLine(trend.ema50, overlayColors.ema, 1.2, [4, 3]);
+  drawLine(trend.wma21, overlayColors.wma, 1);
+  drawLine(trend.hma21, overlayColors.hma, 1.1);
+  drawLine(trend.vwap, overlayColors.vwap, 1.2, [6, 4]);
+
+  // ichimoku lines (outline only)
+  drawLine(trend.ichimoku.tenkan, overlayColors.ichimoku, 1);
+  drawLine(trend.ichimoku.kijun, overlayColors.ichimoku, 1.1, [3, 3]);
+  drawLine(trend.ichimoku.senkouA, overlayColors.ichimoku, 1, [6, 4]);
+  drawLine(trend.ichimoku.senkouB, overlayColors.ichimoku, 1, [6, 4]);
+  drawLine(trend.ichimoku.chikou, overlayColors.ichimoku, 1, [2, 2]);
+
+  // volatility bands
+  drawLine(volatility.bollinger.upper, overlayColors.bollinger, 1);
+  drawLine(volatility.bollinger.mid, overlayColors.bollinger, 0.8, [4, 3]);
+  drawLine(volatility.bollinger.lower, overlayColors.bollinger, 1);
+  drawLine(volatility.keltner.upper, overlayColors.keltner, 1);
+  drawLine(volatility.keltner.mid, overlayColors.keltner, 0.8, [4, 3]);
+  drawLine(volatility.keltner.lower, overlayColors.keltner, 1);
+  drawLine(volatility.donchian.upper, overlayColors.donchian, 1, [3, 4]);
+  drawLine(volatility.donchian.lower, overlayColors.donchian, 1, [3, 4]);
+
+  // ATR / Std Dev scaled to lower band of price area
+  const atrValues = finite(volatility.atr);
+  const stdValues = finite(volatility.stdDev20);
+  const rangeMax = Math.max(...atrValues, ...stdValues, 1);
+  const priceBandHeight = Math.min(sections.price.height * 0.3, 42);
+  const toOverlayY = (v: number) => sections.price.top + sections.price.height - (v / rangeMax) * priceBandHeight;
+  const drawOverlayMetric = (values: number[], color: string) => {
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 3]);
+    ctx.beginPath();
+    let started = false;
+    values.forEach((v, i) => {
+      if (!Number.isFinite(v)) return;
+      const x = timeToX(bars[i].time);
+      const y = toOverlayY(v);
+      if (!started) {
+        ctx.moveTo(x, y);
+        started = true;
+      } else {
+        ctx.lineTo(x, y);
+      }
+    });
+    ctx.stroke();
+    ctx.restore();
+  };
+  drawOverlayMetric(volatility.atr, overlayColors.atr);
+  drawOverlayMetric(volatility.stdDev20, overlayColors.std);
+
+  // pivot points and high/low bands
+  const drawHLine = (price: number, color: string, dash: number[] = []) => {
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.setLineDash(dash);
+    const y = priceToY(price);
+    ctx.beginPath();
+    ctx.moveTo(padding.left, y);
+    ctx.lineTo(padding.left + plotWidth, y);
+    ctx.stroke();
+    ctx.restore();
+  };
+  const pivots = [structure.classic.pp, structure.classic.r1, structure.classic.s1, structure.classic.r2, structure.classic.s2];
+  pivots.forEach((level) => drawHLine(level, overlayColors.pivots, [2, 3]));
+  drawHLine(structure.sessionHighLow.high, overlayColors.pivots, [4, 4]);
+  drawHLine(structure.sessionHighLow.low, overlayColors.pivots, [4, 4]);
+  drawHLine(structure.dailyHighLow.high, overlayColors.pivots, [6, 4]);
+  drawHLine(structure.dailyHighLow.low, overlayColors.pivots, [6, 4]);
+  drawHLine(structure.weeklyBands.high, overlayColors.pivots, [8, 4]);
+  drawHLine(structure.weeklyBands.low, overlayColors.pivots, [8, 4]);
+
+  // opening range box
+  const openStartX = timeToX(structure.openingRange.start);
+  const openEndX = timeToX(structure.openingRange.end);
+  ctx.save();
+  ctx.strokeStyle = overlayColors.pivots;
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  ctx.strokeRect(openStartX, priceToY(structure.openingRange.high), openEndX - openStartX, priceToY(structure.openingRange.low) - priceToY(structure.openingRange.high));
+  ctx.restore();
+
+  // volume moving average overlay on volume section
+  ctx.save();
+  ctx.strokeStyle = colors.eventEntryBuy;
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  let volStarted = false;
+  volume.volSma.forEach((v, i) => {
+    if (!Number.isFinite(v)) return;
+    const x = timeToX(bars[i].time);
+    const y = sections.volume.top + sections.volume.height - (v / (geometry.maxVolume || 1)) * sections.volume.height;
+    if (!volStarted) {
+      ctx.moveTo(x, y);
+      volStarted = true;
+    } else {
+      ctx.lineTo(x, y);
+    }
+  });
+  ctx.stroke();
+  ctx.restore();
+
+  // Fibonacci retracement
+  if (fibonacci.retracement) {
+    const startX = timeToX(fibonacci.retracement.start.time);
+    const endX = timeToX(fibonacci.retracement.end.time);
+    fibonacci.retracement.levels.forEach((lvl) => {
+      const y = priceToY(lvl.price);
+      ctx.save();
+      ctx.strokeStyle = overlayColors.fib;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.moveTo(startX, y);
+      ctx.lineTo(endX, y);
+      ctx.stroke();
+      ctx.restore();
+    });
+  }
+
+  // Fibonacci extensions
+  if (fibonacci.extension) {
+    const endX = timeToX(fibonacci.extension.end.time);
+    const futureX = padding.left + plotWidth;
+    fibonacci.extension.levels.forEach((lvl) => {
+      const y = priceToY(lvl.price);
+      ctx.save();
+      ctx.strokeStyle = overlayColors.fib;
+      ctx.setLineDash([2, 3]);
+      ctx.beginPath();
+      ctx.moveTo(endX, y);
+      ctx.lineTo(futureX, y);
+      ctx.stroke();
+      ctx.restore();
+    });
+  }
+
+  // Fibonacci fan (subtle lines)
+  if (fibonacci.fan) {
+    const start = fibonacci.fan.start;
+    const end = fibonacci.fan.end;
+    const startX = timeToX(start.time);
+    const endX = timeToX(end.time);
+    const deltaY = priceToY(end.close) - priceToY(start.close);
+    fibonacci.fan.lines.forEach((line) => {
+      const targetY = priceToY(start.close) + (deltaY * line.level) / 100;
+      ctx.save();
+      ctx.strokeStyle = overlayColors.fib;
+      ctx.setLineDash([6, 6]);
+      ctx.beginPath();
+      ctx.moveTo(startX, priceToY(start.close));
+      ctx.lineTo(endX, targetY);
+      ctx.stroke();
+      ctx.restore();
+    });
+  }
+
+  // panel helpers
+  const renderOscPanel = (panel: SectionKey, series: { label: string; values: number[]; color: string }[], midLines: number[] = []) => {
+    const combined = series.flatMap((s) => finite(s.values));
+    const min = Math.min(...combined, -1);
+    const max = Math.max(...combined, 1);
+    const s = sections[panel];
+
+    // mid/zero lines
+    midLines.forEach((level) => {
+      const y = mapPanelY(panel, level, min, max);
+      ctx.save();
+      ctx.strokeStyle = colors.grid;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([2, 3]);
+      ctx.beginPath();
+      ctx.moveTo(padding.left, y);
+      ctx.lineTo(padding.left + plotWidth, y);
+      ctx.stroke();
+      ctx.restore();
+    });
+
+    series.forEach((serie) => {
+      ctx.save();
+      ctx.strokeStyle = serie.color;
+      ctx.lineWidth = 1.1;
+      ctx.beginPath();
+      let started = false;
+      serie.values.forEach((v, i) => {
+        if (!Number.isFinite(v)) return;
+        const x = timeToX(bars[i].time);
+        const y = mapPanelY(panel, v, min, max);
+        if (!started) {
+          ctx.moveTo(x, y);
+          started = true;
+        } else {
+          ctx.lineTo(x, y);
+        }
+      });
+      ctx.stroke();
+      ctx.restore();
+    });
+
+    // panel frame
+    ctx.save();
+    ctx.strokeStyle = colors.grid;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 4]);
+    ctx.strokeRect(padding.left, s.top, plotWidth, s.height);
+    ctx.restore();
+  };
+
+  // RSI panel
+  renderOscPanel("rsi", [{ label: "RSI", values: momentum.rsi, color: panelColor.rsi }], [50, 70, 30]);
+
+  // MACD panel
+  const macdValues = momentum.macd;
+  const macdCombined = finite([...macdValues.line, ...macdValues.signal, ...macdValues.histogram]);
+  const macdMin = Math.min(...macdCombined, -1);
+  const macdMax = Math.max(...macdCombined, 1);
+  const macdZero = mapPanelY("macd", 0, macdMin, macdMax);
+  ctx.save();
+  ctx.strokeStyle = colors.grid;
+  ctx.setLineDash([2, 3]);
+  ctx.beginPath();
+  ctx.moveTo(padding.left, macdZero);
+  ctx.lineTo(padding.left + plotWidth, macdZero);
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = "rgba(255,255,255,0.18)";
+  macdValues.histogram.forEach((v, i) => {
+    if (!Number.isFinite(v)) return;
+    const x = timeToX(bars[i].time) - 2;
+    const y = mapPanelY("macd", v, macdMin, macdMax);
+    ctx.fillRect(x, v >= 0 ? y : macdZero, 4, Math.abs(y - macdZero));
+  });
+  ctx.restore();
+
+  renderOscPanel(
+    "macd",
+    [
+      { label: "MACD", values: macdValues.line, color: panelColor.macd },
+      { label: "Signal", values: macdValues.signal, color: panelColor.macdSignal },
+    ],
+    []
+  );
+
+  // Stochastic panel
+  renderOscPanel(
+    "stoch",
+    [
+      { label: "%K", values: momentum.stoch.k, color: panelColor.stochK },
+      { label: "%D", values: momentum.stoch.d, color: panelColor.stochD },
+    ],
+    [50, 80, 20]
+  );
+
+  // MFI panel
+  renderOscPanel("mfi", [{ label: "MFI", values: volume.mfi, color: panelColor.mfi }], [50, 80, 20]);
+
+  // Flow panel (OBV, Acc/Dist, Volume Osc, CCI, ROC, Williams %R)
+  renderOscPanel(
+    "flow",
+    [
+      { label: "OBV", values: volume.obv, color: panelColor.obv },
+      { label: "A/D", values: volume.accDist, color: panelColor.accDist },
+      { label: "VolOsc", values: volume.volumeOsc, color: panelColor.volumeOsc },
+      { label: "CCI", values: momentum.cci, color: panelColor.cci },
+      { label: "ROC", values: momentum.roc, color: panelColor.roc },
+      { label: "%R", values: momentum.williamsR, color: panelColor.williams },
+    ],
+    [0]
+  );
 }
 
 export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const indicatorRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
   const reasoningRef = useRef<HTMLCanvasElement>(null);
   const cursorRef = useRef<HTMLCanvasElement>(null);
@@ -421,12 +834,36 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
   const [cursorTime, setCursorTime] = useState<number | null>(null);
   const [isDraggingCursor, setIsDraggingCursor] = useState(false);
 
-  const geometry = useMemo(() => computeGeometry(bars, width, height), [bars, width, height]);
+  const visibleBars = useMemo(() => {
+    if (!isReplay || cursorTime === null) return bars;
+    const filtered = bars.filter((bar) => bar.time <= cursorTime);
+    if (filtered.length === 0 && bars.length > 0) {
+      return [bars[0]];
+    }
+    return filtered;
+  }, [bars, cursorTime, isReplay]);
+
+  const geometry = useMemo(() => computeGeometry(visibleBars, width, height), [visibleBars, width, height]);
+
+  const indicators = useMemo(() => computeIndicators(visibleBars), [visibleBars]);
 
   useEffect(() => {
     if (!geometry) return;
-    drawChart({ canvas: canvasRef.current as HTMLCanvasElement, bars, colors, width, height, geometry });
-  }, [bars, colors, geometry, height, width]);
+    drawChart({ canvas: canvasRef.current as HTMLCanvasElement, bars: visibleBars, colors, width, height, geometry });
+  }, [colors, geometry, height, visibleBars, width]);
+
+  useEffect(() => {
+    if (!geometry) return;
+    drawIndicators({
+      canvas: indicatorRef.current as HTMLCanvasElement,
+      bars: visibleBars,
+      colors,
+      width,
+      height,
+      geometry,
+      indicators,
+    });
+  }, [colors, geometry, height, indicators, visibleBars, width]);
 
   const eventPositions = useMemo<EventRenderPosition[]>(() => {
     if (!geometry) return [];
@@ -469,7 +906,7 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
     return reasoningPositions.find((item) => item.eventId === targetEventId) ?? null;
   }, [hoveredEventId, reasoningPositions, selectedEventId]);
 
-  const effectiveReasoning = useMemo(() => {
+  const effectiveReasoning = useMemo<ReasoningRenderPosition[]>(() => {
     if (!isReplay || cursorTime === null) return reasoningPositions;
     return reasoningPositions.filter((r) => r.eventId && r.x >= 0 && r.time <= cursorTime);
   }, [cursorTime, isReplay, reasoningPositions]);
@@ -660,6 +1097,17 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
     >
       <canvas ref={canvasRef} style={{ display: "block", width: "100%", height: "100%" }} />
       <canvas
+        ref={indicatorRef}
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "block",
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none",
+        }}
+      />
+      <canvas
         ref={overlayRef}
         style={{
           position: "absolute",
@@ -674,9 +1122,16 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
           const rect = (event.currentTarget as HTMLCanvasElement).getBoundingClientRect();
           const x = event.clientX - rect.left;
           const y = event.clientY - rect.top;
+          const fmt = (v: number, dec = 2) => (Number.isFinite(v) ? v.toFixed(dec) : "--");
+          if (isReplay && isDraggingCursor) {
+            setCursorTime(geometry.xToTime(x));
+          }
+
+          // 1) executions
+          const pool = isReplay ? effectiveEvents : eventPositions;
           let nearest: EventRenderPosition | null = null;
           let minDist = Number.MAX_VALUE;
-          eventPositions.forEach((pos) => {
+          pool.forEach((pos) => {
             const dx = pos.x - x;
             const dy = pos.y - y;
             const dist = Math.hypot(dx, dy);
@@ -685,7 +1140,6 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
               minDist = dist;
             }
           });
-
           if (nearest) {
             const hit: EventRenderPosition = nearest;
             setHoveredEventId(hit.id);
@@ -698,10 +1152,158 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
               minute: "2-digit",
             })}${reasoningLabel}`;
             setTooltip({ x: hit.x, y: hit.y, label });
-          } else {
+            return;
+          }
+
+          // 2) reasoning anchors (proximity to anchor points)
+          let reasoningHit: ReasoningRenderPosition | null = null;
+          let reasoningDist = Number.MAX_VALUE;
+          effectiveReasoning.forEach((anchor: ReasoningRenderPosition) => {
+            const dx = anchor.x - x;
+            const dy = anchor.y - y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < HOVER_RADIUS && dist < reasoningDist) {
+              reasoningHit = anchor;
+              reasoningDist = dist;
+            }
+          });
+          if (reasoningHit) {
+            const anchor = reasoningHit as ReasoningRenderPosition;
+            setHoveredEventId(anchor.eventId);
+            setTooltip({
+              x: anchor.x,
+              y: anchor.y,
+              label: `Intent ${anchor.intent} · Regime ${anchor.regime} · Conf ${anchor.confidence}`,
+            });
+            return;
+          }
+
+          // 3) fibonacci levels
+          if (indicators.fibonacci.retracement) {
+            const startX = geometry.timeToX(indicators.fibonacci.retracement.start.time);
+            const endX = geometry.timeToX(indicators.fibonacci.retracement.end.time);
+            for (const lvl of indicators.fibonacci.retracement.levels) {
+              const yLine = geometry.priceToY(lvl.price);
+              if (x >= Math.min(startX, endX) && x <= Math.max(startX, endX) && Math.abs(y - yLine) < 6) {
+                setHoveredEventId(null);
+                setTooltip({ x, y: yLine, label: `Fib ${lvl.level}% · ${lvl.price.toFixed(2)}` });
+                return;
+              }
+            }
+          }
+          if (indicators.fibonacci.extension) {
+            const endX = geometry.timeToX(indicators.fibonacci.extension.end.time);
+            for (const lvl of indicators.fibonacci.extension.levels) {
+              const yLine = geometry.priceToY(lvl.price);
+              if (x >= endX && Math.abs(y - yLine) < 6) {
+                setHoveredEventId(null);
+                setTooltip({ x, y: yLine, label: `Fib Ext ${lvl.level}% · ${lvl.price.toFixed(2)}` });
+                return;
+              }
+            }
+          }
+
+          // 4) indicators & price
+          if (visibleBars.length === 0) {
             setHoveredEventId(null);
             setTooltip(null);
+            return;
           }
+          const time = geometry.xToTime(x);
+          let nearestIdx = 0;
+          let nearestTimeDist = Number.MAX_VALUE;
+          visibleBars.forEach((bar, idx) => {
+            const dist = Math.abs(bar.time - time);
+            if (dist < nearestTimeDist) {
+              nearestIdx = idx;
+              nearestTimeDist = dist;
+            }
+          });
+          const bar = visibleBars[nearestIdx];
+
+          const sectionMatch = (key: SectionKey) => {
+            const s = geometry.sections[key];
+            return y >= s.top && y <= s.top + s.height;
+          };
+
+          if (sectionMatch("rsi")) {
+            const rsiVal = indicators.momentum.rsi[nearestIdx];
+            setTooltip({ x, y, label: `RSI ${Number.isFinite(rsiVal) ? rsiVal.toFixed(2) : "--"}` });
+            setHoveredEventId(null);
+            return;
+          }
+          if (sectionMatch("macd")) {
+            const macdLine = indicators.momentum.macd.line[nearestIdx];
+            const macdSignal = indicators.momentum.macd.signal[nearestIdx];
+            const macdHist = indicators.momentum.macd.histogram[nearestIdx];
+            setTooltip({
+              x,
+              y,
+              label: `MACD ${fmt(macdLine, 4)} · Signal ${fmt(macdSignal, 4)} · Hist ${fmt(macdHist, 4)}`,
+            });
+            setHoveredEventId(null);
+            return;
+          }
+          if (sectionMatch("stoch")) {
+            const k = indicators.momentum.stoch.k[nearestIdx];
+            const dVal = indicators.momentum.stoch.d[nearestIdx];
+            setTooltip({ x, y, label: `%K ${fmt(k)} · %D ${fmt(dVal)}` });
+            setHoveredEventId(null);
+            return;
+          }
+          if (sectionMatch("mfi")) {
+            const mfi = indicators.volume.mfi[nearestIdx];
+            setTooltip({ x, y, label: `MFI ${fmt(mfi)}` });
+            setHoveredEventId(null);
+            return;
+          }
+          if (sectionMatch("flow")) {
+            const obv = indicators.volume.obv[nearestIdx];
+            const ad = indicators.volume.accDist[nearestIdx];
+            const volOsc = indicators.volume.volumeOsc[nearestIdx];
+            const cci = indicators.momentum.cci[nearestIdx];
+            const roc = indicators.momentum.roc[nearestIdx];
+            const wr = indicators.momentum.williamsR[nearestIdx];
+            setTooltip({
+              x,
+              y,
+              label: `OBV ${Number.isFinite(obv) ? Math.round(obv) : 0} · A/D ${Number.isFinite(ad) ? Math.round(ad) : 0} · VolOsc ${fmt(volOsc)} · CCI ${fmt(cci, 1)} · ROC ${fmt(roc)} · %R ${fmt(wr)}`,
+            });
+            setHoveredEventId(null);
+            return;
+          }
+          if (sectionMatch("volume")) {
+            const vol = bar.volume;
+            const volMa = indicators.volume.volSma[nearestIdx];
+            setTooltip({ x, y, label: `Vol ${vol.toFixed(0)} · VolMA ${fmt(volMa, 0)}` });
+            setHoveredEventId(null);
+            return;
+          }
+
+          // price area indicators
+          if (sectionMatch("price")) {
+            const t = new Date(bar.time);
+            const overlayLabel = [
+              `SMA20 ${fmt(indicators.trend.sma20[nearestIdx])}`,
+              `EMA20 ${fmt(indicators.trend.ema20[nearestIdx])}`,
+              `VWAP ${fmt(indicators.trend.vwap[nearestIdx])}`,
+              `BB ${fmt(indicators.volatility.bollinger.upper[nearestIdx])}/${fmt(indicators.volatility.bollinger.lower[nearestIdx])}`,
+              `Keltner ${fmt(indicators.volatility.keltner.mid[nearestIdx])}`,
+            ].join(" · ");
+            setTooltip({
+              x,
+              y,
+              label: `${bar.close.toFixed(2)} @ ${t.getHours().toString().padStart(2, "0")}:${t
+                .getMinutes()
+                .toString()
+                .padStart(2, "0")}` + ` · ${overlayLabel}`,
+            });
+            setHoveredEventId(null);
+            return;
+          }
+
+          setHoveredEventId(null);
+          setTooltip(null);
         }}
         onMouseLeave={() => {
           setHoveredEventId(null);

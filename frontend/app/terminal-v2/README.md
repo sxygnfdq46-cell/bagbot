@@ -48,6 +48,23 @@ Status: Phase 4 is frozen. Do not change layout, state wiring, or structural rul
 - Styling: token-based muted markers with subtle highlight on hover/selection; no glow, animation, or TradingView-style flags.
 - No bot reasoning/confidence overlays, no replay coupling, no indicators; fullscreen/multi-pane behavior unchanged.
 
+## Reasoning Overlay (Phase 6.3)
+- Added pane-local reasoning anchors tied to events; anchors render on a dedicated canvas above executions.
+- Hover/selection of executions activates the paired reasoning anchor with subtle framing; no backend calls or bot coupling.
+- Styling remains muted; no animations or shadows; fullscreen/multi-pane unaffected.
+
+## Replay Cursor & Temporal Context (Phase 6.4)
+- Pane-local replay toggle pauses live append and introduces a cursor line that gates executions/reasoning tooltips to cursor time.
+- Cursor supports click/drag/wheel to scrub; live mode clears cursor state; fullscreen/multi-pane isolation preserved.
+- Rendering stays non-animated; no backend transport or global sync.
+
+## Indicators & Studies (Phase 6.5)
+- Dedicated indicator canvas above price/volume and below executions/reasoning; shared time scale with independent Y-scales per panel.
+- Price overlays: SMA/EMA/WMA/HMA, VWAP (session), Bollinger/Keltner/Donchian, ATR/StdDev bands, Ichimoku (tenkan/kijun/senkou A/B/chikou), pivot points (classic/floor/session), session/daily/weekly highs/lows, opening range, Fibonacci retracement/extension/fan (auto-anchored swings).
+- Panels: RSI, MACD (line/signal/histogram), Stochastic (K/D), MFI, Flow panel (OBV, Acc/Dist, Volume Oscillator, CCI, ROC, Williams %R) plus volume/volume-MA.
+- Indicators are pane-local, deterministic, non-animated, and respect replay cursor filtering; tooltips numeric-only with hover precedence after executions/reasoning and Fibonacci.
+- No backend calls or bot coupling; fullscreen and multi-pane isolation remain intact.
+
 ## Must Never Change Without Explicit Approval
 - No chart canvas, syncing, bot logic, or visuals in this file.
 - No max-widths, centering, padding creep, or resizing of the overall workspace.
