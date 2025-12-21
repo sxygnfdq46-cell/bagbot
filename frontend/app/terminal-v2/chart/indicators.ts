@@ -5,6 +5,9 @@ export type DualSeriesPoint = { time: number; valueA: number; valueB: number };
 
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
+const emptyNumberArray = (len: number) => Array.from({ length: len }, () => NaN);
+const ensureBars = (bars: Bar[] | undefined | null) => Array.isArray(bars) ? bars : [];
+
 function sma(values: number[], period: number): number[] {
   const out: number[] = [];
   let sum = 0;
@@ -80,10 +83,24 @@ function lowest(values: number[], period: number, idx: number) {
 }
 
 export function computeTrendIndicators(bars: Bar[]) {
-  const closes = bars.map((b) => b.close);
-  const highs = bars.map((b) => b.high);
-  const lows = bars.map((b) => b.low);
-  const volumes = bars.map((b) => b.volume);
+  const safeBars = ensureBars(bars);
+  if (safeBars.length === 0) {
+    return {
+      sma20: [],
+      sma50: [],
+      ema20: [],
+      ema50: [],
+      wma21: [],
+      hma21: [],
+      vwap: [],
+      ichimoku: { tenkan: [], kijun: [], senkouA: [], senkouB: [], chikou: [] },
+    };
+  }
+
+  const closes = safeBars.map((b) => b.close);
+  const highs = safeBars.map((b) => b.high);
+  const lows = safeBars.map((b) => b.low);
+  const volumes = safeBars.map((b) => b.volume);
 
   const sma20 = sma(closes, 20);
   const sma50 = sma(closes, 50);
@@ -97,7 +114,7 @@ export function computeTrendIndicators(bars: Bar[]) {
   let pvSum = 0;
   let volSum = 0;
   let currentDay: string | null = null;
-  bars.forEach((bar, i) => {
+  safeBars.forEach((bar, i) => {
     const dayKey = new Date(bar.time).toDateString();
     if (dayKey !== currentDay) {
       pvSum = 0;
@@ -117,7 +134,7 @@ export function computeTrendIndicators(bars: Bar[]) {
   const senkouB: number[] = [];
   const chikou: number[] = [];
 
-  bars.forEach((_, i) => {
+  safeBars.forEach((_, i) => {
     if (i < 8) {
       tenkan.push(NaN);
     } else {
@@ -137,7 +154,7 @@ export function computeTrendIndicators(bars: Bar[]) {
   });
 
   // shift senkou ahead 26 periods
-  for (let i = 0; i < bars.length; i += 1) {
+  for (let i = 0; i < safeBars.length; i += 1) {
     const a = (tenkan[i] + kijun[i]) / 2;
     senkouA[i + 26] = a;
     if (senkouB[i] !== undefined) {
@@ -158,9 +175,20 @@ export function computeTrendIndicators(bars: Bar[]) {
 }
 
 export function computeVolatilityIndicators(bars: Bar[]) {
-  const closes = bars.map((b) => b.close);
-  const highs = bars.map((b) => b.high);
-  const lows = bars.map((b) => b.low);
+  const safeBars = ensureBars(bars);
+  if (safeBars.length === 0) {
+    return {
+      bollinger: { mid: [], upper: [], lower: [] },
+      keltner: { mid: [], upper: [], lower: [] },
+      donchian: { upper: [], lower: [] },
+      atr: [],
+      stdDev20: [],
+    };
+  }
+
+  const closes = safeBars.map((b) => b.close);
+  const highs = safeBars.map((b) => b.high);
+  const lows = safeBars.map((b) => b.low);
 
   const bbPeriod = 20;
   const bbStd = 2;
@@ -180,7 +208,7 @@ export function computeVolatilityIndicators(bars: Bar[]) {
   const bbLower = bbMid.map((m, i) => m - (std[i] ?? 0) * bbStd);
 
   const tr: number[] = [];
-  bars.forEach((bar, i) => {
+  safeBars.forEach((bar, i) => {
     if (i === 0) {
       tr.push(bar.high - bar.low);
       return;
@@ -200,7 +228,7 @@ export function computeVolatilityIndicators(bars: Bar[]) {
   const donchianPeriod = 20;
   const donchianUpper: number[] = [];
   const donchianLower: number[] = [];
-  bars.forEach((_, i) => {
+  safeBars.forEach((_, i) => {
     if (i + 1 < donchianPeriod) {
       donchianUpper.push(NaN);
       donchianLower.push(NaN);
@@ -222,9 +250,21 @@ export function computeVolatilityIndicators(bars: Bar[]) {
 }
 
 export function computeMomentumIndicators(bars: Bar[]) {
-  const closes = bars.map((b) => b.close);
-  const highs = bars.map((b) => b.high);
-  const lows = bars.map((b) => b.low);
+  const safeBars = ensureBars(bars);
+  if (safeBars.length === 0) {
+    return {
+      rsi: [],
+      stoch: { k: [], d: [] },
+      macd: { line: [], signal: [], histogram: [] },
+      cci: [],
+      roc: [],
+      williamsR: [],
+    };
+  }
+
+  const closes = safeBars.map((b) => b.close);
+  const highs = safeBars.map((b) => b.high);
+  const lows = safeBars.map((b) => b.low);
 
   const rsiPeriod = 14;
   const gains: number[] = [];
@@ -252,7 +292,7 @@ export function computeMomentumIndicators(bars: Bar[]) {
   const stochD: number[] = [];
   const stochPeriod = 14;
   const stochSmooth = 3;
-  bars.forEach((_, i) => {
+  safeBars.forEach((_, i) => {
     if (i + 1 < stochPeriod) {
       stochK.push(NaN);
       return;
@@ -272,7 +312,7 @@ export function computeMomentumIndicators(bars: Bar[]) {
   const histogram = macdLine.map((v, i) => v - (signal[i] ?? v));
 
   const cciPeriod = 20;
-  const typicalPrices = bars.map((b) => (b.high + b.low + b.close) / 3);
+  const typicalPrices = safeBars.map((b) => (b.high + b.low + b.close) / 3);
   const cciSma = sma(typicalPrices, cciPeriod);
   const cci: number[] = [];
   typicalPrices.forEach((tp, i) => {
@@ -312,13 +352,18 @@ export function computeMomentumIndicators(bars: Bar[]) {
 }
 
 export function computeVolumeIndicators(bars: Bar[]) {
-  const closes = bars.map((b) => b.close);
-  const volumes = bars.map((b) => b.volume);
+  const safeBars = ensureBars(bars);
+  if (safeBars.length === 0) {
+    return { volSma: [], obv: [], accDist: [], mfi: [], volumeOsc: [] };
+  }
+
+  const closes = safeBars.map((b) => b.close);
+  const volumes = safeBars.map((b) => b.volume);
 
   const volSma = sma(volumes, 20);
 
   const obv: number[] = [];
-  bars.forEach((bar, i) => {
+  safeBars.forEach((bar, i) => {
     if (i === 0) {
       obv.push(bar.volume);
     } else {
@@ -328,7 +373,7 @@ export function computeVolumeIndicators(bars: Bar[]) {
   });
 
   const accDist: number[] = [];
-  bars.forEach((bar, i) => {
+  safeBars.forEach((bar, i) => {
     const clv = ((bar.close - bar.low) - (bar.high - bar.close)) / (bar.high - bar.low || 1);
     const moneyFlow = clv * bar.volume;
     accDist.push((accDist[i - 1] || 0) + moneyFlow);
@@ -336,9 +381,9 @@ export function computeVolumeIndicators(bars: Bar[]) {
 
   const mfiPeriod = 14;
   const mfi: number[] = [];
-  const typicalPrices = bars.map((b) => (b.high + b.low + b.close) / 3);
-  const moneyFlows = typicalPrices.map((tp, i) => tp * bars[i].volume);
-  for (let i = 0; i < bars.length; i += 1) {
+  const typicalPrices = safeBars.map((b) => (b.high + b.low + b.close) / 3);
+  const moneyFlows = typicalPrices.map((tp, i) => tp * safeBars[i].volume);
+  for (let i = 0; i < safeBars.length; i += 1) {
     if (i + 1 < mfiPeriod) {
       mfi.push(NaN);
       continue;
@@ -365,13 +410,28 @@ export function computeVolumeIndicators(bars: Bar[]) {
 }
 
 export function computeMarketStructureTools(bars: Bar[]) {
-  const highs = bars.map((b) => b.high);
-  const lows = bars.map((b) => b.low);
-  const closes = bars.map((b) => b.close);
-  const times = bars.map((b) => b.time);
+  const safeBars = ensureBars(bars);
+  if (safeBars.length === 0) {
+    const emptyRange = { high: 0, low: 0 };
+    const emptyPivots = { pp: 0, r1: 0, s1: 0, r2: 0, s2: 0, r3: 0, s3: 0 };
+    return {
+      classic: emptyPivots,
+      floor: emptyPivots,
+      session: emptyPivots,
+      sessionHighLow: emptyRange,
+      dailyHighLow: emptyRange,
+      weeklyBands: emptyRange,
+      openingRange: { high: 0, low: 0, start: 0, end: 0 },
+    };
+  }
+
+  const highs = safeBars.map((b) => b.high);
+  const lows = safeBars.map((b) => b.low);
+  const closes = safeBars.map((b) => b.close);
+  const times = safeBars.map((b) => b.time);
 
   const groupedByDay: Record<string, { highs: number[]; lows: number[]; closes: number[]; times: number[] }> = {};
-  bars.forEach((bar) => {
+  safeBars.forEach((bar) => {
     const key = new Date(bar.time).toDateString();
     if (!groupedByDay[key]) groupedByDay[key] = { highs: [], lows: [], closes: [], times: [] };
     groupedByDay[key].highs.push(bar.high);
@@ -382,9 +442,9 @@ export function computeMarketStructureTools(bars: Bar[]) {
   const dayKeys = Object.keys(groupedByDay).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
   const prevDayKey = dayKeys[dayKeys.length - 2] ?? dayKeys[dayKeys.length - 1];
   const prevDay = groupedByDay[prevDayKey];
-  const prevHigh = Math.max(...prevDay.highs);
-  const prevLow = Math.min(...prevDay.lows);
-  const prevClose = prevDay.closes[prevDay.closes.length - 1];
+  const prevHigh = prevDay ? Math.max(...prevDay.highs) : 0;
+  const prevLow = prevDay ? Math.min(...prevDay.lows) : 0;
+  const prevClose = prevDay ? prevDay.closes[prevDay.closes.length - 1] : 0;
 
   const classicP = (prevHigh + prevLow + prevClose) / 3;
   const classic = {
@@ -401,9 +461,9 @@ export function computeMarketStructureTools(bars: Bar[]) {
 
   const sessionKey = dayKeys[dayKeys.length - 1];
   const session = groupedByDay[sessionKey];
-  const sessionHigh = Math.max(...session.highs);
-  const sessionLow = Math.min(...session.lows);
-  const sessionClose = session.closes[session.closes.length - 1];
+  const sessionHigh = session ? Math.max(...session.highs) : 0;
+  const sessionLow = session ? Math.min(...session.lows) : 0;
+  const sessionClose = session ? session.closes[session.closes.length - 1] : 0;
   const sessionP = (sessionHigh + sessionLow + sessionClose) / 3;
   const sessionPivots = {
     pp: sessionP,
@@ -415,25 +475,26 @@ export function computeMarketStructureTools(bars: Bar[]) {
 
   const sessionHighLow = { high: sessionHigh, low: sessionLow };
 
-  const dailyHighLow = { high: Math.max(...highs), low: Math.min(...lows) };
+  const dailyHighLow = { high: highs.length ? Math.max(...highs) : 0, low: lows.length ? Math.min(...lows) : 0 };
   const weeklyBands = (() => {
     const weeks: Record<string, { highs: number[]; lows: number[] }> = {};
-    bars.forEach((bar) => {
+    safeBars.forEach((bar) => {
       const d = new Date(bar.time);
       const weekKey = `${d.getFullYear()}-w${Math.floor((d.getTime() - new Date(d.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000))}`;
       if (!weeks[weekKey]) weeks[weekKey] = { highs: [], lows: [] };
       weeks[weekKey].highs.push(bar.high);
       weeks[weekKey].lows.push(bar.low);
     });
-    const lastWeekKey = Object.keys(weeks).sort().pop() as string;
+    const lastWeekKey = Object.keys(weeks).sort().pop();
+    if (!lastWeekKey) return { high: 0, low: 0 };
     return { high: Math.max(...weeks[lastWeekKey].highs), low: Math.min(...weeks[lastWeekKey].lows) };
   })();
 
   const openingRangeBars = 30;
   const openHighSlice = highs.slice(0, openingRangeBars);
   const openLowSlice = lows.slice(0, openingRangeBars);
-  const openRangeHigh = openHighSlice.length > 0 ? Math.max(...openHighSlice) : bars[0].high;
-  const openRangeLow = openLowSlice.length > 0 ? Math.min(...openLowSlice) : bars[0].low;
+  const openRangeHigh = openHighSlice.length > 0 ? Math.max(...openHighSlice) : safeBars[0].high;
+  const openRangeLow = openLowSlice.length > 0 ? Math.min(...openLowSlice) : safeBars[0].low;
 
   return {
     classic,
@@ -442,7 +503,12 @@ export function computeMarketStructureTools(bars: Bar[]) {
     sessionHighLow,
     dailyHighLow,
     weeklyBands,
-    openingRange: { high: openRangeHigh, low: openRangeLow, start: times[0], end: times[Math.min(openingRangeBars - 1, times.length - 1)] },
+    openingRange: {
+      high: openRangeHigh,
+      low: openRangeLow,
+      start: times[0] ?? 0,
+      end: times[Math.min(openingRangeBars - 1, Math.max(times.length - 1, 0))] ?? 0,
+    },
   };
 }
 
@@ -509,12 +575,23 @@ export function computeFibonacci(bars: Bar[]) {
 }
 
 export function computeIndicators(bars: Bar[]) {
+  const safeBars = ensureBars(bars);
+  if (safeBars.length === 0) {
+    return {
+      trend: computeTrendIndicators(safeBars),
+      volatility: computeVolatilityIndicators(safeBars),
+      momentum: computeMomentumIndicators(safeBars),
+      volume: computeVolumeIndicators(safeBars),
+      structure: computeMarketStructureTools(safeBars),
+      fibonacci: computeFibonacci(safeBars),
+    };
+  }
   return {
-    trend: computeTrendIndicators(bars),
-    volatility: computeVolatilityIndicators(bars),
-    momentum: computeMomentumIndicators(bars),
-    volume: computeVolumeIndicators(bars),
-    structure: computeMarketStructureTools(bars),
-    fibonacci: computeFibonacci(bars),
+    trend: computeTrendIndicators(safeBars),
+    volatility: computeVolatilityIndicators(safeBars),
+    momentum: computeMomentumIndicators(safeBars),
+    volume: computeVolumeIndicators(safeBars),
+    structure: computeMarketStructureTools(safeBars),
+    fibonacci: computeFibonacci(safeBars),
   };
 }
