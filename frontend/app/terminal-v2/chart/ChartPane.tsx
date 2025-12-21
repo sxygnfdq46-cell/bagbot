@@ -1121,6 +1121,18 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
   }, [colors, geometry, height, visibleBars, width]);
 
   useEffect(() => {
+    if (!geometry || visibleBars.length === 0) {
+      setCursorTime(null);
+      setIsDraggingCursor(false);
+      return;
+    }
+    setCursorTime((prev) => {
+      if (prev === null) return prev;
+      return Math.min(Math.max(prev, geometry.minTime), geometry.maxTime);
+    });
+  }, [geometry, visibleBars.length]);
+
+  useEffect(() => {
     if (!geometry) return;
     drawIndicators({
       canvas: indicatorRef.current as HTMLCanvasElement,
@@ -1415,6 +1427,17 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
       />
       <canvas
         ref={projectionRef}
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "block",
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none",
+        }}
+      />
+      <canvas
+        ref={reasoningRef}
         style={{
           position: "absolute",
           inset: 0,
@@ -1750,17 +1773,6 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
           const nextTime = (cursorTime ?? geometry.maxTime) + direction * step;
           const clamped = Math.min(Math.max(nextTime, geometry.minTime), geometry.maxTime);
           setCursorTime(clamped);
-        }}
-      />
-      <canvas
-        ref={reasoningRef}
-        style={{
-          position: "absolute",
-          inset: 0,
-          display: "block",
-          width: "100%",
-          height: "100%",
-          pointerEvents: "none",
         }}
       />
       <canvas

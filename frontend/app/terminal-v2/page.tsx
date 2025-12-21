@@ -14,6 +14,7 @@ const layoutPaneIds: Record<PaneLayout, string[]> = {
   quad: ["pane-1", "pane-2", "pane-3", "pane-4"],
 };
 
+// Phase 7 contract: panes remain independent until an explicit sync mode is delivered.
 const themeTokens: Record<ThemeMode, Record<string, string>> = {
   noir: {
     "--terminal-bg": "#0b0d10",
@@ -226,6 +227,7 @@ export default function TerminalV2Page() {
 
         <main
           aria-label="Chart workspace"
+          data-pane-sync="independent"
           style={{
             position: "absolute",
             inset: 0,
@@ -283,10 +285,10 @@ export default function TerminalV2Page() {
             style={{ padding: "12px", fontSize: "13px", fontWeight: 600, height: "100%", display: "flex", flexDirection: "column" }}
           >
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
-              <button type="button" aria-label="Pin panel" data-kind="panel" data-state="default">
+              <button type="button" aria-label="Pin panel (inactive)" data-kind="panel" data-state="disabled" disabled>
                 Pin
               </button>
-              <button type="button" aria-label="Close panel" data-kind="panel" data-state="default">
+              <button type="button" aria-label="Close panel (inactive)" data-kind="panel" data-state="disabled" disabled>
                 Close
               </button>
             </div>
