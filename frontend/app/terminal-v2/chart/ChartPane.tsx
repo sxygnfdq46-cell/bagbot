@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { computeIndicators } from "./indicators";
 
@@ -73,6 +73,8 @@ type ProjectionScenario = {
   id: "continuation" | "reversion" | "range";
   path: { time: number; price: number }[];
 };
+
+const DEFAULT_SCENARIO_ORDER: ProjectionScenario["id"][] = ["continuation", "reversion", "range"];
 
 type ProjectionEnvelope = {
   base: { time: number; price: number }[];
@@ -908,7 +910,7 @@ function drawProjections({
   height,
   geometry,
   projections,
-  highlightedScenario,
+  activeScenarioIndex,
 }: {
   canvas: HTMLCanvasElement;
   bars: Bar[];
@@ -917,7 +919,7 @@ function drawProjections({
   height: number;
   geometry: ChartGeometry;
   projections: ProjectionEnvelope | null;
-  highlightedScenario: number;
+  activeScenarioIndex: number;
 }) {
   if (!canvas || !geometry || !projections || bars.length === 0) return;
   const ctx = canvas.getContext("2d");
@@ -994,7 +996,7 @@ function drawProjections({
 
   // scenario forks
   projections.scenarios.forEach((scenario, idx) => {
-    const isActive = idx === highlightedScenario;
+    const isActive = idx === activeScenarioIndex;
     const alpha = isActive ? 0.9 : 0.4;
     const widthPx = isActive ? 1.4 : 1;
     drawPath(scenario.path, "rgba(180, 190, 210, 1)", widthPx, [2, 3], alpha);
@@ -1021,7 +1023,7 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
   const [cursorTime, setCursorTime] = useState<number | null>(null);
   const [isDraggingCursor, setIsDraggingCursor] = useState(false);
   const [showProjections, setShowProjections] = useState(false);
-  const [highlightedScenario, setHighlightedScenario] = useState(0);
+  const [activeScenarioId, setActiveScenarioId] = useState<ProjectionScenario["id"]>("continuation");
 
   const visibleBars = useMemo(() => {
     if (!isReplay || cursorTime === null) return bars;
@@ -1037,6 +1039,33 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
   const indicators = useMemo(() => computeIndicators(visibleBars), [visibleBars]);
 
   const projections = useMemo(() => computeProjections(visibleBars, indicators), [indicators, visibleBars]);
+
+  const scenarioOrder = useMemo(() => projections?.scenarios.map((s) => s.id) ?? DEFAULT_SCENARIO_ORDER, [projections]);
+
+  const activeScenarioIndex = useMemo(() => {
+    const idx = scenarioOrder.indexOf(activeScenarioId);
+    return idx === -1 ? 0 : idx;
+  }, [activeScenarioId, scenarioOrder]);
+
+  useEffect(() => {
+    if (!projections) return;
+    if (!projections.scenarios.some((s) => s.id === activeScenarioId)) {
+      setActiveScenarioId(projections.scenarios[0].id);
+    }
+  }, [activeScenarioId, projections]);
+
+  const cycleScenario = useCallback(
+    (delta: number) => {
+      setActiveScenarioId((prev) => {
+        const order = scenarioOrder.length > 0 ? scenarioOrder : DEFAULT_SCENARIO_ORDER;
+        const currentIdx = order.indexOf(prev);
+        const startIdx = currentIdx === -1 ? 0 : currentIdx;
+        const nextIdx = (startIdx + delta + order.length) % order.length;
+        return order[nextIdx];
+      });
+    },
+    [scenarioOrder]
+  );
 
   useEffect(() => {
     if (!geometry) return;
@@ -1074,9 +1103,9 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
       height,
       geometry,
       projections,
-      highlightedScenario,
+      activeScenarioIndex,
     });
-  }, [colors, geometry, height, highlightedScenario, projections, showProjections, visibleBars, width]);
+  }, [activeScenarioIndex, colors, geometry, height, projections, showProjections, visibleBars, width]);
 
   const eventPositions = useMemo<EventRenderPosition[]>(() => {
     if (!geometry) return [];
@@ -1302,6 +1331,21 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
     setCursorTime((prev) => (prev === null ? lastTime : Math.min(Math.max(prev, geometry.minTime), geometry.maxTime)));
   }, [geometry, isReplay]);
 
+  useEffect(() => {
+    if (!showProjections) return undefined;
+    const handler = (event: KeyboardEvent) => {
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        cycleScenario(1);
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        cycleScenario(-1);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [cycleScenario, showProjections]);
+
   return (
     <div
       ref={containerRef}
@@ -1429,22 +1473,18 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
           };
 
           if (showProjections && projections) {
-            const scenarioHit = projections.scenarios
-              .map((sc, idx) => ({ idx, ...distToPolyline(sc.path) }))
-              .sort((a, b) => a.dist - b.dist)[0];
-            if (scenarioHit && scenarioHit.dist < 10 && scenarioHit.point) {
-              setTooltip({
-                x: scenarioHit.point.x,
-                y: scenarioHit.point.y,
-                label:
-                  scenarioHit.idx === 0
-                    ? "Regime: continuation"
-                    : scenarioHit.idx === 1
-                    ? "Regime: reversion"
-                    : "Regime: range",
-              });
-              setHoveredEventId(null);
-              return;
+            const activeScenario = projections.scenarios[activeScenarioIndex] ?? projections.scenarios[0];
+            if (activeScenario) {
+              const scenarioHit = distToPolyline(activeScenario.path);
+              if (scenarioHit.dist < 10 && scenarioHit.point) {
+                setTooltip({
+                  x: scenarioHit.point.x,
+                  y: scenarioHit.point.y,
+                  label: `Regime: ${activeScenario.id}`,
+                });
+                setHoveredEventId(null);
+                return;
+              }
             }
 
             const baseHit = distToPolyline(projections.base);
