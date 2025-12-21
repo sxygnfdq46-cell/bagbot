@@ -34,6 +34,13 @@ Status: Phase 4 is frozen. Do not change layout, state wiring, or structural rul
 - Bottom controls show active layout/fullscreen states; hover/active use surface/chrome tones; disabled style is available though not used here.
 - No chart/pane styling, no spacing or layout changes, no glow/shadow/animation.
 
+## Market Structure Layer (Phase 6.1)
+- Added pane-local chart engine using layered canvas (single canvas with dedicated price and volume regions) per pane; no shared state between panes.
+- Renders time/price axes, candles, volume, and a minimal grid; uses theme tokens for tones; chart fills available pane and resizes via `ResizeObserver` + DPR scaling.
+- Deterministic data: seeded historical bars plus steady append of synthetic live bars at fixed interval, ordered by time; capped history length to maintain performance.
+- No bot decisions, overlays, indicators, replay cursor, or compare; DOM labels limited to axes text rendered on canvas.
+- Fullscreen and multi-pane continue to work; each pane redraws on resize without layout drift.
+
 ## Must Never Change Without Explicit Approval
 - No chart canvas, syncing, bot logic, or visuals in this file.
 - No max-widths, centering, padding creep, or resizing of the overall workspace.

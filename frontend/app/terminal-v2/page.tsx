@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { ChartPane } from "./chart/ChartPane";
 
 type PaneLayout = "single" | "double" | "quad";
 type ThemeMode = "noir" | "light";
@@ -257,7 +258,7 @@ export default function TerminalV2Page() {
                 }
               }}
             >
-              <div aria-label={`Chart pane placeholder for ${paneId}`} />
+              <ChartPane paneId={paneId} themeMode={themeMode} />
             </div>
           ))}
         </main>
