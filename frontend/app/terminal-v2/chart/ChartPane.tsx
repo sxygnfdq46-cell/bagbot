@@ -151,15 +151,15 @@ function deriveMockEvents(bars: Bar[]): ChartEvent[] {
   });
 }
 
-function normalizeBars(bars: Bar[] | null | undefined): Bar[] {
-  const candidate: Bar[] = Array.isArray(bars) ? bars : [];
-  if (candidate.length === 0) return generateSeedBars();
-  if (isValidBars(candidate)) return candidate;
+function normalizeBars(bars: unknown): Bar[] {
+  const arrayBars = Array.isArray(bars) ? (bars as unknown[]) : [];
+  if (arrayBars.length === 0) return generateSeedBars();
+  if (isValidBars(arrayBars as Bar[])) return arrayBars as Bar[];
   const valid: Bar[] = [];
-  for (let i = 0; i < candidate.length; i += 1) {
-    const bar = candidate[i];
-    if (isValidBar(bar)) {
-      valid.push(bar);
+  for (let i = 0; i < arrayBars.length; i += 1) {
+    const bar = arrayBars[i];
+    if (isValidBar(bar as Bar)) {
+      valid.push(bar as Bar);
     }
   }
   return valid.length === 0 ? generateSeedBars() : valid;
