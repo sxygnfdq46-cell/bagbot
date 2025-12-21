@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 
 type PaneLayout = "single" | "double" | "quad";
 type ThemeMode = "noir" | "light";
-type ToolDockItem = { id: string; label: string };
+type ToolDockItem = { id: string; label: string; disabled?: boolean };
+type CommandItem = { id: string; label: string; disabled?: boolean };
 
 const layoutPaneIds: Record<PaneLayout, string[]> = {
   single: ["pane-1"],
@@ -34,7 +35,7 @@ const themeTokens: Record<ThemeMode, Record<string, string>> = {
 const toolDockItems: ToolDockItem[] = [
   { id: "tool-cursor", label: "Cursor" },
   { id: "tool-draw", label: "Draw" },
-  { id: "tool-alerts", label: "Alerts" },
+  { id: "tool-alerts", label: "Alerts", disabled: true },
   { id: "tool-config", label: "Config" },
 ];
 
@@ -43,6 +44,8 @@ export default function TerminalV2Page() {
   const [activePaneId, setActivePaneId] = useState<string>(layoutPaneIds.single[0]);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [themeMode, setThemeMode] = useState<ThemeMode>("noir");
+  const [activeToolId, setActiveToolId] = useState<string>(toolDockItems[0]?.id ?? "tool-cursor");
+  const [isSessionActive, setIsSessionActive] = useState(true);
 
   const paneIds = useMemo(() => layoutPaneIds[paneLayout], [paneLayout]);
   const themeVars = useMemo(() => themeTokens[themeMode], [themeMode]);
@@ -81,6 +84,7 @@ export default function TerminalV2Page() {
 
   return (
     <div
+      data-terminal-v2
       style={{
         minHeight: "100vh",
         width: "100vw",
@@ -111,12 +115,40 @@ export default function TerminalV2Page() {
           aria-label="Top command strip content"
           style={{ display: "flex", alignItems: "center", width: "100%" }}
         >
-          <span aria-label="Session status" style={{ opacity: 0.9 }}>
-            Session: Connected · Latency nominal
-          </span>
-          <span style={{ marginLeft: "auto", opacity: 0.7 }} aria-label="Theme indicator">
-            Theme: {themeMode === "noir" ? "Noir" : "Light Luxe"}
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <button
+              type="button"
+              aria-label="Toggle session"
+              data-kind="command"
+              data-state={isSessionActive ? "active" : "default"}
+              onClick={() => setIsSessionActive((prev) => !prev)}
+            >
+              {isSessionActive ? "Session: Live" : "Session: Paused"}
+            </button>
+            <button
+              type="button"
+              aria-label="Safe mode"
+              data-kind="command"
+              data-state="disabled"
+              disabled
+            >
+              Safe Mode
+            </button>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginLeft: "auto" }}>
+            <span style={{ opacity: 0.7 }} aria-label="Theme indicator">
+              Theme: {themeMode === "noir" ? "Noir" : "Light Luxe"}
+            </span>
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label="Toggle theme"
+              data-kind="command"
+              data-state="default"
+            >
+              {themeMode === "noir" ? "Switch to Light" : "Switch to Noir"}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -152,19 +184,36 @@ export default function TerminalV2Page() {
           >
             {toolDockItems.map((item, index) => {
               const isPrimary = index === 0;
+              const isActiveTool = activeToolId === item.id;
+              const isDisabled = Boolean(item.disabled);
               return (
                 <div
                   key={item.id}
                   aria-label={`Tool ${item.label}`}
-                  data-selected={isPrimary}
+                  data-selected={isPrimary || isActiveTool}
+                  data-state={isDisabled ? "disabled" : isActiveTool ? "active" : "default"}
+                  data-kind="dock-item"
                   style={{
                     width: "100%",
                     height: "44px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    color: isPrimary ? "var(--terminal-text)" : "var(--terminal-text-muted)",
-                    backgroundColor: isPrimary ? "var(--terminal-surface)" : "transparent",
+                    color: isPrimary || isActiveTool ? "var(--terminal-text)" : "var(--terminal-text-muted)",
+                    backgroundColor: isPrimary || isActiveTool ? "var(--terminal-surface)" : "transparent",
+                  }}
+                  onClick={() => {
+                    if (isDisabled) return;
+                    setActiveToolId(item.id);
+                  }}
+                  role="button"
+                  tabIndex={isDisabled ? -1 : 0}
+                  onKeyDown={(event) => {
+                    if (isDisabled) return;
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      setActiveToolId(item.id);
+                    }
                   }}
                 >
                   <span style={{ fontWeight: isPrimary ? 700 : 600 }}>{item.label}</span>
@@ -230,9 +279,19 @@ export default function TerminalV2Page() {
         >
           <div
             aria-label="Right context panel content"
-            style={{ padding: "12px", fontSize: "13px", fontWeight: 600 }}
+            style={{ padding: "12px", fontSize: "13px", fontWeight: 600, height: "100%", display: "flex", flexDirection: "column" }}
           >
-            Context panel reserved for inspection modules.
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+              <button type="button" aria-label="Pin panel" data-kind="panel" data-state="default">
+                Pin
+              </button>
+              <button type="button" aria-label="Close panel" data-kind="panel" data-state="default">
+                Close
+              </button>
+            </div>
+            <div style={{ marginTop: "12px", opacity: 0.8 }}>
+              Context panel reserved for inspection modules.
+            </div>
           </div>
         </aside>
       </div>
@@ -256,7 +315,9 @@ export default function TerminalV2Page() {
             type="button"
             onClick={() => selectLayout("single")}
             aria-label="Switch to single pane layout"
-            style={{ background: "transparent", color: "inherit", border: "none", fontWeight: 700, cursor: "pointer" }}
+            data-kind="control"
+            data-state={paneLayout === "single" ? "active" : "default"}
+            aria-pressed={paneLayout === "single"}
           >
             Single Pane
           </button>
@@ -264,7 +325,9 @@ export default function TerminalV2Page() {
             type="button"
             onClick={() => selectLayout("double")}
             aria-label="Switch to two pane layout"
-            style={{ background: "transparent", color: "inherit", border: "none", fontWeight: 700, cursor: "pointer" }}
+            data-kind="control"
+            data-state={paneLayout === "double" ? "active" : "default"}
+            aria-pressed={paneLayout === "double"}
           >
             Two Panes
           </button>
@@ -272,7 +335,9 @@ export default function TerminalV2Page() {
             type="button"
             onClick={() => selectLayout("quad")}
             aria-label="Switch to four pane layout"
-            style={{ background: "transparent", color: "inherit", border: "none", fontWeight: 700, cursor: "pointer" }}
+            data-kind="control"
+            data-state={paneLayout === "quad" ? "active" : "default"}
+            aria-pressed={paneLayout === "quad"}
           >
             Four Panes
           </button>
@@ -285,7 +350,8 @@ export default function TerminalV2Page() {
             type="button"
             onClick={toggleFullscreen}
             aria-label="Toggle fullscreen"
-            style={{ background: "transparent", color: "inherit", border: "none", fontWeight: 700, cursor: "pointer" }}
+            data-kind="control"
+            data-state={isFullscreen ? "active" : "default"}
           >
           {isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
           </button>
@@ -293,12 +359,73 @@ export default function TerminalV2Page() {
             type="button"
             onClick={toggleTheme}
             aria-label="Toggle theme"
-            style={{ background: "transparent", color: "inherit", border: "none", fontWeight: 700, cursor: "pointer" }}
+            data-kind="control"
+            data-state="default"
           >
             {themeMode === "noir" ? "Switch to Light" : "Switch to Noir"}
           </button>
         </div>
       </footer>
+      <style jsx global>{`
+        [data-terminal-v2] button {
+          background: transparent;
+          border: none;
+          padding: 0;
+          margin: 0;
+          color: inherit;
+          font: inherit;
+        }
+
+        [data-terminal-v2] [data-kind] {
+          cursor: pointer;
+        }
+
+        [data-terminal-v2] [data-state="disabled"] {
+          opacity: 0.35;
+          cursor: not-allowed;
+          pointer-events: none;
+        }
+
+        [data-terminal-v2] [data-kind]:hover:not([data-state="disabled"]) {
+          background-color: var(--terminal-surface);
+          color: var(--terminal-text);
+        }
+
+        [data-terminal-v2] [data-kind]:active:not([data-state="disabled"]) {
+          background-color: var(--terminal-chrome);
+          color: var(--terminal-text);
+        }
+
+        [data-terminal-v2] [data-kind][data-state="active"] {
+          background-color: var(--terminal-surface);
+          color: var(--terminal-text);
+          font-weight: 700;
+        }
+
+        [data-terminal-v2] [data-kind]:focus-visible {
+          outline: 1px solid var(--terminal-text-muted);
+          outline-offset: -2px;
+        }
+
+        [data-terminal-v2] [data-kind="dock-item"] {
+          cursor: pointer;
+        }
+
+        [data-terminal-v2] [data-kind="dock-item"][data-state="default"]:hover {
+          background-color: var(--terminal-surface);
+          color: var(--terminal-text);
+        }
+
+        [data-terminal-v2] [data-kind="dock-item"][data-state="active"] {
+          background-color: var(--terminal-surface);
+          color: var(--terminal-text);
+          font-weight: 700;
+        }
+
+        [data-terminal-v2] [data-kind="dock-item"][data-state="disabled"] {
+          background-color: transparent;
+        }
+      `}</style>
     </div>
   );
 }

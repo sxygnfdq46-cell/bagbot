@@ -26,6 +26,14 @@ Status: Phase 4 is frozen. Do not change layout, state wiring, or structural rul
 - Bottom plane uses console-like text weight; controls are text-forward (borderless, transparent backgrounds).
 - No gradients, shadows, animations, or layout/spacing shifts; fullscreen behavior unchanged.
 
+## Chrome Affordances (Phase 5.3)
+- Added scoped, token-based affordances (hover/active/disabled/focus) to chrome-only controls via `data-kind`/`data-state` and root `data-terminal-v2` scoping.
+- Top strip commands: session toggle (active/default) and safe mode (disabled) show tone/opacity changes; theme toggle remains muted.
+- Left dock items include active selection, hover tone, and a disabled example (`Alerts`); focus-visible uses a restrained outline.
+- Right panel includes pin/close affordances with tone shifts; panel body unchanged.
+- Bottom controls show active layout/fullscreen states; hover/active use surface/chrome tones; disabled style is available though not used here.
+- No chart/pane styling, no spacing or layout changes, no glow/shadow/animation.
+
 ## Must Never Change Without Explicit Approval
 - No chart canvas, syncing, bot logic, or visuals in this file.
 - No max-widths, centering, padding creep, or resizing of the overall workspace.
