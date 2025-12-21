@@ -33,6 +33,32 @@ type EventRenderPosition = {
   price: number;
 };
 
+type Intent = "long" | "short" | "neutral";
+type Regime = "trend" | "range" | "volatility";
+type Confidence = "low" | "medium" | "high";
+
+type ReasoningAnchor = {
+  id: string;
+  eventId: string;
+  intent: Intent;
+  regime: Regime;
+  confidence: Confidence;
+  summary: string;
+  time: number;
+  price: number;
+};
+
+type ReasoningRenderPosition = {
+  id: string;
+  x: number;
+  y: number;
+  intent: Intent;
+  regime: Regime;
+  confidence: Confidence;
+  summary: string;
+  eventId: string;
+};
+
 const BASE_BAR_INTERVAL = 60 * 1000; // 1m bars
 const DEFAULT_BAR_COUNT = 120;
 const MAX_HISTORY = 240;
@@ -91,6 +117,35 @@ function deriveMockEvents(bars: Bar[]): ChartEvent[] {
   });
 }
 
+function deriveReasoning(events: ChartEvent[]): ReasoningAnchor[] {
+  const intents: Intent[] = ["long", "short", "neutral"];
+  const regimes: Regime[] = ["trend", "range", "volatility"];
+  const confidences: Confidence[] = ["low", "medium", "high"];
+
+  return events.map((event, idx) => {
+    const intent = intents[idx % intents.length];
+    const regime = regimes[(idx + 1) % regimes.length];
+    const confidence = confidences[(idx + 2) % confidences.length];
+    const summary =
+      intent === "long"
+        ? "Bot bias: accumulation under session VWAP"
+        : intent === "short"
+        ? "Bot bias: distribution near local high"
+        : "Bot bias: neutral hold while volatility normalizes";
+
+    return {
+      id: `${event.id}-reason-${idx}`,
+      eventId: event.id,
+      intent,
+      regime,
+      confidence,
+      summary,
+      time: event.time,
+      price: event.price,
+    };
+  });
+}
+
 function getDevicePixelRatioSafe() {
   if (typeof window === "undefined") return 1;
   return Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
@@ -134,6 +189,8 @@ function usePaneColors(containerRef: React.RefObject<HTMLElement>, themeKey: str
       eventTarget: "#8fd19e",
       eventExit: "#c7cfdc",
       eventHighlight: "rgba(233,236,242,0.22)",
+      reasoningAnchor: "rgba(233,236,242,0.55)",
+      reasoningActive: "rgba(122,196,255,0.8)",
     };
     if (typeof window === "undefined") return fallback;
     const node = containerRef.current ?? document.documentElement;
@@ -154,6 +211,8 @@ function usePaneColors(containerRef: React.RefObject<HTMLElement>, themeKey: str
       eventTarget: get("--terminal-event-target", fallback.eventTarget) || fallback.eventTarget,
       eventExit: get("--terminal-event-exit", fallback.eventExit) || fallback.eventExit,
       eventHighlight: get("--terminal-event-highlight", fallback.eventHighlight) || fallback.eventHighlight,
+      reasoningAnchor: get("--terminal-reasoning-anchor", fallback.reasoningAnchor) || fallback.reasoningAnchor,
+      reasoningActive: get("--terminal-reasoning-active", fallback.reasoningActive) || fallback.reasoningActive,
     };
   }, [containerRef, themeKey]);
 }
@@ -317,10 +376,12 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
+  const reasoningRef = useRef<HTMLCanvasElement>(null);
   const [bars, setBars] = useState<Bar[]>(() => generateSeedBars());
   const colors = usePaneColors(containerRef, themeMode);
   const { width, height } = useResize(containerRef);
   const [events, setEvents] = useState<ChartEvent[]>(() => deriveMockEvents(generateSeedBars()));
+  const [reasoning, setReasoning] = useState<ReasoningAnchor[]>(() => deriveReasoning(deriveMockEvents(generateSeedBars())));
   const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; label: string } | null>(null);
@@ -345,6 +406,27 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
       price: event.price,
     }));
   }, [events, geometry]);
+
+  const reasoningPositions = useMemo<ReasoningRenderPosition[]>(() => {
+    if (!geometry) return [];
+    const { timeToX, priceToY } = geometry;
+    return reasoning.map((item) => ({
+      id: item.id,
+      x: timeToX(item.time),
+      y: priceToY(item.price),
+      intent: item.intent,
+      regime: item.regime,
+      confidence: item.confidence,
+      summary: item.summary,
+      eventId: item.eventId,
+    }));
+  }, [geometry, reasoning]);
+
+  const activeReasoning = useMemo(() => {
+    const targetEventId = hoveredEventId ?? selectedEventId;
+    if (!targetEventId) return null;
+    return reasoningPositions.find((item) => item.eventId === targetEventId) ?? null;
+  }, [hoveredEventId, reasoningPositions, selectedEventId]);
 
   useEffect(() => {
     if (!geometry) return;
@@ -401,6 +483,48 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
   }, [colors, eventPositions, geometry, height, hoveredEventId, selectedEventId, width]);
 
   useEffect(() => {
+    if (!geometry) return;
+    const layer = reasoningRef.current;
+    if (!layer) return;
+    const ctx = layer.getContext("2d");
+    if (!ctx) return;
+    const dpr = getDevicePixelRatioSafe();
+    layer.width = width * dpr;
+    layer.height = height * dpr;
+    layer.style.width = `${width}px`;
+    layer.style.height = `${height}px`;
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, width, height);
+
+    reasoningPositions.forEach((anchor) => {
+      const isActive = activeReasoning?.id === anchor.id;
+      ctx.strokeStyle = isActive ? colors.reasoningActive : colors.reasoningAnchor;
+      ctx.fillStyle = isActive ? colors.reasoningActive : colors.reasoningAnchor;
+      ctx.lineWidth = isActive ? 1.5 : 1;
+      const radius = isActive ? 5 : 4;
+
+      // anchor marker
+      ctx.beginPath();
+      ctx.arc(anchor.x, anchor.y, radius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      if (isActive) {
+        // subtle bracket around price point
+        ctx.beginPath();
+        ctx.moveTo(anchor.x - 14, anchor.y - 6);
+        ctx.lineTo(anchor.x - 6, anchor.y - 6);
+        ctx.lineTo(anchor.x - 6, anchor.y + 6);
+        ctx.lineTo(anchor.x - 14, anchor.y + 6);
+        ctx.moveTo(anchor.x + 14, anchor.y - 6);
+        ctx.lineTo(anchor.x + 6, anchor.y - 6);
+        ctx.lineTo(anchor.x + 6, anchor.y + 6);
+        ctx.lineTo(anchor.x + 14, anchor.y + 6);
+        ctx.stroke();
+      }
+    });
+  }, [activeReasoning, colors.reasoningActive, colors.reasoningAnchor, geometry, height, reasoningPositions, width]);
+
+  useEffect(() => {
     const id = setInterval(() => {
       setBars((prev) => {
         if (prev.length === 0) {
@@ -417,6 +541,10 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
   useEffect(() => {
     setEvents(deriveMockEvents(bars));
   }, [bars]);
+
+  useEffect(() => {
+    setReasoning(deriveReasoning(events));
+  }, [events]);
 
   return (
     <div
@@ -456,10 +584,13 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
             const hit: EventRenderPosition = nearest;
             setHoveredEventId(hit.id);
             const date = new Date(hit.time);
+            const reasoningLabel = activeReasoning
+              ? ` · Intent: ${activeReasoning.intent} · Regime: ${activeReasoning.regime} · Conf: ${activeReasoning.confidence}`
+              : "";
             const label = `${hit.type.toUpperCase()} @ ${hit.price.toFixed(2)} · ${date.toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
-            })}`;
+            })}${reasoningLabel}`;
             setTooltip({ x: hit.x, y: hit.y, label });
           } else {
             setHoveredEventId(null);
@@ -474,6 +605,17 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
           if (hoveredEventId) {
             setSelectedEventId(hoveredEventId);
           }
+        }}
+      />
+      <canvas
+        ref={reasoningRef}
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "block",
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none",
         }}
       />
       {tooltip ? (
