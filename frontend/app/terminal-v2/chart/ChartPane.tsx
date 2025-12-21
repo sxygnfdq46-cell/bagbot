@@ -151,6 +151,28 @@ function deriveMockEvents(bars: Bar[]): ChartEvent[] {
   });
 }
 
+function normalizeBars(bars: Bar[] | null | undefined): Bar[] {
+  if (!Array.isArray(bars)) return generateSeedBars();
+  let allValid = true;
+  const valid = bars.filter(
+    (bar): bar is Bar => {
+      const isValid =
+        Boolean(bar) &&
+        Number.isFinite(bar.time) &&
+        Number.isFinite(bar.open) &&
+        Number.isFinite(bar.high) &&
+        Number.isFinite(bar.low) &&
+        Number.isFinite(bar.close) &&
+        Number.isFinite(bar.volume);
+      if (!isValid) allValid = false;
+      return isValid;
+    }
+  );
+  if (valid.length === 0) return generateSeedBars();
+  if (allValid && valid.length === bars.length) return bars;
+  return valid;
+}
+
 function deriveReasoning(events: ChartEvent[]): ReasoningAnchor[] {
   const intents: Intent[] = ["long", "short", "neutral"];
   const regimes: Regime[] = ["trend", "range", "volatility"];
@@ -1073,14 +1095,16 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
   const [showProjections, setShowProjections] = useState(false);
   const [activeScenarioId, setActiveScenarioId] = useState<ProjectionScenario["id"]>("continuation");
 
+  const safeBars = useMemo(() => normalizeBars(bars), [bars]);
+
   const visibleBars = useMemo(() => {
-    if (!isReplay || cursorTime === null) return bars;
-    const filtered = bars.filter((bar) => bar.time <= cursorTime);
-    if (filtered.length === 0 && bars.length > 0) {
-      return [bars[0]];
+    if (!isReplay || cursorTime === null) return safeBars;
+    const filtered = safeBars.filter((bar) => bar.time <= cursorTime);
+    if (filtered.length === 0 && safeBars.length > 0) {
+      return [safeBars[0]];
     }
     return filtered;
-  }, [bars, cursorTime, isReplay]);
+  }, [cursorTime, isReplay, safeBars]);
 
   const geometry = useMemo(() => computeGeometry(visibleBars, width, height), [visibleBars, width, height]);
 
@@ -1366,20 +1390,21 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
     if (isReplay) return undefined;
     const id = setInterval(() => {
       setBars((prev) => {
-        if (prev.length === 0) {
+        const safePrev = normalizeBars(prev);
+        if (safePrev.length === 0) {
           return generateSeedBars();
         }
-        const latest = prev[prev.length - 1];
+        const latest = safePrev[safePrev.length - 1];
         const next = nextBarFrom(latest);
-        return [...prev.slice(-Math.max(DEFAULT_BAR_COUNT, MAX_HISTORY) + 1), next];
+        return [...safePrev.slice(-Math.max(DEFAULT_BAR_COUNT, MAX_HISTORY) + 1), next];
       });
     }, 8000);
     return () => clearInterval(id);
   }, [isReplay]);
 
   useEffect(() => {
-    setEvents(deriveMockEvents(bars));
-  }, [bars]);
+    setEvents(deriveMockEvents(safeBars));
+  }, [safeBars]);
 
   useEffect(() => {
     setReasoning(deriveReasoning(events));
