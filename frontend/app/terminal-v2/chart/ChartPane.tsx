@@ -153,24 +153,9 @@ function deriveMockEvents(bars: Bar[]): ChartEvent[] {
 
 function normalizeBars(bars: Bar[] | null | undefined): Bar[] {
   if (!Array.isArray(bars)) return generateSeedBars();
-  let allValid = true;
-  const valid = bars.filter(
-    (bar): bar is Bar => {
-      const isValid =
-        Boolean(bar) &&
-        Number.isFinite(bar.time) &&
-        Number.isFinite(bar.open) &&
-        Number.isFinite(bar.high) &&
-        Number.isFinite(bar.low) &&
-        Number.isFinite(bar.close) &&
-        Number.isFinite(bar.volume);
-      if (!isValid) allValid = false;
-      return isValid;
-    }
-  );
-  if (valid.length === 0) return generateSeedBars();
-  if (allValid && valid.length === bars.length) return bars;
-  return valid;
+  if (isValidBars(bars)) return bars;
+  const valid = bars.filter(isValidBar);
+  return valid.length === 0 ? generateSeedBars() : valid;
 }
 
 function deriveReasoning(events: ChartEvent[]): ReasoningAnchor[] {
@@ -312,8 +297,20 @@ type ChartGeometry = {
   xToTime: (x: number) => number;
 };
 
+const isValidBar = (bar: Bar | null | undefined): bar is Bar =>
+  Boolean(bar) &&
+  Number.isFinite(bar.time) &&
+  Number.isFinite(bar.open) &&
+  Number.isFinite(bar.high) &&
+  Number.isFinite(bar.low) &&
+  Number.isFinite(bar.close) &&
+  Number.isFinite(bar.volume);
+
+const isValidBars = (bars: Bar[] | null | undefined): bars is Bar[] =>
+  Array.isArray(bars) && bars.length > 0 && bars.every(isValidBar);
+
 function computeGeometry(bars: Bar[], width: number, height: number): ChartGeometry | null {
-  if (bars.length === 0 || width === 0 || height === 0) return null;
+  if (!isValidBars(bars) || width === 0 || height === 0) return null;
   const padding = { top: 8, right: 64, bottom: 36, left: 12 };
   const plotWidth = width - padding.left - padding.right;
   const plotHeight = height - padding.top - padding.bottom;
@@ -402,7 +399,7 @@ function drawChart({
   height: number;
   geometry: ChartGeometry;
 }) {
-  if (!canvas || width === 0 || height === 0 || bars.length === 0) return;
+  if (!canvas || width === 0 || height === 0 || !isValidBars(bars)) return;
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
   const dpr = getDevicePixelRatioSafe();
