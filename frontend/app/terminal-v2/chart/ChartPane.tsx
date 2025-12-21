@@ -52,6 +52,7 @@ type ReasoningRenderPosition = {
   id: string;
   x: number;
   y: number;
+  time: number;
   intent: Intent;
   regime: Regime;
   confidence: Confidence;
@@ -64,6 +65,7 @@ const DEFAULT_BAR_COUNT = 120;
 const MAX_HISTORY = 240;
 const EVENT_COUNT = 6;
 const HOVER_RADIUS = 12;
+const CURSOR_WHEEL_STEP = 3; // bars per wheel tick in replay
 
 function generateSeedBars(): Bar[] {
   const seed: Bar[] = [];
@@ -126,6 +128,7 @@ function deriveReasoning(events: ChartEvent[]): ReasoningAnchor[] {
     const intent = intents[idx % intents.length];
     const regime = regimes[(idx + 1) % regimes.length];
     const confidence = confidences[(idx + 2) % confidences.length];
+
     const summary =
       intent === "long"
         ? "Bot bias: accumulation under session VWAP"
@@ -161,7 +164,7 @@ function useResize(ref: React.RefObject<HTMLElement>) {
       const entry = entries[0];
       if (!entry) return;
       const { width, height } = entry.contentRect;
-      setSize({ width, height });
+      setSize({ width: Math.round(width), height: Math.round(height) });
     });
     observer.observe(node);
     return () => observer.disconnect();
@@ -170,39 +173,61 @@ function useResize(ref: React.RefObject<HTMLElement>) {
   return size;
 }
 
-function usePaneColors(containerRef: React.RefObject<HTMLElement>, themeKey: string) {
+function usePaneColors(ref: React.RefObject<HTMLElement>, themeMode: string) {
   return useMemo(() => {
-    // themeKey ensures recompute on theme toggle
-    void themeKey;
-    const fallback = {
-      bg: "#14171c",
-      chrome: "#1b1f26",
-      text: "#e9ecf2",
-      muted: "rgba(233,236,242,0.72)",
-      up: "#7ac4ff",
-      down: "#e47272",
-      grid: "rgba(233,236,242,0.08)",
-      volume: "#9fb3c8",
-      eventEntryBuy: "#7ac4ff",
-      eventEntrySell: "#e47272",
-      eventStop: "#f59f9f",
-      eventTarget: "#8fd19e",
-      eventExit: "#c7cfdc",
-      eventHighlight: "rgba(233,236,242,0.22)",
-      reasoningAnchor: "rgba(233,236,242,0.55)",
-      reasoningActive: "rgba(122,196,255,0.8)",
+    const fallbackDark = {
+      bg: "#05070d",
+      chrome: "#0d1119",
+      text: "#e6e9f2",
+      muted: "#7c859a",
+      up: "#35d49a",
+      down: "#f45b69",
+      grid: "rgba(255,255,255,0.08)",
+      volume: "rgba(124,136,155,0.32)",
+      eventEntryBuy: "#3dd598",
+      eventEntrySell: "#f45b69",
+      eventStop: "#f45b69",
+      eventTarget: "#f5a524",
+      eventExit: "#9fa6b2",
+      eventHighlight: "rgba(255,255,255,0.1)",
+      reasoningAnchor: "#7c8cfc",
+      reasoningActive: "#b5befc",
     };
-    if (typeof window === "undefined") return fallback;
-    const node = containerRef.current ?? document.documentElement;
-    const style = getComputedStyle(node);
-    const get = (name: string, alt: string) => style.getPropertyValue(name).trim() || alt;
+
+    const fallbackLight = {
+      bg: "#f7f8fb",
+      chrome: "#ffffff",
+      text: "#1f2430",
+      muted: "#7a859f",
+      up: "#1ca672",
+      down: "#d14343",
+      grid: "rgba(0,0,0,0.08)",
+      volume: "rgba(95,105,128,0.22)",
+      eventEntryBuy: "#1ca672",
+      eventEntrySell: "#d14343",
+      eventStop: "#d14343",
+      eventTarget: "#d99a1d",
+      eventExit: "#5f6978",
+      eventHighlight: "rgba(0,0,0,0.08)",
+      reasoningAnchor: "#4255ff",
+      reasoningActive: "#2c3bd9",
+    };
+
+    const fallback = themeMode === "light" ? fallbackLight : fallbackDark;
+    const el = ref.current;
+    const get = (name: string, fb: string) => {
+      if (typeof window === "undefined" || !el) return fb;
+      const value = getComputedStyle(el).getPropertyValue(name);
+      return value?.trim() || fb;
+    };
+
     return {
       bg: get("--terminal-surface", fallback.bg),
       chrome: get("--terminal-chrome", fallback.chrome),
       text: get("--terminal-text", fallback.text),
       muted: get("--terminal-text-muted", fallback.muted),
       up: get("--terminal-accent", fallback.up),
-      down: get("--terminal-text", fallback.down),
+      down: get("--terminal-danger", fallback.down) || fallback.down,
       grid: get("--terminal-grid", fallback.grid) || get("--terminal-text-muted", fallback.grid),
       volume: get("--terminal-volume", fallback.volume) || get("--terminal-text-muted", fallback.volume),
       eventEntryBuy: get("--terminal-event-entry-buy", fallback.eventEntryBuy) || fallback.eventEntryBuy,
@@ -214,7 +239,7 @@ function usePaneColors(containerRef: React.RefObject<HTMLElement>, themeKey: str
       reasoningAnchor: get("--terminal-reasoning-anchor", fallback.reasoningAnchor) || fallback.reasoningAnchor,
       reasoningActive: get("--terminal-reasoning-active", fallback.reasoningActive) || fallback.reasoningActive,
     };
-  }, [containerRef, themeKey]);
+  }, [ref, themeMode]);
 }
 
 type ChartGeometry = {
@@ -231,6 +256,7 @@ type ChartGeometry = {
   maxVolume: number;
   timeToX: (time: number) => number;
   priceToY: (price: number) => number;
+  xToTime: (x: number) => number;
 };
 
 function computeGeometry(bars: Bar[], width: number, height: number): ChartGeometry | null {
@@ -251,6 +277,10 @@ function computeGeometry(bars: Bar[], width: number, height: number): ChartGeome
 
   const timeToX = (time: number) => padding.left + ((time - minTime) / (maxTime - minTime || 1)) * plotWidth;
   const priceToY = (price: number) => padding.top + (1 - (price - minPrice) / (maxPrice - minPrice || 1)) * priceHeight;
+  const xToTime = (x: number) => {
+    const clampedX = Math.min(Math.max(x, padding.left), padding.left + plotWidth);
+    return minTime + ((clampedX - padding.left) / (plotWidth || 1)) * (maxTime - minTime);
+  };
 
   return {
     padding,
@@ -266,6 +296,7 @@ function computeGeometry(bars: Bar[], width: number, height: number): ChartGeome
     maxVolume,
     timeToX,
     priceToY,
+    xToTime,
   };
 }
 
@@ -377,6 +408,7 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
   const reasoningRef = useRef<HTMLCanvasElement>(null);
+  const cursorRef = useRef<HTMLCanvasElement>(null);
   const [bars, setBars] = useState<Bar[]>(() => generateSeedBars());
   const colors = usePaneColors(containerRef, themeMode);
   const { width, height } = useResize(containerRef);
@@ -385,6 +417,9 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
   const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; label: string } | null>(null);
+  const [isReplay, setIsReplay] = useState(false);
+  const [cursorTime, setCursorTime] = useState<number | null>(null);
+  const [isDraggingCursor, setIsDraggingCursor] = useState(false);
 
   const geometry = useMemo(() => computeGeometry(bars, width, height), [bars, width, height]);
 
@@ -407,6 +442,11 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
     }));
   }, [events, geometry]);
 
+  const effectiveEvents = useMemo(() => {
+    if (!isReplay || cursorTime === null) return eventPositions;
+    return eventPositions.filter((e) => e.time <= cursorTime);
+  }, [cursorTime, eventPositions, isReplay]);
+
   const reasoningPositions = useMemo<ReasoningRenderPosition[]>(() => {
     if (!geometry) return [];
     const { timeToX, priceToY } = geometry;
@@ -414,6 +454,7 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
       id: item.id,
       x: timeToX(item.time),
       y: priceToY(item.price),
+      time: item.time,
       intent: item.intent,
       regime: item.regime,
       confidence: item.confidence,
@@ -427,6 +468,38 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
     if (!targetEventId) return null;
     return reasoningPositions.find((item) => item.eventId === targetEventId) ?? null;
   }, [hoveredEventId, reasoningPositions, selectedEventId]);
+
+  const effectiveReasoning = useMemo(() => {
+    if (!isReplay || cursorTime === null) return reasoningPositions;
+    return reasoningPositions.filter((r) => r.eventId && r.x >= 0 && r.time <= cursorTime);
+  }, [cursorTime, isReplay, reasoningPositions]);
+
+  useEffect(() => {
+    if (!isReplay) return;
+    if (cursorTime === null) return;
+    const nearest = effectiveEvents
+      .filter((e) => e.time <= cursorTime)
+      .sort((a, b) => Math.abs(b.time - cursorTime) - Math.abs(a.time - cursorTime))
+      .pop();
+    if (nearest) {
+      setHoveredEventId(nearest.id);
+      const date = new Date(nearest.time);
+      const reasoningLabel = activeReasoning
+        ? ` · Intent: ${activeReasoning.intent} · Regime: ${activeReasoning.regime} · Conf: ${activeReasoning.confidence}`
+        : "";
+      setTooltip({
+        x: nearest.x,
+        y: nearest.y,
+        label: `${nearest.type.toUpperCase()} @ ${nearest.price.toFixed(2)} · ${date.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}${reasoningLabel}`,
+      });
+    } else {
+      setHoveredEventId(null);
+      setTooltip(null);
+    }
+  }, [activeReasoning, cursorTime, effectiveEvents, isReplay]);
 
   useEffect(() => {
     if (!geometry) return;
@@ -443,7 +516,7 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
     ctx.clearRect(0, 0, width, height);
 
     ctx.lineWidth = 1.5;
-    eventPositions.forEach((event) => {
+    effectiveEvents.forEach((event) => {
       const isHovered = hoveredEventId === event.id;
       const isSelected = selectedEventId === event.id;
       const baseColor =
@@ -480,7 +553,7 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
         ctx.stroke();
       }
     });
-  }, [colors, eventPositions, geometry, height, hoveredEventId, selectedEventId, width]);
+  }, [colors, effectiveEvents, geometry, height, hoveredEventId, selectedEventId, width]);
 
   useEffect(() => {
     if (!geometry) return;
@@ -496,7 +569,7 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
     ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, width, height);
 
-    reasoningPositions.forEach((anchor) => {
+    effectiveReasoning.forEach((anchor) => {
       const isActive = activeReasoning?.id === anchor.id;
       ctx.strokeStyle = isActive ? colors.reasoningActive : colors.reasoningAnchor;
       ctx.fillStyle = isActive ? colors.reasoningActive : colors.reasoningAnchor;
@@ -522,9 +595,35 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
         ctx.stroke();
       }
     });
-  }, [activeReasoning, colors.reasoningActive, colors.reasoningAnchor, geometry, height, reasoningPositions, width]);
+  }, [activeReasoning, colors.reasoningActive, colors.reasoningAnchor, effectiveReasoning, geometry, height, width]);
 
   useEffect(() => {
+    const layer = cursorRef.current;
+    if (!layer) return;
+    const ctx = layer.getContext("2d");
+    if (!ctx) return;
+    const dpr = getDevicePixelRatioSafe();
+    layer.width = width * dpr;
+    layer.height = height * dpr;
+    layer.style.width = `${width}px`;
+    layer.style.height = `${height}px`;
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, width, height);
+
+    if (!isReplay || cursorTime === null || !geometry) return;
+    const x = geometry.timeToX(Math.min(Math.max(cursorTime, geometry.minTime), geometry.maxTime));
+    ctx.strokeStyle = colors.muted;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 4]);
+    ctx.beginPath();
+    ctx.moveTo(x, geometry.padding.top);
+    ctx.lineTo(x, height - geometry.padding.bottom);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }, [colors.muted, cursorTime, geometry, height, isReplay, width]);
+
+  useEffect(() => {
+    if (isReplay) return undefined;
     const id = setInterval(() => {
       setBars((prev) => {
         if (prev.length === 0) {
@@ -536,7 +635,7 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
       });
     }, 8000);
     return () => clearInterval(id);
-  }, []);
+  }, [isReplay]);
 
   useEffect(() => {
     setEvents(deriveMockEvents(bars));
@@ -545,6 +644,13 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
   useEffect(() => {
     setReasoning(deriveReasoning(events));
   }, [events]);
+
+  useEffect(() => {
+    if (!isReplay) return;
+    if (!geometry) return;
+    const lastTime = geometry.maxTime;
+    setCursorTime((prev) => (prev === null ? lastTime : Math.min(Math.max(prev, geometry.minTime), geometry.maxTime)));
+  }, [geometry, isReplay]);
 
   return (
     <div
@@ -600,11 +706,51 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
         onMouseLeave={() => {
           setHoveredEventId(null);
           setTooltip(null);
+          setIsDraggingCursor(false);
         }}
-        onClick={() => {
+        onMouseDown={(event) => {
+          if (!geometry) return;
+          if (!isReplay) return;
+          const rect = (event.currentTarget as HTMLCanvasElement).getBoundingClientRect();
+          const x = event.clientX - rect.left;
+          const time = geometry.xToTime(x);
+          setCursorTime(time);
+          setIsDraggingCursor(true);
+        }}
+        onMouseUp={() => {
+          setIsDraggingCursor(false);
+        }}
+        onClick={(event) => {
+          if (!geometry) return;
+          if (isReplay) {
+            const rect = (event.currentTarget as HTMLCanvasElement).getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const time = geometry.xToTime(x);
+            setCursorTime(time);
+          }
           if (hoveredEventId) {
             setSelectedEventId(hoveredEventId);
           }
+        }}
+        onWheel={(event) => {
+          if (!isReplay || !geometry) return;
+          event.preventDefault();
+          const direction = event.deltaY > 0 ? 1 : -1;
+          const step = BASE_BAR_INTERVAL * CURSOR_WHEEL_STEP;
+          const nextTime = (cursorTime ?? geometry.maxTime) + direction * step;
+          const clamped = Math.min(Math.max(nextTime, geometry.minTime), geometry.maxTime);
+          setCursorTime(clamped);
+        }}
+      />
+      <canvas
+        ref={cursorRef}
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "block",
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none",
         }}
       />
       <canvas
@@ -640,6 +786,62 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
           {tooltip.label}
         </div>
       ) : null}
+      <div
+        style={{
+          position: "absolute",
+          top: 8,
+          right: 8,
+          display: "flex",
+          gap: 6,
+          pointerEvents: "auto",
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            setIsReplay(false);
+            setCursorTime(null);
+            setIsDraggingCursor(false);
+            setHoveredEventId(null);
+            setTooltip(null);
+          }}
+          aria-pressed={!isReplay}
+          style={{
+            padding: "4px 8px",
+            fontSize: 11,
+            fontWeight: 700,
+            borderRadius: 12,
+            border: `1px solid ${colors.grid}`,
+            color: isReplay ? colors.muted : colors.text,
+            backgroundColor: isReplay ? colors.chrome : colors.up,
+            cursor: "pointer",
+          }}
+        >
+          Live
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setIsReplay(true);
+            if (geometry) {
+              setCursorTime((prev) => (prev === null ? geometry.maxTime : Math.min(Math.max(prev, geometry.minTime), geometry.maxTime)));
+            }
+          }}
+          aria-pressed={isReplay}
+          style={{
+            padding: "4px 8px",
+            fontSize: 11,
+            fontWeight: 700,
+            borderRadius: 12,
+            border: `1px solid ${colors.grid}`,
+            color: isReplay ? colors.text : colors.muted,
+            backgroundColor: isReplay ? colors.eventTarget : colors.chrome,
+            cursor: "pointer",
+          }}
+        >
+          Replay
+        </button>
+      </div>
     </div>
   );
 }
