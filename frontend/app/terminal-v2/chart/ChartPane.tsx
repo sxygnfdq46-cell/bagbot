@@ -304,14 +304,17 @@ type ChartGeometry = {
   xToTime: (x: number) => number;
 };
 
-const isValidBar = (bar: Bar | null | undefined): bar is Bar =>
-  Boolean(bar) &&
-  Number.isFinite(bar.time) &&
-  Number.isFinite(bar.open) &&
-  Number.isFinite(bar.high) &&
-  Number.isFinite(bar.low) &&
-  Number.isFinite(bar.close) &&
-  Number.isFinite(bar.volume);
+const isValidBar = (bar: Bar | null | undefined): bar is Bar => {
+  if (!bar) return false;
+  return (
+    Number.isFinite(bar.time) &&
+    Number.isFinite(bar.open) &&
+    Number.isFinite(bar.high) &&
+    Number.isFinite(bar.low) &&
+    Number.isFinite(bar.close) &&
+    Number.isFinite(bar.volume)
+  );
+};
 
 const isValidBars = (bars: Bar[] | null | undefined): bars is Bar[] =>
   Array.isArray(bars) && bars.length > 0 && bars.every(isValidBar);
