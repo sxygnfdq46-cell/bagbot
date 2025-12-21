@@ -150,7 +150,7 @@ export function computeTrendIndicators(bars: Bar[]) {
     } else {
       senkouB.push((highest(highs, 52, i) + lowest(lows, 52, i)) / 2);
     }
-    chikou.push(bars[i].close);
+    chikou.push(safeBars[i]?.close ?? NaN);
   });
 
   // shift senkou ahead 26 periods
@@ -213,7 +213,7 @@ export function computeVolatilityIndicators(bars: Bar[]) {
       tr.push(bar.high - bar.low);
       return;
     }
-    const prevClose = bars[i - 1].close;
+    const prevClose = safeBars[i - 1]?.close ?? bar.close;
     const highLow = bar.high - bar.low;
     const highClose = Math.abs(bar.high - prevClose);
     const lowClose = Math.abs(bar.low - prevClose);
@@ -331,7 +331,7 @@ export function computeMomentumIndicators(bars: Bar[]) {
 
   const williamsPeriod = 14;
   const williamsR: number[] = [];
-  bars.forEach((_, i) => {
+  safeBars.forEach((_, i) => {
     if (i + 1 < williamsPeriod) {
       williamsR.push(NaN);
       return;
@@ -367,7 +367,8 @@ export function computeVolumeIndicators(bars: Bar[]) {
     if (i === 0) {
       obv.push(bar.volume);
     } else {
-      const delta = bar.close > bars[i - 1].close ? bar.volume : bar.close < bars[i - 1].close ? -bar.volume : 0;
+      const prev = safeBars[i - 1];
+      const delta = prev ? (bar.close > prev.close ? bar.volume : bar.close < prev.close ? -bar.volume : 0) : 0;
       obv.push(obv[i - 1] + delta);
     }
   });
@@ -513,18 +514,21 @@ export function computeMarketStructureTools(bars: Bar[]) {
 }
 
 export function computeFibonacci(bars: Bar[]) {
-  if (bars.length === 0) return { retracement: null, extension: null, fan: null };
-  const highs = bars.map((b) => b.high);
-  const lows = bars.map((b) => b.low);
+  const safeBars = ensureBars(bars);
+  if (safeBars.length < 2) return { retracement: null, extension: null, fan: null };
+  const highs = safeBars.map((b) => b.high);
+  const lows = safeBars.map((b) => b.low);
 
   const maxHigh = Math.max(...highs);
   const minLow = Math.min(...lows);
   const highIdx = highs.indexOf(maxHigh);
   const lowIdx = lows.indexOf(minLow);
+  if (highIdx === -1 || lowIdx === -1) return { retracement: null, extension: null, fan: null };
   const startIdx = lowIdx < highIdx ? lowIdx : highIdx;
   const endIdx = lowIdx < highIdx ? highIdx : lowIdx;
-  const start = bars[startIdx];
-  const end = bars[endIdx];
+  const start = safeBars[startIdx];
+  const end = safeBars[endIdx];
+  if (!start || !end) return { retracement: null, extension: null, fan: null };
 
   const baseRange = end.close - start.close;
   const retraceLevels = [0, 23.6, 38.2, 50, 61.8, 78.6, 100];
@@ -536,10 +540,11 @@ export function computeFibonacci(bars: Bar[]) {
 
   // extensions based on last swing -> pullback -> continuation using last three pivots
   const pivots: { idx: number; type: "high" | "low"; price: number }[] = [];
-  for (let i = 2; i < bars.length - 2; i += 1) {
-    const prev = bars[i - 1];
-    const curr = bars[i];
-    const next = bars[i + 1];
+  for (let i = 2; i < safeBars.length - 2; i += 1) {
+    const prev = safeBars[i - 1];
+    const curr = safeBars[i];
+    const next = safeBars[i + 1];
+    if (!prev || !curr || !next) continue;
     if (curr.high > prev.high && curr.high > next.high) {
       pivots.push({ idx: i, type: "high", price: curr.high });
     }
@@ -552,9 +557,9 @@ export function computeFibonacci(bars: Bar[]) {
   let extMid = start;
   let extEnd = end;
   if (recent.length === 3) {
-    extStart = bars[recent[0].idx];
-    extMid = bars[recent[1].idx];
-    extEnd = bars[recent[2].idx];
+    extStart = safeBars[recent[0].idx] ?? extStart;
+    extMid = safeBars[recent[1].idx] ?? extMid;
+    extEnd = safeBars[recent[2].idx] ?? extEnd;
   }
   const extRange = extMid.close - extStart.close;
   const extensionLevels = [127.2, 161.8, 261.8];
