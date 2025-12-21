@@ -69,6 +69,19 @@ type SectionGeometry = {
   height: number;
 };
 
+type ProjectionScenario = {
+  id: "continuation" | "reversion" | "range";
+  path: { time: number; price: number }[];
+};
+
+type ProjectionEnvelope = {
+  base: { time: number; price: number }[];
+  upper: { time: number; price: number }[];
+  lower: { time: number; price: number }[];
+  riskBand: { time: number; upper: number; lower: number }[];
+  scenarios: ProjectionScenario[];
+};
+
 const BASE_BAR_INTERVAL = 60 * 1000; // 1m bars
 const DEFAULT_BAR_COUNT = 120;
 const MAX_HISTORY = 240;
@@ -447,6 +460,78 @@ function drawChart({
   }
 }
 
+function computeProjections(bars: Bar[], indicators: ReturnType<typeof computeIndicators>): ProjectionEnvelope | null {
+  if (bars.length === 0) return null;
+  const horizonBars = 20;
+  const lookback = Math.min(24, bars.length);
+  const recent = bars.slice(-lookback);
+  const times = recent.map((b) => b.time);
+  const closes = recent.map((b) => b.close);
+  const n = closes.length;
+  if (n < 2) return null;
+
+  const meanX = times.reduce((a, b) => a + b, 0) / n;
+  const meanY = closes.reduce((a, b) => a + b, 0) / n;
+  let num = 0;
+  let den = 0;
+  for (let i = 0; i < n; i += 1) {
+    const dx = times[i] - meanX;
+    num += dx * (closes[i] - meanY);
+    den += dx * dx;
+  }
+  const slopePerMs = den === 0 ? 0 : num / den;
+  const slopePerBar = slopePerMs * BASE_BAR_INTERVAL;
+  const lastBar = bars[bars.length - 1];
+  const startPrice = lastBar.close;
+
+  const atr = indicators.volatility.atr[indicators.volatility.atr.length - 1] ?? 0;
+  const std = indicators.volatility.stdDev20[indicators.volatility.stdDev20.length - 1] ?? 0;
+  const volatility = Number.isFinite(atr) && atr > 0 ? atr : Math.max(std, 0.1);
+
+  const regime = (() => {
+    const ema20 = indicators.trend.ema20[indicators.trend.ema20.length - 1] ?? startPrice;
+    const ema50 = indicators.trend.ema50[indicators.trend.ema50.length - 1] ?? startPrice;
+    if (startPrice > ema20 && ema20 > ema50) return "trend";
+    if (startPrice < ema20 && ema20 < ema50) return "downtrend";
+    return "range";
+  })();
+
+  const base: { time: number; price: number }[] = [];
+  const upper: { time: number; price: number }[] = [];
+  const lower: { time: number; price: number }[] = [];
+  const riskBand: { time: number; upper: number; lower: number }[] = [];
+  const scenarios: ProjectionScenario[] = [
+    { id: "continuation", path: [] },
+    { id: "reversion", path: [] },
+    { id: "range", path: [] },
+  ];
+
+  for (let i = 1; i <= horizonBars; i += 1) {
+    const t = lastBar.time + i * BASE_BAR_INTERVAL;
+    const drift = slopePerBar * i;
+    const spread = volatility * Math.sqrt(i);
+    const basePrice = startPrice + drift;
+    base.push({ time: t, price: basePrice });
+    upper.push({ time: t, price: basePrice + spread });
+    lower.push({ time: t, price: basePrice - spread });
+    riskBand.push({ time: t, upper: basePrice + spread * 1.6, lower: basePrice - spread * 1.6 });
+
+    const contSlope = drift;
+    const revSlope = -Math.abs(drift) * 0.8;
+    const rangeSlope = 0;
+    scenarios[0].path.push({ time: t, price: startPrice + contSlope });
+    scenarios[1].path.push({ time: t, price: startPrice + revSlope });
+    scenarios[2].path.push({ time: t, price: startPrice + rangeSlope });
+  }
+
+  // Regime slight adjustments
+  if (regime === "range") {
+    scenarios[0].path = scenarios[2].path.map((p) => ({ ...p }));
+  }
+
+  return { base, upper, lower, riskBand, scenarios };
+}
+
 function drawIndicators({
   canvas,
   bars,
@@ -815,10 +900,112 @@ function drawIndicators({
   );
 }
 
+function drawProjections({
+  canvas,
+  bars,
+  colors,
+  width,
+  height,
+  geometry,
+  projections,
+  highlightedScenario,
+}: {
+  canvas: HTMLCanvasElement;
+  bars: Bar[];
+  colors: ReturnType<typeof usePaneColors>;
+  width: number;
+  height: number;
+  geometry: ChartGeometry;
+  projections: ProjectionEnvelope | null;
+  highlightedScenario: number;
+}) {
+  if (!canvas || !geometry || !projections || bars.length === 0) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  const dpr = getDevicePixelRatioSafe();
+  canvas.width = width * dpr;
+  canvas.height = height * dpr;
+  canvas.style.width = `${width}px`;
+  canvas.style.height = `${height}px`;
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, width, height);
+
+  const { padding, plotWidth, minTime } = geometry;
+  const baseMaxTime = geometry.maxTime;
+  const lastProjectionTime = projections.base[projections.base.length - 1]?.time ?? baseMaxTime;
+  const projMaxTime = Math.max(baseMaxTime, lastProjectionTime);
+  const timeToXProj = (time: number) => padding.left + ((time - minTime) / (projMaxTime - minTime || 1)) * plotWidth;
+  const priceToY = geometry.priceToY;
+
+  const drawPath = (points: { time: number; price: number }[], color: string, widthPx: number, dash: number[], alpha: number) => {
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = alpha;
+    ctx.lineWidth = widthPx;
+    ctx.setLineDash(dash);
+    ctx.beginPath();
+    let started = false;
+    points.forEach((p) => {
+      const x = timeToXProj(p.time);
+      const y = priceToY(p.price);
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+      if (!started) {
+        ctx.moveTo(x, y);
+        started = true;
+      } else {
+        ctx.lineTo(x, y);
+      }
+    });
+    ctx.stroke();
+    ctx.restore();
+  };
+
+  // risk envelope
+  ctx.save();
+  ctx.fillStyle = "rgba(160, 170, 190, 0.08)";
+  ctx.strokeStyle = "rgba(160, 170, 190, 0.18)";
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  projections.riskBand.forEach((pt, idx) => {
+    const x = timeToXProj(pt.time);
+    const y = priceToY(pt.upper);
+    if (idx === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  });
+  for (let i = projections.riskBand.length - 1; i >= 0; i -= 1) {
+    const pt = projections.riskBand[i];
+    const x = timeToXProj(pt.time);
+    const y = priceToY(pt.lower);
+    ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+
+  // base and bounds
+  drawPath(projections.base, "rgba(200, 210, 230, 0.8)", 1.2, [6, 5], 0.9);
+  drawPath(projections.upper, "rgba(200, 210, 230, 0.6)", 1, [4, 4], 0.7);
+  drawPath(projections.lower, "rgba(200, 210, 230, 0.6)", 1, [4, 4], 0.7);
+
+  // scenario forks
+  projections.scenarios.forEach((scenario, idx) => {
+    const isActive = idx === highlightedScenario;
+    const alpha = isActive ? 0.9 : 0.4;
+    const widthPx = isActive ? 1.4 : 1;
+    drawPath(scenario.path, "rgba(180, 190, 210, 1)", widthPx, [2, 3], alpha);
+  });
+}
+
 export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const indicatorRef = useRef<HTMLCanvasElement>(null);
+  const projectionRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
   const reasoningRef = useRef<HTMLCanvasElement>(null);
   const cursorRef = useRef<HTMLCanvasElement>(null);
@@ -833,6 +1020,8 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
   const [isReplay, setIsReplay] = useState(false);
   const [cursorTime, setCursorTime] = useState<number | null>(null);
   const [isDraggingCursor, setIsDraggingCursor] = useState(false);
+  const [showProjections, setShowProjections] = useState(false);
+  const [highlightedScenario, setHighlightedScenario] = useState(0);
 
   const visibleBars = useMemo(() => {
     if (!isReplay || cursorTime === null) return bars;
@@ -846,6 +1035,8 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
   const geometry = useMemo(() => computeGeometry(visibleBars, width, height), [visibleBars, width, height]);
 
   const indicators = useMemo(() => computeIndicators(visibleBars), [visibleBars]);
+
+  const projections = useMemo(() => computeProjections(visibleBars, indicators), [indicators, visibleBars]);
 
   useEffect(() => {
     if (!geometry) return;
@@ -864,6 +1055,28 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
       indicators,
     });
   }, [colors, geometry, height, indicators, visibleBars, width]);
+
+  useEffect(() => {
+    if (!geometry) return;
+    if (!showProjections) {
+      const canvas = projectionRef.current as HTMLCanvasElement;
+      const ctx = canvas?.getContext("2d");
+      if (ctx) {
+        ctx.clearRect(0, 0, width, height);
+      }
+      return;
+    }
+    drawProjections({
+      canvas: projectionRef.current as HTMLCanvasElement,
+      bars: visibleBars,
+      colors,
+      width,
+      height,
+      geometry,
+      projections,
+      highlightedScenario,
+    });
+  }, [colors, geometry, height, highlightedScenario, projections, showProjections, visibleBars, width]);
 
   const eventPositions = useMemo<EventRenderPosition[]>(() => {
     if (!geometry) return [];
@@ -1108,6 +1321,17 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
         }}
       />
       <canvas
+        ref={projectionRef}
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "block",
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none",
+        }}
+      />
+      <canvas
         ref={overlayRef}
         style={{
           position: "absolute",
@@ -1178,7 +1402,60 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
             return;
           }
 
-          // 3) fibonacci levels
+          // 3) projections (cone + scenarios)
+          const distToPolyline = (points: { time: number; price: number }[]) => {
+            let best = Number.MAX_VALUE;
+            let bestPoint: { x: number; y: number } | null = null;
+            for (let i = 0; i < points.length - 1; i += 1) {
+              const p1 = points[i];
+              const p2 = points[i + 1];
+              const x1 = geometry.timeToX(p1.time);
+              const y1 = geometry.priceToY(p1.price);
+              const x2 = geometry.timeToX(p2.time);
+              const y2 = geometry.priceToY(p2.price);
+              const dx = x2 - x1;
+              const dy = y2 - y1;
+              const lenSq = dx * dx + dy * dy || 1;
+              const tProj = Math.max(0, Math.min(1, ((x - x1) * dx + (y - y1) * dy) / lenSq));
+              const projX = x1 + tProj * dx;
+              const projY = y1 + tProj * dy;
+              const dist = Math.hypot(projX - x, projY - y);
+              if (dist < best) {
+                best = dist;
+                bestPoint = { x: projX, y: projY };
+              }
+            }
+            return { dist: best, point: bestPoint };
+          };
+
+          if (showProjections && projections) {
+            const scenarioHit = projections.scenarios
+              .map((sc, idx) => ({ idx, ...distToPolyline(sc.path) }))
+              .sort((a, b) => a.dist - b.dist)[0];
+            if (scenarioHit && scenarioHit.dist < 10 && scenarioHit.point) {
+              setTooltip({
+                x: scenarioHit.point.x,
+                y: scenarioHit.point.y,
+                label:
+                  scenarioHit.idx === 0
+                    ? "Regime: continuation"
+                    : scenarioHit.idx === 1
+                    ? "Regime: reversion"
+                    : "Regime: range",
+              });
+              setHoveredEventId(null);
+              return;
+            }
+
+            const baseHit = distToPolyline(projections.base);
+            if (baseHit.point && baseHit.dist < 8) {
+              setTooltip({ x: baseHit.point.x, y: baseHit.point.y, label: "Volatility-weighted forward envelope" });
+              setHoveredEventId(null);
+              return;
+            }
+          }
+
+          // 4) fibonacci levels
           if (indicators.fibonacci.retracement) {
             const startX = geometry.timeToX(indicators.fibonacci.retracement.start.time);
             const endX = geometry.timeToX(indicators.fibonacci.retracement.end.time);
@@ -1203,7 +1480,7 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
             }
           }
 
-          // 4) indicators & price
+          // 5) indicators & price
           if (visibleBars.length === 0) {
             setHoveredEventId(null);
             setTooltip(null);
@@ -1345,7 +1622,7 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
         }}
       />
       <canvas
-        ref={cursorRef}
+        ref={reasoningRef}
         style={{
           position: "absolute",
           inset: 0,
@@ -1356,7 +1633,7 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
         }}
       />
       <canvas
-        ref={reasoningRef}
+        ref={cursorRef}
         style={{
           position: "absolute",
           inset: 0,
@@ -1442,6 +1719,25 @@ export function ChartPane({ paneId, themeMode }: { paneId: string; themeMode: st
           }}
         >
           Replay
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setShowProjections((prev) => !prev);
+          }}
+          aria-pressed={showProjections}
+          style={{
+            padding: "4px 8px",
+            fontSize: 11,
+            fontWeight: 700,
+            borderRadius: 12,
+            border: `1px solid ${colors.grid}`,
+            color: showProjections ? colors.text : colors.muted,
+            backgroundColor: showProjections ? colors.eventHighlight : colors.chrome,
+            cursor: "pointer",
+          }}
+        >
+          Projections
         </button>
       </div>
     </div>
