@@ -1,0 +1,85 @@
+# Prometheus alert rules for BagBot
+# These rules define alerts for monitoring BagBot worker health and job processing
+# Thresholds are initial values and should be tuned after 24h of staging data
+
+groups:
+  - name: bagbot_alerts
+    interval: 30s
+    rules:
+      # Alert when worker heartbeat is stale (worker may be down or stuck)
+      - alert: WorkerHeartbeatStale
+        expr: bagbot_heartbeat_age_seconds > 120
+        for: 2m
+        labels:
+          severity: critical
+          component: worker
+        annotations:
+          summary: "Worker {{ $labels.worker_id }} heartbeat is stale"
+          description: |
+            Worker {{ $labels.worker_id }} has not sent a heartbeat for {{ $value }} seconds.
+            This may indicate the worker is down, stuck, or experiencing network issues.
+            Current value: {{ $value }}s
+            Threshold: 120s
+            
+      # Alert when job error rate spikes (high number of job failures)
+      - alert: JobErrorSpike
+        expr: |
+          (
+            rate(bagbot_job_run_total{result="error"}[5m]) 
+            / 
+            (rate(bagbot_job_run_total[5m]) > 0)
+          ) > 0.2 and rate(bagbot_job_run_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          component: jobs
+        annotations:
+          summary: "High error rate for job {{ $labels.job_path }}"
+          description: |
+            Job {{ $labels.job_path }} is experiencing a high error rate.
+            Error rate: {{ $value | humanizePercentage }}
+            Threshold: 20%
+            This may indicate issues with job execution, dependencies, or external services.
+            
+      # Alternative error spike based on absolute count (useful when traffic is low)
+      - alert: JobErrorSpikeAbsolute
+        expr: rate(bagbot_job_run_total{result="error"}[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: jobs
+        annotations:
+          summary: "High error count for job {{ $labels.job_path }}"
+          description: |
+            Job {{ $labels.job_path }} is generating errors at a high rate.
+            Error rate: {{ $value }} errors/sec
+            Threshold: 0.5 errors/sec
+            
+      # Alert when retry rate is unusually high (may indicate persistent failures)
+      - alert: JobRetryFlood
+        expr: rate(bagbot_retry_scheduled_total[5m]) > 1.0
+        for: 5m
+        labels:
+          severity: warning
+          component: jobs
+        annotations:
+          summary: "High retry rate for job {{ $labels.job_path }}"
+          description: |
+            Job {{ $labels.job_path }} is being retried at an unusually high rate.
+            Retry rate: {{ $value }} retries/sec
+            Threshold: 1.0 retries/sec
+            This may indicate persistent failures that require investigation.
+            
+      # Alert when retry count exceeds a threshold in absolute terms
+      - alert: JobRetryFloodAbsolute
+        expr: increase(bagbot_retry_scheduled_total[10m]) > 50
+        for: 2m
+        labels:
+          severity: critical
+          component: jobs
+        annotations:
+          summary: "Excessive retry count for job {{ $labels.job_path }}"
+          description: |
+            Job {{ $labels.job_path }} has been retried {{ $value }} times in the last 10 minutes.
+            Threshold: 50 retries
+            This suggests a critical issue preventing job completion.
